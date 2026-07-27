@@ -1,0 +1,347 @@
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    min-height: 100%;
+}
+
+body {
+    background: #b9b8b1;
+    color: #000;
+    font-family: Helvetica, Arial, sans-serif;
+}
+
+.site-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 40px;
+    padding: 18px 36px 0;
+}
+
+.site-name,
+.site-nav a {
+    font-size: clamp(32px, 4vw, 64px);
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: -0.055em;
+    text-decoration: none;
+}
+
+.site-name {
+    color: #000;
+    white-space: nowrap;
+}
+
+.site-nav {
+    display: flex;
+    justify-content: space-between;
+    flex: 1;
+    gap: clamp(30px, 5vw, 95px);
+}
+
+.shop {
+    color: #0057ff;
+}
+
+.about {
+    color: #ff7426;
+}
+
+.work {
+    color: #000;
+}
+
+.exhibitions {
+    color: #ffe100;
+}
+
+h.homepage {
+    display: flex;
+    justify-content: flex-end;
+    padding: 70px 90px 60px 40px;
+}
+
+.homepage-image {
+    display: block;
+    width: min(62vw, 1060px);
+    height: auto;
+    margin: 0;
+}
+
+@media (max-width: 900px) {
+    .site-header {
+        display: block;
+        padding: 20px;
+    }
+
+    .site-nav {
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        gap: 14px 28px;
+        margin-top: 22px;
+    }
+
+    .site-name,
+    .site-nav a {
+        font-size: clamp(30px, 9vw, 54px);
+    }
+
+    .homepage {
+        padding: 55px 20px 40px;
+    }
+
+    .homepage-image {
+        width: 100%;
+    }
+}
+.homepage {
+    display: block;
+    padding: 70px 90px 60px 40px;
+}
+
+.homepage-image {
+    display: block;
+    width: min(62vw, 1060px);
+    height: auto;
+    margin-left: auto;
+    margin-right: 0;
+}
+.work-page {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 100px 40px;
+}
+
+.work-page a {
+    color: #000;
+    font-size: clamp(48px, 7vw, 110px);
+    line-height: 0.95;
+    letter-spacing: -0.06em;
+    text-decoration: none;
+}
+
+.work-page a:hover {
+    opacity: 0.45;
+}
+/* SMALLER DESKTOP HOMEPAGE */
+
+@media (min-width: 901px) {
+    .site-header {
+        gap: 28px;
+        padding: 18px 32px 0;
+    }
+
+    .site-name,
+    .site-nav a {
+        font-size: clamp(26px, 3vw, 48px);
+        letter-spacing: -0.045em;
+    }
+
+    .site-nav {
+        gap: clamp(20px, 3.5vw, 65px);
+    }
+
+    .homepage {
+        padding-top: 58px;
+        padding-right: 75px;
+    }
+
+    .homepage-image {
+        width: min(55vw, 900px);
+    }
+}
+@media (min-width: 901px) {
+    .site-header {
+        display: flex;
+        align-items: flex-start;
+        padding: 16px 30px 0;
+        gap: 20px;
+    }
+
+    .site-name {
+        font-size: 36px;
+        letter-spacing: -0.045em;
+        white-space: nowrap;
+    }
+
+    .site-nav {
+        margin-left: auto;
+        flex: 0 0 auto;
+        display: flex;
+        justify-content: flex-end;
+        gap: 30px;
+    }
+
+    .site-nav a {
+        font-size: 27px;
+        letter-spacing: -0.04em;
+    }
+}
+.random-archive-button {
+    position: fixed;
+    left: 25px;
+    bottom: 20px;
+    width: 280px;
+    z-index: 10;
+}
+
+.random-archive-button img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.random-archive-button:hover {
+    transform: rotate(-1deg) scale(1.02);
+}
+
+@media (max-width: 700px) {
+    .random-archive-button {
+        left: 15px;
+        bottom: 15px;
+        width: 190px;
+    }
+}
+/* RANDOM DRAWING PAGE */
+
+.random-page {
+    min-height: 100vh;
+    background: white;
+}
+
+.random-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 25px 35px;
+}
+
+.random-header a,
+.random-header button {
+    border: 0;
+    background: none;
+    color: #000;
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 27px;
+    letter-spacing: -0.04em;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.random-header a:hover,
+.random-header button:hover {
+    opacity: 0.45;
+}
+
+.random-display {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 90px);
+    padding: 40px;
+}
+
+.random-display img {
+    display: block;
+    max-width: min(75vw, 1100px);
+    max-height: 75vh;
+    object-fit: contain;
+}
+.random-archive-button img {
+    transition: filter 0.25s ease;
+}
+
+.random-archive-button:hover {
+    transform: none;
+    opacity: 1;
+}
+
+.random-archive-button:hover img {
+    filter: brightness(0) saturate(100%)
+            invert(16%) sepia(99%)
+            saturate(7078%) hue-rotate(359deg)
+            brightness(96%) contrast(118%);
+}
+.random-archive-button {
+    width: 390px;
+}
+
+@media (max-width: 700px) {
+    .random-archive-button {
+        width: 360px;
+        max-width: calc(100vw - 30px);
+    }
+}
+
+.home-header .site-nav {
+    margin-left: auto;
+}
+.about-links {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 100px 40px;
+}
+
+.about-links a {
+    color: #000;
+    font-size: clamp(48px, 7vw, 110px);
+    line-height: 0.95;
+    letter-spacing: -0.06em;
+    text-decoration: none;
+}
+
+.about-links a:hover {
+    opacity: 0.45;
+}
+.site-header {
+    display: flex;
+    align-items: flex-start;
+    padding: 16px 30px 0;
+}
+
+.site-name {
+    color: #000;
+    font-size: 36px;
+    letter-spacing: -0.045em;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.site-nav {
+    display: flex;
+    gap: 30px;
+    margin-left: auto;
+}
+
+.site-nav a {
+    font-size: 27px;
+    letter-spacing: -0.04em;
+    text-decoration: none;
+}
+
+/* INDIVIDUAL LINK COLOURS */
+
+.nav-work {
+    color: #000;
+}
+
+.nav-about {
+    color: #ffe604;
+}
+
+.nav-shop {
+    color: #0057ff;
+}
+
+.site-nav a:hover,
+.site-name:hover {
+    opacity: 0.45;
+}

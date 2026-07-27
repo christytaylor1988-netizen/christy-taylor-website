@@ -1,0 +1,17 @@
+const drawings = [
+    "images/ipad-drawings/Untitled_Artwork 102.jpg",
+    "images/ipad-drawings/Untitled_Artwork 283.jpg",
+    "images/ipad-drawings/Untitled_Artwork 301.jpg",
+    "images/ipad-drawings/Untitled_Artwork 349.jpg",
+    "images/ipad-drawings/Untitled_Artwork 353.jpg",
+    "images/ipad-drawings/Untitled_Artwork 399.jpg",
+    "images/ipad-drawings/Untitled_Artwork 443.jpg",
+    "images/ipad-drawings/Untitled_Artwork 445.jpg",
+    "images/ipad-drawings/Untitled_Artwork 49.jpg",
+    "images/ipad-drawings/Untitled_Artwork 58.jpg",
+    "images/ipad-drawings/Untitled_Artwork 78.jpg",
+    "images/ipad-drawings/beach 1.jpg",
+    "images/ipad-drawings/bus8.jpg",
+    "images/ipad-drawings/deary winner.jpg",
+    "images/ipad-drawings/sign winner.jpg",
+];
