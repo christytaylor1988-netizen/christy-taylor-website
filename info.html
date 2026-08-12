@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Shop Information — Christy Taylor</title>
+
+    <link rel="stylesheet" href="styles.css">
+
+    <style>
+
+        body {
+            background: #afb4a8;
+        }
+
+        .info-page {
+            max-width: 850px;
+            margin: 0 auto;
+            padding: 55px 30px 120px;
+            font-family: Helvetica, Arial, sans-serif;
+            color: #000;
+        }
+
+        .info-title {
+            margin: 0 0 60px;
+            font-size: 34px;
+            font-weight: 400;
+            line-height: 1.1;
+            letter-spacing: -0.035em;
+        }
+
+        .info-section {
+            margin-bottom: 55px;
+        }
+
+        .info-section h2 {
+            margin: 0 0 18px;
+            font-size: 23px;
+            font-weight: 400;
+            line-height: 1.2;
+            letter-spacing: -0.025em;
+        }
+
+        .info-section p {
+            margin: 0 0 14px;
+            max-width: 700px;
+            font-size: 17px;
+            line-height: 1.5;
+        }
+
+        .info-section a {
+            color: #000;
+        }
+
+        .technical-line {
+            margin-top: 55px;
+            font-family: "Fake Receipt", Helvetica, Arial, sans-serif !important;
+            font-size: 18px;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 700px) {
+
+            .info-page {
+                padding: 35px 20px 90px;
+            }
+
+            .info-title {
+                font-size: 30px;
+                margin-bottom: 45px;
+            }
+
+            .info-section {
+                margin-bottom: 45px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<header class="site-header">
+
+    <a class="site-name" href="index.html">Christy Taylor</a>
+
+    <nav class="site-nav">
+        <a href="drawings.html">Prints</a>
+        <a href="about.html">About</a>
+        <a href="shop.html">Shop</a>
+        <a href="basket.html" id="basketLink">Basket (0)</a>
+    </nav>
+
+</header>
+
+
+<main class="info-page">
+
+    <h1 class="info-title">Shop Information</h1>
+
+
+    <section class="info-section">
+
+        <h2>Shipping</h2>
+
+        <p>
+            Prints are currently available for delivery within the UK.
+        </p>
+
+        <p>
+            All prints are supplied unframed and are carefully packaged for delivery.
+        </p>
+
+    </section>
+
+
+    <section class="info-section">
+
+        <h2>Returns</h2>
+
+        <p>
+            If you change your mind about an order, please email within 14 days of receiving it.
+        </p>
+
+        <p>
+            You then have 14 days to return the print. Prints should be returned in their original condition and packaging.
+        </p>
+
+        <p>
+            Return postage is the responsibility of the customer unless the item is faulty, damaged or incorrect.
+        </p>
+
+        <p>
+            If your order arrives damaged or there is a problem with it, please get in touch and I will sort it out.
+        </p>
+
+    </section>
+
+
+    <section class="info-section">
+
+        <h2>Contact</h2>
+
+        <p>
+            For questions about an order, shipping or returns:
+        </p>
+
+        <p>
+            <a href="mailto:studio@christytaylor.co.uk">
+                studio@christytaylor.co.uk
+            </a>
+        </p>
+
+    </section>
+
+
+    <section class="info-section">
+
+        <h2>Privacy</h2>
+
+        <p>
+            Personal information supplied when placing an order is used to process and fulfil your order, communicate with you about it and meet any legal or accounting requirements.
+        </p>
+
+        <p>
+            Payments are processed securely by Stripe. I do not receive or store your full card details.
+        </p>
+
+        <p>
+            Order information may be retained where necessary for accounting, tax or legal purposes and is not sold to third parties.
+        </p>
+
+        <p>
+            For questions about your personal information, contact
+            <a href="mailto:studio@christytaylor.co.uk">
+                studio@christytaylor.co.uk
+            </a>.
+        </p>
+
+    </section>
+
+
+    <p class="technical-line">
+        SIGNED PRINTS · PRINTED IN HASTINGS · CHRISTYTAYLOR.CO.UK
+    </p>
+
+</main>
+
+
+<script>
+
+function getBasket() {
+
+    const basket = localStorage.getItem("christyBasket");
+
+    if (!basket) {
+        return [];
+    }
+
+    try {
+        return JSON.parse(basket);
+    } catch (error) {
+        return [];
+    }
+
+}
+
+
+function updateBasketCount() {
+
+    const basket = getBasket();
+
+    const totalItems = basket.reduce(
+        (total, item) => total + item.quantity,
+        0
+    );
+
+    document.getElementById("basketLink").textContent =
+        "Basket (" + totalItems + ")";
+
+}
+
+
+updateBasketCount();
+
+</script>
+
+
+</body>
+
+</html>

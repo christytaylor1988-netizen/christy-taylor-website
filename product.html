@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Print — Christy Taylor</title>
+
+    <link rel="stylesheet" href="styles.css">
+
+    <style>
+
+        body {
+            background: #afb4a8;
+        }
+
+        .product-page {
+            padding: 55px 30px 120px;
+        }
+
+        .product-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+            gap: 55px;
+            align-items: start;
+            max-width: 1500px;
+            margin: 0 auto;
+        }
+
+        .product-image-wrap {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            cursor: zoom-in;
+        }
+
+        .product-image-wrap img {
+            display: block;
+            max-width: 100%;
+            max-height: 680px;
+            width: auto;
+            height: auto;
+        }
+
+        .product-info {
+            font-family: Helvetica, Arial, sans-serif;
+            color: #000;
+        }
+
+        .product-title {
+            margin: 0 0 10px;
+            font-size: 30px;
+            font-weight: 400;
+            line-height: 1.1;
+            letter-spacing: -0.035em;
+        }
+
+        .product-price {
+            margin: 0 0 48px;
+            font-size: 21px;
+            line-height: 1.3;
+        }
+
+        .product-size {
+            margin: 0 0 30px;
+            font-size: 19px;
+            line-height: 1.4;
+        }
+
+        .product-description {
+            margin: 0 0 35px;
+            max-width: 520px;
+            font-size: 19px;
+            line-height: 1.4;
+        }
+
+        .product-details {
+            list-style: none;
+            margin: 0 0 20px;
+            padding: 0;
+            font-family: "Fake Receipt", Helvetica, Arial, sans-serif !important;
+        }
+
+        .product-details li {
+            font-family: "Fake Receipt", Helvetica, Arial, sans-serif !important;
+            font-size: 20px;
+            line-height: 1.5;
+        }
+
+        .product-details li::before {
+            content: "– ";
+        }
+
+        .shop-info-dropdown {
+            max-width: 520px;
+            margin: 0 0 38px;
+        }
+
+        .shop-info-dropdown summary {
+            cursor: pointer;
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 15px;
+            line-height: 1.4;
+            text-decoration: underline;
+            list-style: none;
+        }
+
+        .shop-info-dropdown summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .shop-info-dropdown summary::after {
+            content: " +";
+        }
+
+        .shop-info-dropdown[open] summary::after {
+            content: " −";
+        }
+
+        .shop-info-content {
+            margin-top: 18px;
+            max-width: 520px;
+        }
+
+        .shop-info-content h3 {
+            margin: 22px 0 8px;
+            font-size: 16px;
+            font-weight: 400;
+        }
+
+        .shop-info-content p {
+            margin: 0 0 10px;
+            font-size: 15px;
+            line-height: 1.45;
+        }
+
+        .shop-info-content a {
+            color: #000;
+        }
+
+        .add-to-basket {
+            display: inline-block;
+            background: #000;
+            color: #fff;
+            border: 0;
+            padding: 20px 36px;
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 27px;
+            font-weight: 400;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        .add-to-basket:hover {
+            opacity: 0.75;
+        }
+
+        .basket-message {
+            margin-top: 14px;
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 16px;
+        }
+
+        .image-lightbox {
+            position: fixed;
+            inset: 0;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            background: rgba(175, 180, 168, 0.97);
+            padding: 40px;
+            z-index: 9999;
+            cursor: zoom-out;
+        }
+
+        .image-lightbox.open {
+            display: flex;
+        }
+
+        .image-lightbox img {
+            display: block;
+            max-width: 94vw;
+            max-height: 92vh;
+            width: auto;
+            height: auto;
+        }
+
+        @media (max-width: 850px) {
+
+            .product-page {
+                padding: 35px 20px 90px;
+            }
+
+            .product-layout {
+                grid-template-columns: 1fr;
+                gap: 35px;
+            }
+
+            .product-image-wrap img {
+                max-height: 70vh;
+            }
+
+            .product-title {
+                font-size: 26px;
+            }
+
+            .product-price {
+                margin-bottom: 35px;
+            }
+
+            .add-to-basket {
+                font-size: 23px;
+                padding: 18px 30px;
+            }
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<header class="site-header">
+
+    <a class="site-name" href="index.html">Christy Taylor</a>
+
+    <nav class="site-nav">
+        <a href="drawings.html">Prints</a>
+        <a href="about.html">About</a>
+        <a href="shop.html">Shop</a>
+        <a href="basket.html" id="basketLink">Basket (0)</a>
+    </nav>
+
+</header>
+
+
+<main class="product-page">
+
+    <div class="product-layout">
+
+        <div
+            class="product-image-wrap"
+            id="productImageWrap"
+            role="button"
+            tabindex="0"
+            aria-label="Zoom print"
+        >
+
+            <img
+                id="productImage"
+                src=""
+                alt=""
+            >
+
+        </div>
+
+
+        <section class="product-info">
+
+            <h1 class="product-title" id="productTitle"></h1>
+
+            <p class="product-price" id="productPrice"></p>
+
+            <p class="product-size">
+                21 × 29.7 cm
+            </p>
+
+            <p class="product-description">
+                Signed print on Epson Archival Matte Paper using Epson Claria ET Premium inks.
+            </p>
+
+            <ul class="product-details">
+                <li>Printed in Hastings</li>
+                <li>Signed</li>
+                <li>Unframed</li>
+                <li>UK shipping</li>
+            </ul>
+
+
+            <details class="shop-info-dropdown">
+
+                <summary>
+                    Shipping · Returns · Contact
+                </summary>
+
+                <div class="shop-info-content">
+
+                    <h3>Shipping</h3>
+
+                    <p>
+                        Prints are currently available for delivery within the UK.
+                    </p>
+
+                    <p>
+                        All prints are supplied unframed and carefully packaged for delivery.
+                    </p>
+
+
+                    <h3>Returns</h3>
+
+                    <p>
+                        If you change your mind about an order, please email within 14 days of receiving it.
+                    </p>
+
+                    <p>
+                        You then have 14 days to return the print. Prints should be returned in their original condition and packaging.
+                    </p>
+
+                    <p>
+                        Return postage is the responsibility of the customer unless the item is faulty, damaged or incorrect.
+                    </p>
+
+
+                    <h3>Contact</h3>
+
+                    <p>
+                        <a href="mailto:studio@christytaylor.co.uk">
+                            studio@christytaylor.co.uk
+                        </a>
+                    </p>
+
+                </div>
+
+            </details>
+
+
+            <button
+                class="add-to-basket"
+                id="addToBasket"
+                type="button"
+            >
+                ADD TO BASKET
+            </button>
+
+            <div
+                class="basket-message"
+                id="basketMessage"
+            ></div>
+
+        </section>
+
+    </div>
+
+</main>
+
+
+<div
+    class="image-lightbox"
+    id="imageLightbox"
+    aria-hidden="true"
+>
+
+    <img
+        id="lightboxImage"
+        src=""
+        alt=""
+    >
+
+</div>
+
+
+<script>
+
+const products = {
+
+    "another-seagull": {
+        title: "Another Seagull",
+        price: 65,
+        image: "images/print-previews/Another Seagull.jpg"
+    },
+
+    "bus-stop": {
+        title: "Bus Stop",
+        price: 65,
+        image: "images/print-previews/Bus Stop .jpg"
+    },
+
+    "bus-stop-2": {
+        title: "Bus Stop 2",
+        price: 65,
+        image: "images/print-previews/Bus Stop 2.jpg"
+    },
+
+    "bus-stop-3": {
+        title: "Bus Stop 3",
+        price: 65,
+        image: "images/print-previews/Bus Stop 3.jpg"
+    },
+
+    "bus-stop-4": {
+        title: "Bus Stop 4",
+        price: 65,
+        image: "images/print-previews/Bus Stop 4.jpg"
+    },
+
+    "bus-stop-5": {
+        title: "Bus Stop 5",
+        price: 65,
+        image: "images/print-previews/Bus Stop 5.jpg"
+    },
+
+    "cafe": {
+        title: "Cafe",
+        price: 65,
+        image: "images/print-previews/Cafe.jpg"
+    },
+
+    "isabel-blackman-centre": {
+        title: "Isabel Blackman Centre",
+        price: 65,
+        image: "images/print-previews/Isabel Blackman Centre.jpg"
+    },
+
+    "london-road": {
+        title: "London Road",
+        price: 65,
+        image: "images/print-previews/London Road.jpg"
+    },
+
+    "opposite-playland": {
+        title: "Opposite Playland",
+        price: 65,
+        image: "images/print-previews/Opposite Playland.jpg"
+    },
+
+    "signs": {
+        title: "Signs",
+        price: 65,
+        image: "images/print-previews/Signs.jpg"
+    },
+
+    "the-selkie": {
+        title: "The Selkie",
+        price: 65,
+        image: "images/print-previews/The Selkie.jpg"
+    }
+
+};
+
+
+const params = new URLSearchParams(window.location.search);
+
+const productID = params.get("id") || "another-seagull";
+
+const product = products[productID] || products["another-seagull"];
+
+const productTitle = document.getElementById("productTitle");
+const productPrice = document.getElementById("productPrice");
+const productImage = document.getElementById("productImage");
+const lightboxImage = document.getElementById("lightboxImage");
+const basketLink = document.getElementById("basketLink");
+const basketMessage = document.getElementById("basketMessage");
+
+productTitle.textContent = product.title;
+productPrice.textContent = "£" + product.price;
+
+productImage.src = product.image;
+productImage.alt = product.title + " print by Christy Taylor";
+
+lightboxImage.src = product.image;
+lightboxImage.alt = "Enlarged " + product.title + " print by Christy Taylor";
+
+document.title = product.title + " — Christy Taylor";
+
+
+function getBasket() {
+
+    const basket = localStorage.getItem("christyBasket");
+
+    if (!basket) {
+        return [];
+    }
+
+    return JSON.parse(basket);
+}
+
+
+function saveBasket(basket) {
+
+    localStorage.setItem(
+        "christyBasket",
+        JSON.stringify(basket)
+    );
+
+}
+
+
+function updateBasketCount() {
+
+    const basket = getBasket();
+
+    const totalItems = basket.reduce(
+        (total, item) => total + item.quantity,
+        0
+    );
+
+    basketLink.textContent = "Basket (" + totalItems + ")";
+}
+
+
+document.getElementById("addToBasket").addEventListener(
+    "click",
+    function() {
+
+        const basket = getBasket();
+
+        const existingItem = basket.find(
+            item => item.id === productID
+        );
+
+        if (existingItem) {
+
+            existingItem.quantity += 1;
+
+        } else {
+
+            basket.push({
+                id: productID,
+                title: product.title,
+                price: product.price,
+                image: product.image,
+                quantity: 1
+            });
+
+        }
+
+        saveBasket(basket);
+
+        updateBasketCount();
+
+        basketMessage.textContent = "Added to basket.";
+
+    }
+);
+
+
+updateBasketCount();
+
+
+const productImageWrap = document.getElementById("productImageWrap");
+const lightbox = document.getElementById("imageLightbox");
+
+
+function openLightbox() {
+
+    lightbox.classList.add("open");
+    lightbox.setAttribute("aria-hidden", "false");
+
+}
+
+
+function closeLightbox() {
+
+    lightbox.classList.remove("open");
+    lightbox.setAttribute("aria-hidden", "true");
+
+}
+
+
+productImageWrap.addEventListener(
+    "click",
+    openLightbox
+);
+
+
+lightbox.addEventListener(
+    "click",
+    closeLightbox
+);
+
+
+document.addEventListener(
+    "keydown",
+    function(event) {
+
+        if (event.key === "Escape") {
+            closeLightbox();
+        }
+
+    }
+);
+
+</script>
+
+
+</body>
+
+</html>

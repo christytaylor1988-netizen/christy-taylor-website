@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Basket — Christy Taylor</title>
+
+    <link rel="stylesheet" href="styles.css">
+
+    <style>
+
+        body {
+            background: #afb4a8;
+        }
+
+        .basket-page {
+            padding: 55px 30px 120px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .basket-title {
+            margin: 0 0 45px;
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 34px;
+            font-weight: 400;
+            letter-spacing: -0.035em;
+        }
+
+        .basket-items {
+            display: flex;
+            flex-direction: column;
+            gap: 35px;
+        }
+
+        .basket-item {
+            display: grid;
+            grid-template-columns: 170px 1fr auto;
+            gap: 30px;
+            align-items: start;
+            padding-bottom: 35px;
+            border-bottom: 1px solid #000;
+        }
+
+        .basket-item img {
+            display: block;
+            width: 170px;
+            height: 170px;
+            object-fit: contain;
+        }
+
+        .basket-item-info {
+            font-family: Helvetica, Arial, sans-serif;
+        }
+
+        .basket-item-title {
+            margin: 0 0 10px;
+            font-size: 24px;
+            font-weight: 400;
+        }
+
+        .basket-item-price {
+            margin: 0 0 16px;
+            font-size: 18px;
+        }
+
+        .basket-quantity {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .basket-quantity button {
+            background: none;
+            border: 1px solid #000;
+            width: 34px;
+            height: 34px;
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .basket-quantity span {
+            min-width: 20px;
+            text-align: center;
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 18px;
+        }
+
+        .remove-item {
+            margin-top: 15px;
+            padding: 0;
+            border: 0;
+            background: none;
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 15px;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        .basket-line-total {
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 20px;
+            white-space: nowrap;
+        }
+
+        .basket-summary {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 45px;
+        }
+
+        .basket-summary-inner {
+            width: 360px;
+            font-family: Helvetica, Arial, sans-serif;
+        }
+
+        .basket-total {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            font-size: 24px;
+        }
+
+        .checkout-button {
+            width: 100%;
+            background: #000;
+            color: #fff;
+            border: 0;
+            padding: 20px 30px;
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .checkout-button:hover {
+            opacity: 0.75;
+        }
+
+        .checkout-button:disabled {
+            opacity: 0.45;
+            cursor: wait;
+        }
+
+        .checkout-message {
+            margin-top: 14px;
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 15px;
+            line-height: 1.4;
+        }
+
+        .empty-basket {
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 21px;
+        }
+
+        @media (max-width: 700px) {
+
+            .basket-page {
+                padding: 35px 20px 90px;
+            }
+
+            .basket-item {
+                grid-template-columns: 100px 1fr;
+            }
+
+            .basket-item img {
+                width: 100px;
+                height: 100px;
+            }
+
+            .basket-line-total {
+                grid-column: 2;
+            }
+
+            .basket-summary-inner {
+                width: 100%;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<header class="site-header">
+
+    <a class="site-name" href="index.html">Christy Taylor</a>
+
+    <nav class="site-nav">
+        <a href="drawings.html">Prints</a>
+        <a href="about.html">About</a>
+        <a href="shop.html">Shop</a>
+        <a href="basket.html" id="basketLink">Basket (0)</a>
+    </nav>
+
+</header>
+
+<main class="basket-page">
+
+    <h1 class="basket-title">Basket</h1>
+
+    <div
+        class="basket-items"
+        id="basketItems"
+    ></div>
+
+    <div
+        class="basket-summary"
+        id="basketSummary"
+    >
+
+        <div class="basket-summary-inner">
+
+            <div class="basket-total">
+
+                <span>Total</span>
+
+                <span id="basketTotal">
+                    £0
+                </span>
+
+            </div>
+
+            <button
+                class="checkout-button"
+                id="checkoutButton"
+                type="button"
+            >
+                CHECKOUT
+            </button>
+
+            <div
+                class="checkout-message"
+                id="checkoutMessage"
+            ></div>
+
+        </div>
+
+    </div>
+
+</main>
+
+<script>
+
+function getBasket() {
+
+    const basket = localStorage.getItem("christyBasket");
+
+    if (!basket) {
+        return [];
+    }
+
+    try {
+        return JSON.parse(basket);
+    } catch (error) {
+        return [];
+    }
+}
+
+
+function saveBasket(basket) {
+
+    localStorage.setItem(
+        "christyBasket",
+        JSON.stringify(basket)
+    );
+
+}
+
+
+function updateBasketCount() {
+
+    const basket = getBasket();
+
+    const totalItems = basket.reduce(
+        (total, item) => total + item.quantity,
+        0
+    );
+
+    document.getElementById("basketLink").textContent =
+        "Basket (" + totalItems + ")";
+}
+
+
+function renderBasket() {
+
+    const basket = getBasket();
+
+    const basketItems =
+        document.getElementById("basketItems");
+
+    const basketSummary =
+        document.getElementById("basketSummary");
+
+    basketItems.innerHTML = "";
+
+    if (basket.length === 0) {
+
+        basketItems.innerHTML =
+            '<p class="empty-basket">Your basket is empty.</p>';
+
+        basketSummary.style.display = "none";
+
+        updateBasketCount();
+
+        return;
+    }
+
+    basketSummary.style.display = "flex";
+
+    let total = 0;
+
+
+    basket.forEach(function(item) {
+
+        const lineTotal =
+            item.price * item.quantity;
+
+        total += lineTotal;
+
+        const basketItem =
+            document.createElement("div");
+
+        basketItem.className =
+            "basket-item";
+
+        basketItem.innerHTML = `
+
+            <img
+                src="${item.image}"
+                alt="${item.title}"
+            >
+
+            <div class="basket-item-info">
+
+                <p class="basket-item-title">
+                    ${item.title}
+                </p>
+
+                <p class="basket-item-price">
+                    £${item.price}
+                </p>
+
+                <div class="basket-quantity">
+
+                    <button
+                        type="button"
+                        class="quantity-minus"
+                        data-id="${item.id}"
+                    >
+                        −
+                    </button>
+
+                    <span>
+                        ${item.quantity}
+                    </span>
+
+                    <button
+                        type="button"
+                        class="quantity-plus"
+                        data-id="${item.id}"
+                    >
+                        +
+                    </button>
+
+                </div>
+
+                <button
+                    type="button"
+                    class="remove-item"
+                    data-id="${item.id}"
+                >
+                    Remove
+                </button>
+
+            </div>
+
+            <div class="basket-line-total">
+                £${lineTotal}
+            </div>
+
+        `;
+
+        basketItems.appendChild(
+            basketItem
+        );
+
+    });
+
+
+    document.getElementById(
+        "basketTotal"
+    ).textContent =
+        "£" + total;
+
+
+    addBasketControls();
+
+    updateBasketCount();
+
+}
+
+
+function addBasketControls() {
+
+    document
+        .querySelectorAll(".quantity-plus")
+        .forEach(function(button) {
+
+            button.addEventListener(
+                "click",
+                function() {
+
+                    const basket = getBasket();
+
+                    const item =
+                        basket.find(
+                            item =>
+                                item.id === button.dataset.id
+                        );
+
+                    item.quantity += 1;
+
+                    saveBasket(basket);
+
+                    renderBasket();
+
+                }
+            );
+
+        });
+
+
+    document
+        .querySelectorAll(".quantity-minus")
+        .forEach(function(button) {
+
+            button.addEventListener(
+                "click",
+                function() {
+
+                    const basket = getBasket();
+
+                    const item =
+                        basket.find(
+                            item =>
+                                item.id === button.dataset.id
+                        );
+
+                    item.quantity -= 1;
+
+                    const updatedBasket =
+                        basket.filter(
+                            item =>
+                                item.quantity > 0
+                        );
+
+                    saveBasket(updatedBasket);
+
+                    renderBasket();
+
+                }
+            );
+
+        });
+
+
+    document
+        .querySelectorAll(".remove-item")
+        .forEach(function(button) {
+
+            button.addEventListener(
+                "click",
+                function() {
+
+                    const basket = getBasket();
+
+                    const updatedBasket =
+                        basket.filter(
+                            item =>
+                                item.id !== button.dataset.id
+                        );
+
+                    saveBasket(updatedBasket);
+
+                    renderBasket();
+
+                }
+            );
+
+        });
+
+}
+
+
+document
+    .getElementById("checkoutButton")
+    .addEventListener(
+        "click",
+        async function() {
+
+            const button =
+                document.getElementById("checkoutButton");
+
+            const message =
+                document.getElementById("checkoutMessage");
+
+            const basket =
+                getBasket();
+
+
+            if (basket.length === 0) {
+                return;
+            }
+
+
+            button.disabled = true;
+            button.textContent = "LOADING…";
+            message.textContent = "";
+
+
+            try {
+
+                const response = await fetch(
+                    "/create-checkout-session",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            basket: basket
+                        })
+                    }
+                );
+
+
+                const text =
+                    await response.text();
+
+
+                let data;
+
+                try {
+                    data = JSON.parse(text);
+                } catch (error) {
+                    throw new Error(
+                        "Server reply was not valid JSON: " + text
+                    );
+                }
+
+
+                if (!response.ok) {
+                    throw new Error(
+                        data.error || "Checkout failed"
+                    );
+                }
+
+
+                if (!data.url) {
+                    throw new Error(
+                        "Stripe checkout URL was missing."
+                    );
+                }
+
+
+                window.location.assign(data.url);
+
+
+            } catch (error) {
+
+                console.error(error);
+
+                message.textContent =
+                    "Checkout error: " + error.message;
+
+                button.disabled = false;
+                button.textContent = "CHECKOUT";
+
+            }
+
+        }
+    );
+
+
+renderBasket();
+
+</script>
+
+</body>
+
+</html>

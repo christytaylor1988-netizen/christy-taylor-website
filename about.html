@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About — Christy Taylor</title>
+    <link rel="stylesheet" href="styles.css">
+
+    <style>
+        .about-page {
+            padding: 80px 40px 120px;
+        }
+
+        .about-top {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 45px;
+            align-items: center;
+            margin-bottom: 100px;
+        }
+
+        .about-bio p {
+            margin: 0;
+            max-width: 600px;
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: clamp(24px, 2.8vw, 40px);
+            font-weight: 400;
+            line-height: 1.08;
+            letter-spacing: -0.035em;
+        }
+
+        .about-photo img {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        .about-lower {
+            max-width: 1050px;
+        }
+
+        .about-section {
+            margin-bottom: 70px;
+        }
+
+        .about-section h2 {
+            margin: 0 0 25px;
+            font-size: 22px;
+            font-weight: 400;
+        }
+
+        .education-item,
+        .exhibition,
+        .contact-link {
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 15px;
+            line-height: 1.4;
+        }
+
+        .education-item,
+        .exhibition {
+            margin: 0 0 7px;
+        }
+
+        .exhibition-year {
+            margin: 30px 0 10px;
+            font-size: 18px;
+            font-weight: 400;
+        }
+
+        .contact-link {
+            display: block;
+            width: fit-content;
+            color: #000;
+            text-decoration: none;
+        }
+
+        @media (max-width: 800px) {
+            .about-page {
+                padding: 60px 20px 90px;
+            }
+
+            .about-top {
+                grid-template-columns: 1fr;
+                gap: 35px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="site-header">
+    <a class="site-name" href="index.html">Christy Taylor</a>
+
+    <nav class="site-nav">
+        <a href="drawings.html">Prints</a>
+        <a href="about.html">About</a>
+        <a href="shop.html">Shop</a>
+    </nav>
+</header>
+
+<main class="about-page">
+
+    <section class="about-top">
+
+        <div class="about-bio">
+            <p>
+                Christy Taylor is an artist based in Hastings, UK.
+                He completed an MA in Contemporary Art Practice at the
+                Royal College of Art in 2024. His practice spans drawing,
+                painting, sculpture, video and performance, alongside an
+                ongoing series of digital drawings made on iPad.
+            </p>
+        </div>
+
+        <div class="about-photo">
+            <img src="images/about-photo.jpg" alt="Christy Taylor working in the studio">
+        </div>
+
+    </section>
+
+    <div class="about-lower">
+
+        <section class="about-section">
+            <h2>Education</h2>
+
+            <p class="education-item">
+                MA Contemporary Art Practice — Royal College of Art, 2023–24
+            </p>
+
+            <p class="education-item">
+                BA (Hons) Fine Art, First-Class Honours — University of East London, 2020–23
+            </p>
+        </section>
+
+        <section class="about-section">
+
+            <h2>Selected Group Exhibitions</h2>
+
+            <h3 class="exhibition-year">2026</h3>
+            <p class="exhibition"><i>Machine as Collaborator</i> — OBX, Hastings</p>
+
+            <h3 class="exhibition-year">2025</h3>
+            <p class="exhibition"><i>In Praise of Darkness</i> — Unit 2, St Leonards-on-Sea</p>
+            <p class="exhibition"><i>Economic Possibilities for Our Grandchildren</i> — Wandsworth Fringe Art Festival, Holy Trinity Church, London</p>
+            <p class="exhibition"><i>Present Voices</i> — Electro Studios, St Leonards-on-Sea</p>
+            <p class="exhibition"><i>Bottle Alley Art Market</i> — Hastings</p>
+            <p class="exhibition"><i>Battenberg III</i> — University of East London</p>
+
+            <h3 class="exhibition-year">2024</h3>
+            <p class="exhibition"><i>Tate Lates</i> — Tate Modern, London</p>
+            <p class="exhibition"><i>CAP Cinema Screening</i> — Genesis Cinema, London</p>
+            <p class="exhibition"><i>Future Archaeologies</i> — Camden Art Centre, London</p>
+            <p class="exhibition"><i>CosmiKnot</i> — Platform, Athens, Greece</p>
+            <p class="exhibition"><i>Uneasy in the Frame</i> — Safehouse 1, Peckham</p>
+            <p class="exhibition"><i>Battenberg II</i> — University of East London</p>
+            <p class="exhibition"><i>Mouthwash and Razorblades</i> — The Place, London</p>
+
+            <h3 class="exhibition-year">2023</h3>
+            <p class="exhibition"><i>Soft Air</i> — FILET, London</p>
+            <p class="exhibition"><i>CosmiKnot</i> — Platform, Athens, Greece</p>
+            <p class="exhibition"><i>No Man’s Land</i> — Dyson Gallery, Royal College of Art</p>
+            <p class="exhibition"><i>Everything Must Go</i> — Cookhouse Gallery, Chelsea College of Arts</p>
+
+            <h3 class="exhibition-year">2022</h3>
+            <p class="exhibition"><i>Soft Teeth</i> — AVA Building, University of East London</p>
+            <p class="exhibition"><i>Memories</i> — Nunnery Gallery, London</p>
+            <p class="exhibition"><i>35/4</i> — A.P.T Gallery, London</p>
+
+            <h3 class="exhibition-year">2019</h3>
+            <p class="exhibition"><i>SCULPT 2</i> — The Bomb Factory, London</p>
+
+            <h3 class="exhibition-year">2018</h3>
+            <p class="exhibition"><i>Plastic</i> — Ex-Room, Copenhagen, Denmark</p>
+
+        </section>
+
+        <section class="about-section">
+            <h2>Contact</h2>
+
+            <a class="contact-link" href="mailto:studio@christytaylor.co.uk">
+                studio@christytaylor.co.uk
+            </a>
+        </section>
+
+    </div>
+
+</main>
+
+</body>
+</html>

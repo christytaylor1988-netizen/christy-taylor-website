@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Order complete — Christy Taylor</title>
+
+    <link rel="stylesheet" href="styles.css">
+
+    <style>
+
+        body {
+            background: #afb4a8;
+        }
+
+        .success-page {
+            min-height: calc(100vh - 100px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 30px 100px;
+        }
+
+        .success-box {
+            width: 100%;
+            max-width: 1400px;
+            text-align: center;
+            font-family: Helvetica, Arial, sans-serif;
+        }
+
+        .success-title {
+            margin: 0 0 25px;
+            font-size: 46px;
+            font-weight: 400;
+            line-height: 1;
+            letter-spacing: -0.04em;
+        }
+
+        .success-text {
+            margin: 0 0 55px;
+            font-size: 21px;
+            line-height: 1.4;
+        }
+
+        .success-receipt {
+            margin: 0 0 55px;
+            font-family: "Fake Receipt", Helvetica, Arial, sans-serif !important;
+            font-size: 20px;
+            line-height: 1.5;
+            white-space: nowrap;
+        }
+
+        .return-shop {
+            display: inline-block;
+            background: #000;
+            color: #fff;
+            padding: 18px 30px;
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 22px;
+            text-decoration: none;
+        }
+
+        .return-shop:hover {
+            opacity: 0.75;
+        }
+
+        @media (max-width: 800px) {
+
+            .success-title {
+                font-size: 36px;
+            }
+
+            .success-receipt {
+                white-space: normal;
+                font-size: 18px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<header class="site-header">
+
+    <a class="site-name" href="index.html">Christy Taylor</a>
+
+    <nav class="site-nav">
+        <a href="drawings.html">Prints</a>
+        <a href="about.html">About</a>
+        <a href="shop.html">Shop</a>
+        <a href="basket.html" id="basketLink">Basket (0)</a>
+    </nav>
+
+</header>
+
+<main class="success-page">
+
+    <div class="success-box">
+
+        <h1 class="success-title">
+            Thank you
+        </h1>
+
+        <p class="success-text">
+            Your order has been received.
+        </p>
+
+        <p class="success-receipt">
+            SIGNED PRINT · PRINTED IN HASTINGS · THANK YOU FOR YOUR ORDER
+        </p>
+
+        <a
+            class="return-shop"
+            href="shop.html"
+        >
+            RETURN TO SHOP
+        </a>
+
+    </div>
+
+</main>
+
+<script>
+
+localStorage.removeItem("christyBasket");
+
+document.getElementById("basketLink").textContent =
+    "Basket (0)";
+
+</script>
+
+</body>
+
+</html>
