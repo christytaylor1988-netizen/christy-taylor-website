@@ -20,9 +20,65 @@
     </nav>
 </header>
 
-<main style="padding: 80px 40px 120px;">
-    <h1 style="margin: 0; font-size: 28px; font-weight: 400;">Polling</h1>
+<main class="theseus-page">
+
+    <section class="theseus-section right">
+        <img src="images/sculpture/polling/P1090133.jpeg" alt="Polling">
+    </section>
+
+    <section class="theseus-section left">
+        <img src="images/sculpture/polling/P1090134.JPG" alt="Polling">
+    </section>
+
+    <section class="theseus-section right">
+        <img src="images/sculpture/polling/P1090135.JPG" alt="Polling">
+    </section>
+
+    <section class="theseus-section left">
+        <img src="images/sculpture/polling/P1090136.JPG" alt="Polling">
+    </section>
+
+    <section class="theseus-section right">
+        <img src="images/sculpture/polling/P1090137.JPG" alt="Polling">
+    </section>
+
+    <section class="theseus-section left">
+        <img src="images/sculpture/polling/P1090138.JPG" alt="Polling">
+    </section>
+
+    <section class="theseus-section right">
+        <img src="images/sculpture/polling/P1090139.JPG" alt="Polling">
+    </section>
+
+    <section class="theseus-section left">
+        <img src="images/sculpture/polling/P1090140.JPG" alt="Polling">
+    </section>
+
+    <section class="theseus-section right">
+        <img src="images/sculpture/polling/P1090141.JPG" alt="Polling">
+    </section>
+
 </main>
+
+<script>
+    const images = document.querySelectorAll(".theseus-section img");
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+                setTimeout(() => {
+                    entry.target.classList.add("visible");
+                }, 600);
+
+                observer.unobserve(entry.target);
+            }
+        });
+    }, {
+        threshold: 0.2
+    });
+
+    images.forEach((image) => observer.observe(image));
+</script>
 
 </body>
 </html>
