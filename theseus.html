@@ -20,9 +20,77 @@
     </nav>
 </header>
 
-<main style="padding: 80px 40px 120px;">
-    <h1 style="margin: 0; font-size: 28px; font-weight: 400;">Theseus</h1>
+<main class="theseus-page">
+
+    <section class="theseus-section right">
+        <img src="images/sculpture/theseus/selected/boatfinalfinalfinalfinal.png" alt="Theseus">
+    </section>
+
+    <section class="theseus-section left">
+        <img src="images/sculpture/theseus/selected/P1090110.JPG" alt="Theseus">
+    </section>
+
+    <section class="theseus-section right">
+        <img src="images/sculpture/theseus/selected/P1090112.JPG" alt="Theseus">
+    </section>
+
+    <section class="theseus-section left">
+        <img src="images/sculpture/theseus/selected/P1090152.JPG" alt="Theseus">
+    </section>
+
+    <section class="theseus-section right">
+        <img src="images/sculpture/theseus/selected/P1090177.JPG" alt="Theseus">
+    </section>
+
+    <section class="theseus-section left">
+        <img src="images/sculpture/theseus/selected/P1090183.JPG" alt="Theseus">
+    </section>
+
+    <section class="theseus-section right">
+        <img src="images/sculpture/theseus/selected/P1090212.JPG" alt="Theseus">
+    </section>
+
+    <section class="theseus-section left">
+        <img src="images/sculpture/theseus/selected/P1090237.JPG" alt="Theseus">
+    </section>
+
+    <section class="theseus-section right">
+        <img src="images/sculpture/theseus/selected/P1090245.JPG" alt="Theseus">
+    </section>
+
+    <section class="theseus-section left">
+        <img src="images/sculpture/theseus/selected/P1090252.JPG" alt="Theseus">
+    </section>
+
+    <section class="theseus-section right">
+        <img src="images/sculpture/theseus/selected/P1090259.JPG" alt="Theseus">
+    </section>
+
+    <section class="theseus-section left">
+        <img src="images/sculpture/theseus/selected/P1090264.JPG" alt="Theseus">
+    </section>
+
 </main>
+
+<script>
+    const images = document.querySelectorAll(".theseus-section img");
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+                setTimeout(() => {
+                    entry.target.classList.add("visible");
+                }, 600);
+
+                observer.unobserve(entry.target);
+            }
+        });
+    }, {
+        threshold: 0.2
+    });
+
+    images.forEach((image) => observer.observe(image));
+</script>
 
 </body>
 </html>
