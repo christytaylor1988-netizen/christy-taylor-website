@@ -7,18 +7,25 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 
-<body class="random-page">
+<body>
 
-    <header class="random-header">
-        <a href="index.html">Christy Taylor</a>
-        <button id="another-drawing">Another drawing</button>
-    </header>
+<header class="site-header">
+    <a class="site-name" href="index.html">Christy Taylor</a>
 
-    <main class="random-display">
-        <img id="random-drawing" src="" alt="Random drawing by Christy Taylor">
-    </main>
+    <nav class="site-nav">
+        <a href="work.html">Work</a>
+        <a href="about.html">About</a>
+        <a href="shop.html">Shop</a>
+    </nav>
+</header>
 
-    <script src="drawings.js"></script>
+<main class="random-display">
+    <img id="random-drawing" src="" alt="Random drawing by Christy Taylor">
+
+    <button id="another-drawing">Another drawing</button>
+</main>
+
+<script src="drawings.js"></script>
 
 <script>
     const image = document.getElementById("random-drawing");
