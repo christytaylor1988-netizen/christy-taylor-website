@@ -20,9 +20,33 @@
     </nav>
 </header>
 
-<main style="padding: 80px 40px 120px;">
-    <h1 style="margin: 0; font-size: 28px; font-weight: 400;">Painting</h1>
+<main class="theseus-page">
+
+    <section class="theseus-section right">
+        <img src="images/painting/qr/guidemefinal.jpeg" alt="QR">
+    </section>
+
 </main>
+
+<script>
+    const images = document.querySelectorAll(".theseus-section img");
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+                setTimeout(() => {
+                    entry.target.classList.add("visible");
+                }, 600);
+
+                observer.unobserve(entry.target);
+            }
+        });
+    }, {
+        threshold: 0.2
+    });
+
+    images.forEach((image) => observer.observe(image));
+</script>
 
 </body>
 </html>
