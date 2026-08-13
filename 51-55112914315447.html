@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>51.55112914315447, -0.18352334692629535 — Christy Taylor</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+<header class="site-header">
+    <a class="site-name" href="index.html">Christy Taylor</a>
+
+    <nav class="site-nav">
+        <a href="work.html">Work</a>
+        <a href="about.html">About</a>
+        <a href="shop.html">Shop</a>
+    </nav>
+</header>
+
+<main class="theseus-page">
+
+    <section class="theseus-section right">
+        <img src="images/sculpture/camden/51.55112914315447, -0.18352334692629535.jpg" alt="51.55112914315447, -0.18352334692629535">
+    </section>
+
+    <section class="theseus-section left">
+        <img src="images/sculpture/camden/IMG_5662.jpeg" alt="51.55112914315447, -0.18352334692629535">
+    </section>
+
+    <section class="theseus-section right">
+        <img src="images/sculpture/camden/IMG_5672.jpeg" alt="51.55112914315447, -0.18352334692629535">
+    </section>
+
+    <section class="theseus-section left">
+        <img src="images/sculpture/camden/IMG_5677.jpeg" alt="51.55112914315447, -0.18352334692629535">
+    </section>
+
+    <section class="theseus-section right">
+        <img src="images/sculpture/camden/Screenshot 2024-08-04 at 18.05.05.png" alt="51.55112914315447, -0.18352334692629535">
+    </section>
+
+</main>
+
+<script>
+    const images = document.querySelectorAll(".theseus-section img");
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+                setTimeout(() => {
+                    entry.target.classList.add("visible");
+                }, 600);
+
+                observer.unobserve(entry.target);
+            }
+        });
+    }, {
+        threshold: 0.2
+    });
+
+    images.forEach((image) => observer.observe(image));
+</script>
+
+</body>
+</html>
