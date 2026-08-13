@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Every Four to Five Years — Christy Taylor</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+<header class="site-header">
+    <a class="site-name" href="index.html">Christy Taylor</a>
+
+    <nav class="site-nav">
+        <a href="work.html">Work</a>
+        <a href="about.html">About</a>
+        <a href="shop.html">Shop</a>
+    </nav>
+</header>
+
+<main class="theseus-page">
+
+    <section class="theseus-section right">
+        <img src="images/every-four-to-five-years/billyhillfinalpiece.jpg" alt="Every Four to Five Years">
+    </section>
+
+    <section class="theseus-section left">
+        <img src="images/every-four-to-five-years/bettingsipsimprovedfinal.jpeg" alt="Every Four to Five Years">
+    </section>
+
+    <section class="theseus-section right">
+        <video controls playsinline>
+            <source src="images/every-four-to-five-years/every-four-to-five-years.mov" type="video/quicktime">
+        </video>
+    </section>
+
+    <section class="theseus-section left">
+        <img src="images/every-four-to-five-years/everynewversion.jpg" alt="Every Four to Five Years">
+    </section>
+
+    <section class="theseus-section right">
+        <img src="images/every-four-to-five-years/bettingcloseup copy.jpg" alt="Every Four to Five Years">
+    </section>
+
+    <section class="theseus-section left">
+        <video controls playsinline>
+            <source src="images/every-four-to-five-years/polytishuns-small-web.mov" type="video/quicktime">
+        </video>
+    </section>
+
+</main>
+
+<script>
+    const media = document.querySelectorAll(".theseus-section img, .theseus-section video");
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+                setTimeout(() => {
+                    entry.target.classList.add("visible");
+                }, 600);
+
+                observer.unobserve(entry.target);
+            }
+        });
+    }, {
+        threshold: 0.2
+    });
+
+    media.forEach((item) => observer.observe(item));
+</script>
+
+</body>
+</html>
