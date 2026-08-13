@@ -6,8 +6,12 @@ import stripe
 
 app = Flask(__name__)
 
-
 stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
+
+BASE_URL = os.environ.get(
+    "BASE_URL",
+    "http://localhost:5000"
+).rstrip("/")
 
 
 PRODUCTS = {
@@ -70,17 +74,27 @@ def index():
 @app.route("/create-checkout-session", methods=["POST"])
 def create_checkout_session():
 
-    basket = request.json.get("basket", [])
+    data = request.get_json(silent=True) or {}
+    basket = data.get("basket", [])
 
     line_items = []
 
     for item in basket:
 
         product_id = item.get("id")
-        quantity = item.get("quantity", 1)
 
         if product_id not in PRODUCTS:
             continue
+
+        try:
+            quantity = int(item.get("quantity", 1))
+        except (TypeError, ValueError):
+            quantity = 1
+
+        if quantity < 1:
+            continue
+
+        quantity = min(quantity, 20)
 
         product = PRODUCTS[product_id]
 
@@ -104,8 +118,13 @@ def create_checkout_session():
     session = stripe.checkout.Session.create(
         mode="payment",
         line_items=line_items,
-        success_url="http://localhost:5000/success.html",
-        cancel_url="http://localhost:5000/basket.html"
+
+        shipping_address_collection={
+            "allowed_countries": ["GB"]
+        },
+
+        success_url=f"{BASE_URL}/success.html",
+        cancel_url=f"{BASE_URL}/basket.html"
     )
 
 
