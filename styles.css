@@ -55,7 +55,7 @@ body {
     text-decoration: none;
 }
 
-.site-nav a[href="drawings.html"] {
+.site-nav a[href="work.html"] {
     color: #000;
 }
 
@@ -110,10 +110,44 @@ body {
 }
 
 
-/* FAKE RECEIPT FONT — SHOP INFO LINE ONLY */
+/* FAKE RECEIPT FONT */
 
 .print-info-line {
     font-family: "Fake Receipt", Helvetica, Arial, sans-serif !important;
+}
+
+
+/* WORK / PROJECT PAGES */
+
+.project-index,
+.project-page {
+    padding: 80px 40px 120px;
+}
+
+.project-index h1,
+.project-page h1 {
+    margin: 0 0 28px;
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 28px;
+    font-weight: 400;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+}
+
+.project-index a {
+    display: block;
+    width: fit-content;
+    margin-bottom: 8px;
+    color: #000;
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 20px;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    text-decoration: none;
+}
+
+.project-index a:hover {
+    opacity: 0.45;
 }
 
 
@@ -154,5 +188,10 @@ body {
 
     .random-archive-button img {
         width: 240px;
+    }
+
+    .project-index,
+    .project-page {
+        padding: 60px 20px 90px;
     }
 }
