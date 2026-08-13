@@ -1,10 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Work — Christy Taylor</title>
     <link rel="stylesheet" href="styles.css">
+
+    <style>
+        .work-page {
+            padding: 80px 40px 120px;
+        }
+
+        .work-list {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .work-list a {
+            color: #000;
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 28px;
+            line-height: 1.15;
+            letter-spacing: -0.03em;
+            text-decoration: none;
+        }
+
+        .work-list a:hover {
+            opacity: 0.45;
+        }
+
+        @media (max-width: 800px) {
+            .work-page {
+                padding: 60px 20px 90px;
+            }
+
+            .work-list a {
+                font-size: 24px;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -13,20 +50,22 @@
     <a class="site-name" href="index.html">Christy Taylor</a>
 
     <nav class="site-nav">
-        <a class="shop" href="#">Shop</a>
-        <a class="about" href="#">About</a>
-        <a class="work" href="work.html">Work</a>
-        <a class="exhibitions" href="#">Exhibitions</a>
+        <a href="work.html">Work</a>
+        <a href="about.html">About</a>
+        <a href="shop.html">Shop</a>
     </nav>
-
 </header>
 
 <main class="work-page">
-   <a href="drawings.html">Drawings</a>
-<a href="painting.html">Paintings</a>
-<a href="sculpture.html">Sculpture</a>
-<a href="performance.html">Performance</a>
-<a href="video.html">Video</a>
+
+    <div class="work-list">
+        <a href="drawings.html">Drawings</a>
+        <a href="painting.html">Painting</a>
+        <a href="sculpture.html">Sculpture</a>
+        <a href="performance.html">Performance</a>
+        <a href="Video.html">Video</a>
+    </div>
+
 </main>
 
 </body>
