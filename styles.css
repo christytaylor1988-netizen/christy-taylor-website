@@ -188,7 +188,7 @@ body {
 }
 
 
-/* THESEUS */
+/* SCULPTURE SCROLL PAGES */
 
 .theseus-page {
     padding: 40px 5vw 120px;
@@ -212,8 +212,8 @@ body {
     display: block;
     width: auto;
     height: auto;
-    max-width: 54vw;
-max-height: 76vh;
+    max-width: 66vw;
+    max-height: 86vh;
     object-fit: contain;
 
     opacity: 0;
@@ -300,7 +300,7 @@ max-height: 76vh;
     }
 
     .theseus-section img {
-        max-width: 90vw;
-        max-height: 68vh;
+        max-width: 92vw;
+        max-height: 72vh;
     }
 }
