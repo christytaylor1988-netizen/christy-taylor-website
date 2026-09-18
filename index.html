@@ -4,36 +4,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Christy Taylor</title>
+
     <link rel="stylesheet" href="styles.css">
+
+    <style>
+        .ascii-link {
+            display: block;
+            width: fit-content;
+            color: #000;
+            text-decoration: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .ascii-name {
+            margin: 0;
+            padding: 0;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 2px;
+            line-height: 1;
+            font-weight: normal;
+            letter-spacing: 0;
+            white-space: pre;
+            color: #000;
+        }
+
+        @media (max-width: 700px) {
+            .ascii-name {
+                font-size: 1.6px;
+            }
+        }
+    </style>
+
 </head>
+
 
 <body>
 
-<header class="site-header">
-    <a class="site-name" href="index.html">Christy Taylor</a>
+    <header class="site-header">
 
-    <nav class="site-nav">
-        <a href="work.html">Work</a>
-        <a href="about.html">About</a>
-        <a href="shop.html">Shop</a>
-    </nav>
-</header>
+        <a class="ascii-link" href="index.html" aria-label="Christy Taylor home">
+<pre class="ascii-name">      ___           ___           ___                       ___                                                        ___                                     ___           ___
+     /  /\         /__/\         /  /\        ___          /  /\          ___         ___                  ___        /  /\          ___                      /  /\         /  /\
+    /  /:/         \  \:\       /  /::\      /  /\        /  /:/_        /  /\       /__/|                /  /\      /  /::\        /__/|                    /  /::\       /  /::\
+   /  /:/           \__\:\     /  /:/\:\    /  /:/       /  /:/ /\      /  /:/      |  |:|               /  /:/     /  /:/\:\      |  |:|    ___     ___    /  /:/\:\     /  /:/\:\
+  /  /:/  ___   ___ /  /::\   /  /:/~/:/   /__/::\      /  /:/ /::\    /  /:/       |  |:|              /  /:/     /  /:/~/::\     |  |:|   /__/\   /  /\  /  /:/  \:\   /  /:/~/:/
+ /__/:/  /  /\ /__/\  /:/\:\ /__/:/ /:/___ \__\/\:\__  /__/:/ /:/\:\  /  /::\     __|__|:|             /  /::\    /__/:/ /:/\:\  __|__|:|   \  \:\ /  /:/ /__/:/ \__\:\ /__/:/ /:/___
+ \  \:\ /  /:/ \  \:\/:/__\/ \  \:\/:::::/    \  \:\/\ \  \:\/:/~/:/ /__/:/\:\   /__/::::\            /__/:/\:\   \  \:\/:/__\/ /__/::::\    \  \:\  /:/  \  \:\ /  /:/ \  \:\/:::::/
+  \  \:\  /:/   \  \::/       \  \::/~~~~      \__\::/  \  \::/ /:/  \__\/  \:\     ~\~~\:\           \__\/  \:\   \  \::/         ~\~~\:\    \  \:\/:/    \  \:\  /:/   \  \::/~~~~
+   \  \:\/:/     \  \:\        \  \:\          /__/:/    \__\/ /:/        \  \:\      \  \:\               \  \:\   \  \:\           \  \:\    \  \::/      \  \:\/:/     \  \:\
+    \  \::/       \  \:\        \  \:\         \__\/       /__/:/          \__\/       \__\/                \__\/    \  \:\           \__\/     \__\/        \  \::/       \  \:\
+     \__\/         \__\/         \__\/                     \__\/                                                      \__\/                                   \__\/         \__\/</pre>
+        </a>
 
-<a class="random-archive-button" href="random.html">
-    <img
-        src="images/random-archive-button.png"
-        alt="Random iPad drawing from the archive"
-    >
-</a>
+        <nav class="site-nav">
+            <a href="drawings.html">Hastings</a>
+            <a href="work.html">Other Work</a>
+            <a href="about.html">About / Contact</a>
+        </nav>
 
-<main class="homepage">
-    <img
-        class="homepage-image"
-        src="images/Untitled_Artwork 49.jpg"
-        alt="Artwork by Christy Taylor"
-    >
-</main>
+    </header>
+
+
+    <main>
+
+        <div class="home-image">
+            <img
+                src="images/Untitled_Artwork 49.jpg"
+                alt="Artwork by Christy Taylor"
+            >
+        </div>
+
+        <div class="home-message">
+            Bear with me, I'm still working on this.<br>
+            Under construction. You know how it is.<br>
+            Online shop coming soon.
+        </div>
+
+    </main>
 
 </body>
+
 </html>
