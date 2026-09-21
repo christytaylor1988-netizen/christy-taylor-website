@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Hastings — Christy Taylor</title>
+
+    <link rel="stylesheet" href="styles.css">
+
+    <style>
+
+        /* HEADER — MATCHES OTHER WORK */
+
+        .site-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 24px;
+            padding: 16px 30px 0;
+        }
+
+        .ascii-link {
+            display: block;
+            width: fit-content;
+            color: #000 !important;
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+
+        .ascii-name {
+            margin: 0;
+            padding: 0;
+            color: #000 !important;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 6px;
+            font-weight: 700;
+            line-height: 1;
+            letter-spacing: 0;
+            white-space: pre;
+        }
+
+        .site-nav {
+            display: flex;
+            gap: 30px;
+            margin-left: auto;
+            padding-top: 2px;
+            white-space: nowrap;
+        }
+
+        .site-nav a {
+            font-size: 27px;
+            font-weight: 400;
+            line-height: 1;
+            letter-spacing: -0.04em;
+            text-decoration: none;
+        }
+
+        .site-nav a[href="hastings.html"] {
+            color: #002fa7;
+        }
+
+        .site-nav a[href="work.html"] {
+            color: #000;
+        }
+
+        .site-nav a[href="about.html"] {
+            color: #ffe604;
+        }
+
+        .site-nav a:hover,
+        .ascii-link:hover {
+            opacity: 0.45;
+        }
+
+
+        /* LARGER HASTINGS HERO */
+
+        .hastings-gallery {
+            max-width: 1450px;
+        }
+
+        .hastings-main {
+            min-height: 85vh;
+        }
+
+        #main-hastings-image {
+            max-width: 94vw;
+            max-height: 86vh;
+        }
+
+
+        /* HASTINGS THUMBNAIL STRIP */
+
+        .hastings-thumbnail-strip {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            margin-top: 60px;
+        }
+
+        .hastings-thumbnails {
+            flex: 1;
+            min-width: 0;
+            gap: 32px;
+            margin-top: 0;
+        }
+
+        .hastings-thumbnail {
+            width: 160px;
+            height: 160px;
+        }
+
+        .thumbnail-strip-arrow {
+            appearance: none;
+            flex: 0 0 auto;
+            width: 34px;
+            padding: 8px 0;
+            border: 0;
+            background: transparent;
+            color: #000;
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 32px;
+            font-weight: 400;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        .thumbnail-strip-arrow:hover {
+            opacity: 0.45;
+        }
+
+
+        /* THREE-COLUMN HASTINGS GRID */
+
+        .hastings-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            align-items: start;
+            column-gap: 50px;
+            row-gap: 65px;
+            margin-top: 120px;
+        }
+
+        .hastings-grid-item {
+            appearance: none;
+            display: block;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            cursor: pointer;
+        }
+
+        .hastings-grid-item img {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        .hastings-grid-item:hover {
+            opacity: 0.75;
+        }
+
+
+        @media (max-width: 1050px) {
+
+            .ascii-name {
+                font-size: 4px;
+            }
+
+            .site-nav {
+                gap: 18px;
+            }
+
+            .site-nav a {
+                font-size: 22px;
+            }
+        }
+
+        @media (max-width: 700px) {
+
+            .site-header {
+                padding: 14px 18px 0;
+                flex-direction: column;
+                gap: 14px;
+            }
+
+            .ascii-name {
+                font-size: 3px;
+            }
+
+            .site-nav {
+                width: 100%;
+                margin-left: 0;
+                gap: 15px;
+                flex-wrap: wrap;
+            }
+
+            .site-nav a {
+                font-size: 20px;
+            }
+
+            .hastings-thumbnail-strip {
+                gap: 6px;
+            }
+
+            .thumbnail-strip-arrow {
+                width: 26px;
+                font-size: 25px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+
+<header class="site-header">
+
+    <a class="ascii-link" href="index.html" aria-label="Christy Taylor home">
+<pre class="ascii-name">      ___           ___           ___                       ___                                                        ___                                     ___           ___
+     /  /\         /__/\         /  /\        ___          /  /\          ___         ___                  ___        /  /\          ___                      /  /\         /  /\
+    /  /:/         \  \:\       /  /::\      /  /\        /  /:/_        /  /\       /__/|                /  /\      /  /::\        /__/|                    /  /::\       /  /::\
+   /  /:/           \__\:\     /  /:/\:\    /  /:/       /  /:/ /\      /  /:/      |  |:|               /  /:/     /  /:/\:\      |  |:|    ___     ___    /  /:/\:\     /  /:/\:\
+  /  /:/  ___   ___ /  /::\   /  /:/~/:/   /__/::\      /  /:/ /::\    /  /:/       |  |:|              /  /:/     /  /:/~/::\     |  |:|   /__/\   /  /\  /  /:/  \:\   /  /:/~/:/
+ /__/:/  /  /\ /__/\  /:/\:\ /__/:/ /:/___ \__\/\:\__  /__/:/ /:/\:\  /  /::\     __|__|:|             /  /::\    /__/:/ /:/\:\  __|__|:|   \  \:\ /  /:/ /__/:/ \__\:\ /__/:/ /:/___
+ \  \:\ /  /:/ \  \:\/:/__\/ \  \:\/:::::/    \  \:\/\ \  \:\/:/~/:/ /__/:/\:\   /__/::::\            /__/:/\:\   \  \:\/:/__\/ /__/::::\    \  \:\  /:/  \  \:\ /  /:/ \  \:\/:::::/
+  \  \:\  /:/   \  \::/       \  \::/~~~~      \__\::/  \  \::/ /:/  \__\/  \:\     ~\~~\:\           \__\/  \:\   \  \::/         ~\~~\:\    \  \:\/:/    \  \:\  /:/   \  \::/~~~~
+   \  \:\/:/     \  \:\        \  \:\          /__/:/    \__\/ /:/        \  \:\      \  \:\               \  \:\   \  \:\           \  \:\    \  \::/      \  \:\/:/     \  \:\
+    \  \::/       \  \:\        \  \:\         \__\/       /__/:/          \__\/       \__\/                \__\/    \  \:\           \__\/     \__\/        \  \::/       \  \:\
+     \__\/         \__\/         \__\/                     \__\/                                                      \__\/                                   \__\/         \__\/</pre>
+    </a>
+
+    <nav class="site-nav">
+        <a href="hastings.html">Hastings</a>
+        <a href="work.html">Other Work</a>
+        <a href="about.html">About / Contact</a>
+    </nav>
+
+</header>
+
+
+<main class="hastings-page">
+
+    <div class="hastings-gallery">
+
+        <div class="hastings-main">
+
+            <button
+                class="gallery-arrow prev"
+                id="prev-image"
+                aria-label="Previous image"
+            >
+                ←
+            </button>
+
+            <img
+                id="main-hastings-image"
+                src="images/hastings-web/LONDon road a4.jpg"
+                alt="Hastings artwork by Christy Taylor"
+            >
+
+            <button
+                class="gallery-arrow next"
+                id="next-image"
+                aria-label="Next image"
+            >
+                →
+            </button>
+
+        </div>
+
+
+        <div class="hastings-thumbnail-strip">
+
+            <button
+                class="thumbnail-strip-arrow"
+                id="thumbnail-strip-left"
+                aria-label="Scroll thumbnails left"
+            >
+                ←
+            </button>
+
+            <div
+                class="hastings-thumbnails"
+                id="hastings-thumbnails"
+            >
+            </div>
+
+            <button
+                class="thumbnail-strip-arrow"
+                id="thumbnail-strip-right"
+                aria-label="Scroll thumbnails right"
+            >
+                →
+            </button>
+
+        </div>
+
+
+        <div
+            class="hastings-grid"
+            id="hastings-grid"
+        >
+        </div>
+
+
+        <div class="hastings-message">
+
+            <p>
+                Drawings made in and around Hastings and St Leonards.
+            </p>
+
+            <p>
+                The online shop is currently being updated.
+                If you see something you like, get in touch.
+            </p>
+
+            <p>
+                <a href="mailto:studio@christytaylor.co.uk">
+                    studio@christytaylor.co.uk
+                </a>
+            </p>
+
+        </div>
+
+    </div>
+
+</main>
+
+
+<script>
+
+const hastingsImages = [
+
+    "images/hastings-web/LONDon road a4.jpg",
+    "images/hastings-web/Untitled_Artwork 16.jpg",
+    "images/hastings-web/Untitled_Artwork 20.jpg",
+    "images/hastings-web/Untitled_Artwork 21.jpg",
+    "images/hastings-web/Untitled_Artwork 36.jpg",
+    "images/hastings-web/Untitled_Artwork 39.jpg",
+    "images/hastings-web/Untitled_Artwork 41.jpg",
+    "images/hastings-web/Untitled_Artwork 42.jpg",
+    "images/hastings-web/bigmoon.jpg",
+    "images/hastings-web/bottle alley a4.jpg",
+    "images/hastings-web/bus8.jpg",
+    "images/hastings-web/cafe print a4 NEW.jpg",
+    "images/hastings-web/deary winner.jpg",
+    "images/hastings-web/issabelle 4.jpg",
+    "images/hastings-web/orange bus stop a4.jpg",
+    "images/hastings-web/queen.jpg",
+    "images/hastings-web/queenvica3 landscaperain.jpg",
+    "images/hastings-web/seafront bus a4.jpg",
+    "images/hastings-web/seagull sellout a4.jpg",
+    "images/hastings-web/seagullorange.jpg",
+    "images/hastings-web/stleonardsnewA3.jpg",
+    "images/hastings-web/the selkie benches a4 cool palette.jpg",
+    "images/hastings-web/the sheds a4.jpg",
+    "images/hastings-web/timestamp.jpg",
+    "images/hastings-web/west st lens a4.jpg",
+    "images/hastings-web/whiterock landscapetfff 2.jpg",
+    "images/hastings-web/whiterock landscapetfff.jpg"
+
+];
+
+
+let currentImage = 0;
+
+
+const mainImage =
+    document.getElementById("main-hastings-image");
+
+const mainViewer =
+    document.querySelector(".hastings-main");
+
+const prevButton =
+    document.getElementById("prev-image");
+
+const nextButton =
+    document.getElementById("next-image");
+
+const thumbnailContainer =
+    document.getElementById("hastings-thumbnails");
+
+const thumbnailLeftButton =
+    document.getElementById("thumbnail-strip-left");
+
+const thumbnailRightButton =
+    document.getElementById("thumbnail-strip-right");
+
+const gridContainer =
+    document.getElementById("hastings-grid");
+
+
+let touchStartX = 0;
+let touchEndX = 0;
+
+
+function showImage(index) {
+
+    if (index < 0) {
+        index = hastingsImages.length - 1;
+    }
+
+    if (index >= hastingsImages.length) {
+        index = 0;
+    }
+
+    currentImage = index;
+
+    mainImage.src =
+        hastingsImages[currentImage];
+
+
+    document
+        .querySelectorAll(".hastings-thumbnail")
+        .forEach(
+            (thumbnail, thumbnailIndex) => {
+
+                thumbnail.classList.toggle(
+                    "active",
+                    thumbnailIndex === currentImage
+                );
+
+            }
+        );
+
+}
+
+
+function buildThumbnails() {
+
+    thumbnailContainer.innerHTML = "";
+
+
+    hastingsImages.forEach(
+        (image, index) => {
+
+            const button =
+                document.createElement("button");
+
+
+            button.className =
+                "hastings-thumbnail";
+
+
+            button.innerHTML = `
+                <img
+                    src="${image}"
+                    alt="Hastings artwork thumbnail"
+                >
+            `;
+
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    showImage(index);
+
+                }
+            );
+
+
+            thumbnailContainer.appendChild(
+                button
+            );
+
+        }
+    );
+
+}
+
+
+function buildGrid() {
+
+    gridContainer.innerHTML = "";
+
+
+    hastingsImages.forEach(
+        (image, index) => {
+
+            const button =
+                document.createElement("button");
+
+
+            const gridImage =
+                document.createElement("img");
+
+
+            button.className =
+                "hastings-grid-item";
+
+
+            button.setAttribute(
+                "aria-label",
+                `View artwork ${index + 1} larger`
+            );
+
+
+            gridImage.src =
+                image;
+
+
+            gridImage.alt =
+                "Hastings artwork by Christy Taylor";
+
+
+            button.appendChild(
+                gridImage
+            );
+
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    showImage(index);
+
+                    mainViewer.scrollIntoView({
+                        behavior: "smooth",
+                        block: "center"
+                    });
+
+                }
+            );
+
+
+            gridContainer.appendChild(
+                button
+            );
+
+        }
+    );
+
+}
+
+
+thumbnailLeftButton.addEventListener(
+    "click",
+    () => {
+
+        thumbnailContainer.scrollBy({
+            left: -thumbnailContainer.clientWidth * 0.75,
+            behavior: "smooth"
+        });
+
+    }
+);
+
+
+thumbnailRightButton.addEventListener(
+    "click",
+    () => {
+
+        thumbnailContainer.scrollBy({
+            left: thumbnailContainer.clientWidth * 0.75,
+            behavior: "smooth"
+        });
+
+    }
+);
+
+
+prevButton.addEventListener(
+    "click",
+    () => {
+
+        showImage(
+            currentImage - 1
+        );
+
+    }
+);
+
+
+nextButton.addEventListener(
+    "click",
+    () => {
+
+        showImage(
+            currentImage + 1
+        );
+
+    }
+);
+
+
+document.addEventListener(
+    "keydown",
+    (event) => {
+
+        if (
+            event.key === "ArrowLeft"
+        ) {
+
+            showImage(
+                currentImage - 1
+            );
+
+        }
+
+
+        if (
+            event.key === "ArrowRight"
+        ) {
+
+            showImage(
+                currentImage + 1
+            );
+
+        }
+
+    }
+);
+
+
+mainImage.addEventListener(
+    "touchstart",
+    (event) => {
+
+        touchStartX =
+            event
+                .changedTouches[0]
+                .screenX;
+
+    }
+);
+
+
+mainImage.addEventListener(
+    "touchend",
+    (event) => {
+
+        touchEndX =
+            event
+                .changedTouches[0]
+                .screenX;
+
+        handleSwipe();
+
+    }
+);
+
+
+function handleSwipe() {
+
+    const swipeDistance =
+        touchEndX - touchStartX;
+
+
+    if (
+        swipeDistance > 50
+    ) {
+
+        showImage(
+            currentImage - 1
+        );
+
+    }
+
+
+    if (
+        swipeDistance < -50
+    ) {
+
+        showImage(
+            currentImage + 1
+        );
+
+    }
+
+}
+
+
+buildThumbnails();
+
+buildGrid();
+
+showImage(0);
+
+</script>
+
+
+</body>
+
+</html>
