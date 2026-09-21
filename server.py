@@ -7,13 +7,6 @@ import stripe
 app = Flask(__name__)
 
 
-# Temporary maintenance mode: remove this hook to restore the existing site.
-@app.before_request
-def maintenance_mode():
-    response = send_from_directory(".", "maintenance.html")
-    response.status_code = 503
-    response.headers["Cache-Control"] = "no-store"
-    return response
 
 
 stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
