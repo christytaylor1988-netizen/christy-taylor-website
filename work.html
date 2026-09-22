@@ -4,71 +4,395 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Work — Christy Taylor</title>
+
+    <title>Other Work — Christy Taylor</title>
+
     <link rel="stylesheet" href="styles.css">
 
     <style>
-        .work-page {
-            padding: 80px 40px 120px;
+        * {
+            box-sizing: border-box;
         }
 
-        .work-list {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 8px;
-        }
-
-        .work-list a {
+        body {
+            margin: 0;
+            background: #fff;
             color: #000;
             font-family: Helvetica, Arial, sans-serif;
-            font-size: 28px;
-            line-height: 1.15;
-            letter-spacing: -0.03em;
+        }
+
+        /* HEADER */
+
+        .site-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 24px;
+            padding: 16px 30px 0;
+        }
+
+        .ascii-link {
+            display: block;
+            width: fit-content;
+            color: #000 !important;
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+
+        .ascii-name {
+            margin: 0;
+            padding: 0;
+            color: #000 !important;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 6px;
+            font-weight: 700;
+            line-height: 1;
+            letter-spacing: 0;
+            white-space: pre;
+        }
+
+        .site-nav {
+            display: flex;
+            gap: 30px;
+            margin-left: auto;
+            padding-top: 2px;
+            white-space: nowrap;
+        }
+
+        .site-nav a {
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 27px;
+            font-weight: 400;
+            line-height: 1;
+            letter-spacing: -0.04em;
             text-decoration: none;
         }
 
-        .work-list a:hover {
+        .site-nav a[href="hastings.html"] {
+            color: #002fa7;
+        }
+
+        .site-nav a[href="work.html"] {
+            color: #000;
+        }
+
+        .site-nav a[href="about.html"] {
+            color: #2c9f45;
+        }
+
+        .site-nav a:hover,
+        .ascii-link:hover {
             opacity: 0.45;
         }
 
-        @media (max-width: 800px) {
-            .work-page {
-                padding: 60px 20px 90px;
+        /* OTHER WORK TABLE */
+
+        .work-page {
+            padding: 58px 40px 120px;
+            overflow-x: auto;
+        }
+
+        .work-table {
+            display: grid;
+            width: max-content;
+            grid-template-columns:
+                max-content
+                112px
+                repeat(4, 78px);
+            border-top: 1px solid #000;
+            border-left: 1px solid #000;
+        }
+
+        .work-cell {
+            display: flex;
+            align-items: center;
+            min-height: 40px;
+            padding: 5px 10px;
+            border-right: 1px solid #000;
+            border-bottom: 1px solid #000;
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 15px;
+            font-weight: 400;
+            line-height: 1.2;
+        }
+
+        .work-head {
+            justify-content: center;
+            padding: 6px;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .work-head.title-head {
+            justify-content: flex-start;
+            padding-left: 12px;
+            text-align: left;
+        }
+
+        .title-cell {
+            padding: 5px 12px;
+        }
+
+        .work-title {
+            color: #000;
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 22px;
+            font-weight: 400;
+            line-height: 1.2;
+            letter-spacing: -0.025em;
+            text-decoration: none;
+        }
+
+        .work-title:hover {
+            opacity: 0.45;
+        }
+
+        .year-cell {
+            justify-content: center;
+            padding: 5px 6px;
+            text-align: center;
+            white-space: nowrap;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .medium-cell {
+            justify-content: center;
+            padding: 5px 6px;
+            text-align: center;
+        }
+
+        .mark {
+            display: block;
+            width: 17px;
+            height: 17px;
+            border: 1px solid #000;
+            border-radius: 50%;
+        }
+
+        .mark.on {
+            background: #000;
+        }
+
+        /* MEDIUM SCREENS */
+
+        @media (max-width: 1050px) {
+            .ascii-name {
+                font-size: 4px;
             }
 
-            .work-list a {
-                font-size: 24px;
+            .site-nav {
+                gap: 18px;
+            }
+
+            .site-nav a {
+                font-size: 22px;
+            }
+        }
+
+        /* MOBILE */
+
+        @media (max-width: 760px) {
+            .site-header {
+                padding: 14px 18px 0;
+                flex-direction: column;
+                gap: 14px;
+            }
+
+            .ascii-name {
+                font-size: 3px;
+            }
+
+            .site-nav {
+                width: 100%;
+                margin-left: 0;
+                gap: 15px;
+                flex-wrap: wrap;
+            }
+
+            .site-nav a {
+                font-size: 20px;
+            }
+
+            .work-page {
+                padding: 45px 18px 90px;
             }
         }
     </style>
+
 </head>
 
 <body>
 
 <header class="site-header">
-    <a class="site-name" href="index.html">Christy Taylor</a>
+
+    <a class="ascii-link" href="index.html" aria-label="Christy Taylor home">
+<pre class="ascii-name">      ___           ___           ___                       ___                                                        ___                                     ___           ___
+     /  /\         /__/\         /  /\        ___          /  /\          ___         ___                  ___        /  /\          ___                      /  /\         /  /\
+    /  /:/         \  \:\       /  /::\      /  /\        /  /:/_        /  /\       /__/|                /  /\      /  /::\        /__/|                    /  /::\       /  /::\
+   /  /:/           \__\:\     /  /:/\:\    /  /:/       /  /:/ /\      /  /:/      |  |:|               /  /:/     /  /:/\:\      |  |:|    ___     ___    /  /:/\:\     /  /:/\:\
+  /  /:/  ___   ___ /  /::\   /  /:/~/:/   /__/::\      /  /:/ /::\    /  /:/       |  |:|              /  /:/     /  /:/~/::\     |  |:|   /__/\   /  /\  /  /:/  \:\   /  /:/~/:/
+ /__/:/  /  /\ /__/\  /:/\:\ /__/:/ /:/___ \__\/\:\__  /__/:/ /:/\:\  /  /::\     __|__|:|             /  /::\    /__/:/ /:/\:\  __|__|:|   \  \:\ /  /:/ /__/:/ \__\:\ /__/:/ /:/___
+ \  \:\ /  /:/ \  \:\/:/__\/ \  \:\/:::::/    \  \:\/\ \  \:\/:/~/:/ /__/:/\:\   /__/::::\            /__/:/\:\   \  \:\/:/__\/ /__/::::\    \  \:\  /:/  \  \:\ /  /:/ \  \:\/:::::/
+  \  \:\  /:/   \  \::/       \  \::/~~~~      \__\::/  \  \::/ /:/  \__\/  \:\     ~\~~\:\           \__\/  \:\   \  \::/         ~\~~\:\    \  \:\/:/    \  \:\  /:/   \  \::/~~~~
+   \  \:\/:/     \  \:\        \  \:\          /__/:/    \__\/ /:/        \  \:\      \  \:\               \  \:\   \  \:\           \  \:\    \  \::/      \  \:\/:/     \  \:\
+    \  \::/       \  \:\        \  \:\         \__\/       /__/:/          \__\/       \__\/                \__\/    \  \:\           \__\/     \__\/        \  \::/       \  \:\
+     \__\/         \__\/         \__\/                     \__\/                                                      \__\/                                   \__\/         \__\/</pre>
+    </a>
 
     <nav class="site-nav">
-        <a href="work.html">Work</a>
-        <a href="about.html">About</a>
-        <a href="shop.html">Shop</a>
+        <a href="hastings.html">Hastings</a>
+        <a href="work.html">Other Work</a>
+        <a href="about.html">About / Contact</a>
     </nav>
+
 </header>
 
 <main class="work-page">
 
-    <div class="work-list">
-        <a href="theseus.html">Theseus</a>
-        <a href="51-55112914315447.html">51.55112914315447, -0.18352334692629535</a>
-        <a href="polling.html">Polling</a>
-        <a href="painting.html">Guide Me, O Thou Great Redeemer</a>
-        <a href="performance.html">National</a>
-        <a href="every-four-to-five-years.html">Every Four to Five Years</a>
-        <a href="forever-and-ever-amen.html">Forever and Ever, Amen</a>
-        <a href="pilgrimage.html">Pilgrimage</a>
-        <a href="hymn-for-midi.html">Hymn for MIDI</a>
-        <a href="random.html">Random iPad Drawing Archive</a>
+    <div class="work-table">
+
+        <!-- COLUMN HEADINGS -->
+
+        <div class="work-cell work-head title-head">Title</div>
+        <div class="work-cell work-head">Year</div>
+        <div class="work-cell work-head">Painting</div>
+        <div class="work-cell work-head">Film</div>
+        <div class="work-cell work-head">Sculpture</div>
+        <div class="work-cell work-head">Other</div>
+
+        <!-- FUTURE GLUE: SCULPTURE + OTHER -->
+
+        <div class="work-cell title-cell">
+            <a class="work-title" href="theseus.html">Future Glue</a>
+        </div>
+        <div class="work-cell year-cell">2023</div>
+        <div class="work-cell medium-cell"></div>
+        <div class="work-cell medium-cell"></div>
+        <div class="work-cell medium-cell">
+            <span class="mark on"></span>
+        </div>
+        <div class="work-cell medium-cell">
+            <span class="mark on"></span>
+        </div>
+
+        <!-- COORDINATES -->
+
+        <div class="work-cell title-cell">
+            <a class="work-title" href="51-55112914315447.html">51.55112914315447, -0.18352334692629535</a>
+        </div>
+        <div class="work-cell year-cell">2024</div>
+        <div class="work-cell medium-cell"></div>
+        <div class="work-cell medium-cell"></div>
+        <div class="work-cell medium-cell">
+            <span class="mark on"></span>
+        </div>
+        <div class="work-cell medium-cell"></div>
+
+        <!-- POLLING BOOTH: SCULPTURE ONLY -->
+
+        <div class="work-cell title-cell">
+            <a class="work-title" href="polling.html">Polling Booth</a>
+        </div>
+        <div class="work-cell year-cell">2023</div>
+        <div class="work-cell medium-cell"></div>
+        <div class="work-cell medium-cell"></div>
+        <div class="work-cell medium-cell">
+            <span class="mark on"></span>
+        </div>
+        <div class="work-cell medium-cell"></div>
+
+        <!-- GUIDE ME -->
+
+        <div class="work-cell title-cell">
+            <a class="work-title" href="painting.html">Guide Me, O Thou Great Redeemer</a>
+        </div>
+        <div class="work-cell year-cell">2024</div>
+        <div class="work-cell medium-cell">
+            <span class="mark on"></span>
+        </div>
+        <div class="work-cell medium-cell"></div>
+        <div class="work-cell medium-cell"></div>
+        <div class="work-cell medium-cell"></div>
+
+        <!-- NATIONAL ANTHEM -->
+
+        <div class="work-cell title-cell">
+            <a class="work-title" href="performance.html">National Anthem</a>
+        </div>
+        <div class="work-cell year-cell">2023</div>
+        <div class="work-cell medium-cell"></div>
+        <div class="work-cell medium-cell"></div>
+        <div class="work-cell medium-cell"></div>
+        <div class="work-cell medium-cell">
+            <span class="mark on"></span>
+        </div>
+
+        <!-- EVERY FOUR TO FIVE YEARS -->
+
+        <div class="work-cell title-cell">
+            <a class="work-title" href="every-four-to-five-years.html">Every Four to Five Years</a>
+        </div>
+        <div class="work-cell year-cell">2023</div>
+        <div class="work-cell medium-cell"></div>
+        <div class="work-cell medium-cell"></div>
+        <div class="work-cell medium-cell"></div>
+        <div class="work-cell medium-cell">
+            <span class="mark on"></span>
+        </div>
+
+        <!-- FOREVER AND EVER, AMEN: FILM ONLY -->
+
+        <div class="work-cell title-cell">
+            <a class="work-title" href="forever-and-ever-amen.html">Forever and Ever, Amen</a>
+        </div>
+        <div class="work-cell year-cell">2025</div>
+        <div class="work-cell medium-cell"></div>
+        <div class="work-cell medium-cell">
+            <span class="mark on"></span>
+        </div>
+        <div class="work-cell medium-cell"></div>
+        <div class="work-cell medium-cell"></div>
+
+        <!-- PILGRIMAGE: FILM ONLY -->
+
+        <div class="work-cell title-cell">
+            <a class="work-title" href="pilgrimage.html">Pilgrimage</a>
+        </div>
+        <div class="work-cell year-cell">2024</div>
+        <div class="work-cell medium-cell"></div>
+        <div class="work-cell medium-cell">
+            <span class="mark on"></span>
+        </div>
+        <div class="work-cell medium-cell"></div>
+        <div class="work-cell medium-cell"></div>
+
+        <!-- HYMN FOR MIDI -->
+
+        <div class="work-cell title-cell">
+            <a class="work-title" href="hymn-for-midi.html">Hymn for MIDI</a>
+        </div>
+        <div class="work-cell year-cell">2024</div>
+        <div class="work-cell medium-cell"></div>
+        <div class="work-cell medium-cell">
+            <span class="mark on"></span>
+        </div>
+        <div class="work-cell medium-cell"></div>
+        <div class="work-cell medium-cell">
+            <span class="mark on"></span>
+        </div>
+
+        <!-- RANDOM IPAD DRAWING ARCHIVE -->
+
+        <div class="work-cell title-cell">
+            <a class="work-title" href="random.html">Random iPad Drawing Archive</a>
+        </div>
+        <div class="work-cell year-cell">2022–Present</div>
+        <div class="work-cell medium-cell"></div>
+        <div class="work-cell medium-cell"></div>
+        <div class="work-cell medium-cell"></div>
+        <div class="work-cell medium-cell">
+            <span class="mark on"></span>
+        </div>
+
     </div>
 
 </main>

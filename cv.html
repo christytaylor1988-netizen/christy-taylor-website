@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>About / Contact — Christy Taylor</title>
+    <title>Artist CV — Christy Taylor</title>
 
     <link rel="stylesheet" href="styles.css">
 
@@ -74,89 +74,54 @@
         }
 
 
-        /* ABOUT PAGE */
+        /* ARTIST CV */
 
-        .about-page {
+        .cv-page {
+            max-width: 900px;
+            margin: 0 auto;
             padding: 80px 40px 120px;
-        }
-
-        .about-grid {
-            display: grid;
-            grid-template-columns: minmax(0, 520px) minmax(0, 560px);
-            gap: 110px;
-            align-items: start;
-            justify-content: center;
-        }
-
-        .about-text {
-            min-width: 0;
-        }
-
-        .about-bio p {
-            margin: 0 0 38px;
-            max-width: 520px;
             font-family: Helvetica, Arial, sans-serif;
-            font-size: 24px;
+            color: #000;
+        }
+
+        .cv-page h1 {
+            margin: 0 0 50px;
+            font-size: 28px;
             font-weight: 400;
-            line-height: 1.18;
-            letter-spacing: -0.02em;
+            line-height: 1;
+            letter-spacing: -0.03em;
         }
 
-        .about-contact h2 {
-            margin: 0 0 14px;
-            font-family: Helvetica, Arial, sans-serif;
+        .cv-section {
+            margin-bottom: 65px;
+        }
+
+        .cv-section h2 {
+            margin: 0 0 26px;
+            font-size: 20px;
+            font-weight: 400;
+            line-height: 1.2;
+        }
+
+        .cv-year {
+            margin: 28px 0 9px;
             font-size: 15px;
             font-weight: 400;
-            line-height: 1.4;
+            line-height: 1.2;
         }
 
-        .contact-link,
-        .cv-link {
-            display: block;
-            width: fit-content;
-            color: #000;
-            font-family: Helvetica, Arial, sans-serif;
+        .cv-entry {
+            margin: 0 0 4px;
             font-size: 15px;
             font-weight: 400;
-            line-height: 1.4;
-            text-decoration: none;
+            line-height: 1.25;
         }
 
-   .cv-link {
-    margin-top: 24px;
-    font-weight: 600;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-}
-
-        .contact-link:hover,
-        .cv-link:hover {
-            opacity: 0.45;
-        }
-
-        .about-photo img {
-            display: block;
-            width: 100%;
-            max-width: 430px;
-            height: auto;
-        }
-
-        .about-caption {
-            max-width: 430px;
-            margin: 12px 0 0;
-            font-family: Helvetica, Arial, sans-serif;
-            font-size: 12px;
+        .education-entry {
+            margin: 0 0 7px;
+            font-size: 15px;
             font-weight: 400;
-            line-height: 1.35;
-        }
-
-        .about-caption a {
-            color: #000;
-            text-decoration: none;
-        }
-
-        .about-caption a:hover {
-            opacity: 0.45;
+            line-height: 1.3;
         }
 
 
@@ -203,25 +168,13 @@
                 font-size: 20px;
             }
 
-            .about-page {
+            .cv-page {
                 padding: 60px 20px 90px;
             }
 
-            .about-grid {
-                grid-template-columns: 1fr;
-                gap: 45px;
-            }
-
-            .about-bio p {
-                font-size: 22px;
-            }
-
-            .about-photo {
-                order: -1;
-            }
-
-            .about-photo img {
-                max-width: 100%;
+            .cv-page h1 {
+                font-size: 25px;
+                margin-bottom: 40px;
             }
         }
 
@@ -256,60 +209,67 @@
 </header>
 
 
-<main class="about-page">
+<main class="cv-page">
 
-    <div class="about-grid">
-
-        <div class="about-text">
-
-            <section class="about-bio">
-
-                <p>
-                    Christy Taylor is an artist based in Hastings, UK.
-                    He completed an MA in Contemporary Art Practice at the
-                    Royal College of Art in 2024. His practice spans drawing,
-                    painting, sculpture, video and performance, alongside an
-                    ongoing series of digital drawings made on iPad.
-                </p>
-
-            </section>
+    <h1>Artist CV</h1>
 
 
-            <section class="about-contact">
+    <section class="cv-section">
 
-                <h2>Contact</h2>
+        <h2>Selected Group Exhibitions</h2>
 
-                <a class="contact-link" href="mailto:studio@christytaylor.co.uk">
-                    studio@christytaylor.co.uk
-                </a>
+        <h3 class="cv-year">2026</h3>
+        <p class="cv-entry"><i>Machine as Collaborator</i> — OBX, Hastings</p>
 
-                <a class="cv-link" href="cv.html">
-                    Artist CV
-                </a>
+        <h3 class="cv-year">2025</h3>
+        <p class="cv-entry"><i>In Praise of Darkness</i> — Unit 2, St Leonards-on-Sea</p>
+        <p class="cv-entry"><i>Economic Possibilities for Our Grandchildren</i> — Wandsworth Fringe Art Festival, Holy Trinity Church, London</p>
+        <p class="cv-entry"><i>Present Voices</i> — Electro Studios, St Leonards-on-Sea</p>
+        <p class="cv-entry"><i>Bottle Alley Art Market</i> — Hastings</p>
+        <p class="cv-entry"><i>Battenberg III</i> — University of East London</p>
 
-            </section>
+        <h3 class="cv-year">2024</h3>
+        <p class="cv-entry"><i>Tate Lates</i> — Tate Modern, London</p>
+        <p class="cv-entry"><i>CAP Cinema Screening</i> — Genesis Cinema, London</p>
+        <p class="cv-entry"><i>Future Archaeologies</i> — Camden Art Centre, London</p>
+        <p class="cv-entry"><i>CosmiKnot</i> — Platform, Athens, Greece</p>
+        <p class="cv-entry"><i>Uneasy in the Frame</i> — Safehouse 1, Peckham</p>
+        <p class="cv-entry"><i>Battenberg II</i> — University of East London</p>
+        <p class="cv-entry"><i>Mouthwash and Razorblades</i> — The Place, London</p>
 
-        </div>
+        <h3 class="cv-year">2023</h3>
+        <p class="cv-entry"><i>Soft Air</i> — FILET, London</p>
+        <p class="cv-entry"><i>CosmiKnot</i> — Platform, Athens, Greece</p>
+        <p class="cv-entry"><i>No Man’s Land</i> — Dyson Gallery, Royal College of Art</p>
+        <p class="cv-entry"><i>Everything Must Go</i> — Cookhouse Gallery, Chelsea College of Arts</p>
+
+        <h3 class="cv-year">2022</h3>
+        <p class="cv-entry"><i>Soft Teeth</i> — AVA Building, University of East London</p>
+        <p class="cv-entry"><i>Memories</i> — Nunnery Gallery, London</p>
+        <p class="cv-entry"><i>35/4</i> — A.P.T Gallery, London</p>
+
+        <h3 class="cv-year">2019</h3>
+        <p class="cv-entry"><i>SCULPT 2</i> — The Bomb Factory, London</p>
+
+        <h3 class="cv-year">2018</h3>
+        <p class="cv-entry"><i>Plastic</i> — Ex-Room, Copenhagen, Denmark</p>
+
+    </section>
 
 
-        <div class="about-photo">
+    <section class="cv-section">
 
-            <img
-                src="images/about-photo.jpg"
-                alt="Artwork by Christy Taylor"
-            >
+        <h2>Education</h2>
 
-            <p class="about-caption">
-                <a href="51-55112914315447.html">
-                    51.55112914315447, -0.18352334692629535, Mild Steel, Spray Paint
-                </a>
-                <br>
-                <i>Future Archaeologies</i> — Camden Art Centre, 2024.
-            </p>
+        <p class="education-entry">
+            MA Contemporary Art Practice — Royal College of Art, 2023–24
+        </p>
 
-        </div>
+        <p class="education-entry">
+            BA (Hons) Fine Art, First-Class Honours — University of East London, 2020–23
+        </p>
 
-    </div>
+    </section>
 
 </main>
 
