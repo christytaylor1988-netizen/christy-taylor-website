@@ -1,9 +1,27 @@
+/* =========================================================
+   FONTS
+   ========================================================= */
+
 @font-face {
     font-family: "Fake Receipt";
-    src: url("fonts/Fake%20Receipt.otf") format("opentype");
-    font-weight: normal;
+    src: url("./fonts/Fake%20Receipt.otf") format("opentype");
+    font-weight: 400;
     font-style: normal;
+    font-display: swap;
 }
+
+@font-face {
+    font-family: "Shop Receipt";
+    src: url("./fonts/Fake%20Receipt.otf") format("opentype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+
+/* =========================================================
+   BASE STYLES
+   ========================================================= */
 
 * {
     box-sizing: border-box;
@@ -23,77 +41,98 @@ body {
 
 
 /* =========================================================
-   HEADER — SAME ACROSS THE WHOLE WEBSITE
+   MASTER HEADER & NAVIGATION SETTINGS
+   Change navigation fonts, sizes and colours here.
    ========================================================= */
 
+:root {
+    --nav-font: Helvetica, Arial, sans-serif;
+    --header-font: "Courier New", Courier, monospace;
+
+    --header-colour: #000000;
+    --hastings-colour: #002fa7;
+    --work-colour: #000000;
+    --shop-colour: #d65a20;
+    --about-colour: #2c9f45;
+
+    --header-font-size: 6px;
+    --nav-font-size: 27px;
+    --nav-gap: 30px;
+    --header-gap: 24px;
+    --header-padding: 16px 30px 0;
+    --nav-top-padding: 2px;
+    --nav-hover-opacity: 0.45;
+}
+
 .site-header {
-    display: flex;
-    align-items: flex-start;
-    gap: 24px;
-    padding: 16px 30px 0;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: flex-start !important;
+    gap: var(--header-gap) !important;
+    padding: var(--header-padding) !important;
 }
 
-.ascii-link {
-    display: block;
-    width: fit-content;
-    flex-shrink: 0;
-    margin: 0;
-    padding: 0;
-    color: #000;
-    text-decoration: none;
+.site-header .ascii-link {
+    display: block !important;
+    width: fit-content !important;
+    flex-shrink: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    color: var(--header-colour) !important;
+    text-decoration: none !important;
 }
 
-.ascii-name {
-    margin: 0;
-    padding: 0;
-    color: #000;
-    font-family: "Courier New", Courier, monospace;
-    font-size: 4px;
-    font-weight: 700;
-    line-height: 1;
-    letter-spacing: 0;
-    white-space: pre;
+.site-header .ascii-name {
+    margin: 0 !important;
+    padding: 0 !important;
+    color: var(--header-colour) !important;
+    font-family: var(--header-font) !important;
+    font-size: var(--header-font-size) !important;
+    font-weight: 700 !important;
+    line-height: 1 !important;
+    letter-spacing: 0 !important;
+    white-space: pre !important;
 }
 
-.site-nav {
-    display: flex;
-    gap: 24px;
-    margin-left: auto;
-    padding-top: 2px;
-    white-space: nowrap;
+.site-header .site-nav {
+    display: flex !important;
+    width: auto !important;
+    flex-wrap: nowrap !important;
+    gap: var(--nav-gap) !important;
+    margin-left: auto !important;
+    padding-top: var(--nav-top-padding) !important;
+    white-space: nowrap !important;
 }
 
-.site-nav a {
-    font-family: Helvetica, Arial, sans-serif;
-    font-size: 20px;
-    font-weight: 400;
-    line-height: 1;
-    letter-spacing: -0.04em;
-    text-decoration: none;
+.site-header .site-nav a {
+    font-family: var(--nav-font) !important;
+    font-size: var(--nav-font-size) !important;
+    font-weight: 400 !important;
+    line-height: 1 !important;
+    letter-spacing: -0.04em !important;
+    text-decoration: none !important;
 }
 
-/* HASTINGS = BLUE */
-
-.site-nav a[href="hastings.html"],
-.site-nav a[href="drawings.html"] {
-    color: #002fa7;
+.site-header .site-nav a[href="hastings.html"],
+.site-header .site-nav a[href="drawings.html"] {
+    color: var(--hastings-colour) !important;
 }
 
-/* OTHER WORK = BLACK */
-
-.site-nav a[href="work.html"] {
-    color: #000;
+.site-header .site-nav a[href="work.html"] {
+    color: var(--work-colour) !important;
 }
 
-/* ABOUT / CONTACT = YELLOW */
-
-.site-nav a[href="about.html"] {
-    color: #2c9f45;
+.site-header .site-nav a[href="shop.html"] {
+    color: var(--shop-colour) !important;
 }
 
-.site-nav a:hover,
-.ascii-link:hover {
-    opacity: 0.45;
+.site-header .site-nav a[href="about.html"] {
+    color: var(--about-colour) !important;
+}
+
+.site-header .site-nav a:hover,
+.site-header .ascii-link:hover {
+    opacity: var(--nav-hover-opacity) !important;
 }
 
 
@@ -394,11 +433,15 @@ body {
 
 
 /* =========================================================
-   FAKE RECEIPT FONT
+   MOVING SHOP TICKER
    ========================================================= */
 
-.print-info-line {
-    font-family: "Fake Receipt", Helvetica, Arial, sans-serif !important;
+.print-info-line,
+.print-info-track,
+.ticker-copy {
+    font-family: "Shop Receipt", monospace !important;
+    font-weight: 400 !important;
+    font-style: normal !important;
 }
 
 
@@ -407,17 +450,10 @@ body {
    ========================================================= */
 
 @media (max-width: 1050px) {
-
-    .ascii-name {
-        font-size: 3px;
-    }
-
-    .site-nav {
-        gap: 18px;
-    }
-
-    .site-nav a {
-        font-size: 18px;
+    :root {
+        --header-font-size: 4px;
+        --nav-font-size: 22px;
+        --nav-gap: 18px;
     }
 
     #main-hastings-image {
@@ -431,29 +467,23 @@ body {
    ========================================================= */
 
 @media (max-width: 700px) {
+    :root {
+        --header-font-size: 3px;
+        --nav-font-size: 20px;
+        --nav-gap: 15px;
+        --header-gap: 14px;
+        --header-padding: 14px 18px 0;
+    }
 
     .site-header {
-        flex-direction: column;
-        gap: 14px;
-        padding: 14px 18px 0;
+        flex-direction: column !important;
     }
 
-    .ascii-name {
-        font-size: 2.5px;
+    .site-header .site-nav {
+        width: 100% !important;
+        margin-left: 0 !important;
+        flex-wrap: wrap !important;
     }
-
-    .site-nav {
-        width: 100%;
-        margin-left: 0;
-        padding-top: 0;
-        gap: 15px;
-        flex-wrap: wrap;
-    }
-
-    .site-nav a {
-        font-size: 18px;
-    }
-
 
     /* HOME */
 
@@ -472,7 +502,6 @@ body {
         font-size: 13px;
     }
 
-
     /* RANDOM BUTTON */
 
     .random-archive-button {
@@ -483,7 +512,6 @@ body {
     .random-archive-button img {
         width: 240px;
     }
-
 
     /* HASTINGS */
 
@@ -522,14 +550,12 @@ body {
         font-size: 13px;
     }
 
-
     /* PROJECT PAGES */
 
     .project-index,
     .project-page {
         padding: 60px 20px 90px;
     }
-
 
     /* RANDOM DRAWINGS */
 
@@ -545,7 +571,6 @@ body {
     #another-drawing {
         font-size: 18px;
     }
-
 
     /* THESEUS */
 
@@ -567,7 +592,12 @@ body {
         max-height: 72vh;
     }
 }
-/* Keep both homepage markup versions constrained without affecting galleries. */
+
+
+/* =========================================================
+   SUPPORT FOR BOTH HOMEPAGE MARKUP VERSIONS
+   ========================================================= */
+
 main:has(> .home-image) {
     min-height: calc(100vh - 70px);
     display: grid;
@@ -611,4 +641,38 @@ main:has(> .home-image) {
         margin-top: 12px;
         font-size: 13px;
     }
+}
+/* BASKET LINK */
+
+#basketLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 28px;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+#basketLink::before {
+    content: "";
+    display: block;
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23111' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 9h18l-2 11H5L3 9ZM7 9l3-6M17 9l-3-6M9 13v4M15 13v4'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+@media (max-width: 700px) {
+    #basketLink {
+        font-size: 22px;
+    }
+
+    #basketLink::before {
+        width: 24px;
+        height: 24px;
+    }
+}
+/* HIDE DUPLICATE LINK ON THE BASKET PAGE */
+.basket-page #basketLink {
+    display: none;
 }
