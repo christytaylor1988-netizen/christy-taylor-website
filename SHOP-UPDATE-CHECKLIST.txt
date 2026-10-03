@@ -1,0 +1,138 @@
+CHRISTY TAYLOR PRINT SHOP — SAFE UPDATE ROUTINE
+===============================================
+
+PURPOSE
+-------
+Use this routine for ordinary print-shop updates.
+
+RULES
+-----
+1. NEVER use "git add ."
+2. NEVER make shop updates from the messy working folder.
+3. NEVER push directly from the messy working folder.
+4. ALWAYS start from a fresh copy of origin/main.
+5. ALWAYS run ./shop-preflight.sh before committing.
+6. NEVER change Stripe, Render, server.py, basket.html or success.html
+   for an ordinary print update unless the preflight specifically tells
+   you the backend catalogue needs updating.
+7. NEVER deploy to main until the exact staged file list has been checked.
+
+START A NEW SHOP UPDATE
+-----------------------
+
+From any terminal:
+
+cd "/Users/christytaylor/Christy Taylor Website"
+git fetch origin
+
+STAMP=$(date +%Y%m%d-%H%M%S)
+BRANCH="shop-update-$STAMP"
+DIR="/tmp/$BRANCH"
+
+git worktree add -b "$BRANCH" "$DIR" origin/main
+cd "$DIR"
+
+You are now in a clean shop-update workspace.
+
+ORDINARY SHOP CHANGES
+---------------------
+
+Normally only change:
+
+shop-products.js
+images/shop-previews/
+
+Do not casually change:
+
+basket.html
+success.html
+server.py
+site-nav.js
+styles.css
+Stripe settings
+Render settings
+
+ADDING A BRAND-NEW PRINT
+------------------------
+
+A brand-new visible product ID must also exist in the checkout backend.
+
+You do NOT need to remember this yourself.
+
+shop-preflight.sh compares the visible shop products against:
+
+origin/stripe-checkout-backend:server.py
+
+If they do not match, it STOPS the deployment.
+
+PREVIEW
+-------
+
+python3 -m http.server 8001 --directory "$PWD"
+
+Open:
+
+http://localhost:8001/shop.html
+
+When finished previewing, press:
+
+Ctrl + C
+
+STAGE ONLY THE SHOP FILES
+-------------------------
+
+git add shop-products.js
+git add -A -f -- images/shop-previews
+
+Then check:
+
+git diff --cached --name-only
+
+RUN THE SAFETY CHECK
+--------------------
+
+./shop-preflight.sh
+
+Do not commit unless it says:
+
+PASS — shop update is safe to commit.
+
+COMMIT
+------
+
+git commit -m "Update print shop"
+
+PUSH THE UPDATE BRANCH ONLY
+---------------------------
+
+git push -u origin "$(git branch --show-current)"
+
+This does NOT make the update live.
+
+DEPLOY
+------
+
+Only after checking the exact branch/files:
+
+git push origin "$(git branch --show-current)":main
+
+Then wait for Render and check the live shop.
+
+LIVE CHECK
+----------
+
+Check:
+
+https://christytaylor.co.uk/shop.html
+
+Confirm:
+
+- images load
+- product page opens
+- correct sizes/prices show
+- basket works
+- Checkout opens Stripe
+
+You do NOT need to make another real payment for an ordinary catalogue update.
+
+NEVER REBUILD THE WHOLE PAYMENT SYSTEM FOR A NORMAL SHOP UPDATE.
