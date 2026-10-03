@@ -1,10 +1,475 @@
 <!doctype html>
 <html lang="en">
+
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="refresh" content="0; url=shop.html">
-  <title>Online Shop Coming Soon — Christy Taylor</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Print — Christy Taylor</title>
+
+    <link rel="stylesheet" href="styles.css">
+    <script src="site-nav.js" defer></script>
+
+    <style>
+        /* PRODUCT PAGE */
+
+        body {
+            background: #dcdad1;
+            color: #111;
+        }
+
+        .product-page {
+            padding: 26px 30px 110px;
+        }
+
+        .shop-bar {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            margin: 0 0 48px;
+            font: 18px Helvetica, Arial, sans-serif;
+        }
+
+        .shop-bar a {
+            color: #111;
+            text-decoration: none;
+        }
+
+        .shop-bar a:hover {
+            text-decoration: underline;
+        }
+
+        .product-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1.15fr) minmax(310px, .85fr);
+            gap: 60px;
+            align-items: start;
+            max-width: 1450px;
+            margin: 0 auto;
+        }
+
+        .product-image-wrap {
+            display: flex;
+            justify-content: center;
+            cursor: zoom-in;
+        }
+
+        .product-image-wrap img {
+            display: block;
+            max-width: 100%;
+            max-height: 720px;
+            width: auto;
+            height: auto;
+        }
+
+        .product-info {
+            font-family: Helvetica, Arial, sans-serif;
+        }
+
+        .product-title {
+            margin: 0 0 16px;
+            font-size: 30px;
+            font-weight: 400;
+            line-height: 1.15;
+            letter-spacing: -.035em;
+            overflow-wrap: anywhere;
+        }
+
+        .product-price {
+            margin: 0 0 38px;
+            font-size: 24px;
+        }
+
+        .size-heading {
+            margin: 0 0 12px;
+            font-size: 16px;
+            font-weight: 400;
+        }
+
+        .size-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 0 0 20px;
+        }
+
+        .size-option input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .size-option span {
+            display: block;
+            min-width: 84px;
+            padding: 13px 15px;
+            border: 1px solid #111;
+            text-align: center;
+            cursor: pointer;
+            font-size: 17px;
+            line-height: 1.2;
+        }
+
+        .size-option input:checked + span {
+            background: #111;
+            color: #fff;
+        }
+
+        .size-details {
+            margin: 0 0 34px;
+            font-size: 15px;
+        }
+
+        .product-description {
+            margin: 0 0 20px;
+            max-width: 520px;
+            font-size: 18px;
+            line-height: 1.45;
+        }
+
+        .product-details {
+            list-style: none;
+            margin: 0 0 30px;
+            padding: 0;
+        }
+
+        .product-details li {
+            font: 18px/1.5 "Fake Receipt", Helvetica, Arial, sans-serif;
+        }
+
+        .product-details li::before {
+            content: "– ";
+        }
+
+        .shop-info-dropdown {
+            max-width: 520px;
+            margin: 0 0 34px;
+        }
+
+        .shop-info-dropdown summary {
+            cursor: pointer;
+            font-size: 15px;
+            text-decoration: underline;
+            list-style: none;
+        }
+
+        .shop-info-dropdown summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .shop-info-dropdown summary::after {
+            content: " +";
+        }
+
+        .shop-info-dropdown[open] summary::after {
+            content: " −";
+        }
+
+        .shop-info-content {
+            margin-top: 18px;
+        }
+
+        .shop-info-content h3 {
+            margin: 20px 0 7px;
+            font-size: 16px;
+            font-weight: 400;
+        }
+
+        .shop-info-content p {
+            margin: 0 0 9px;
+            font-size: 15px;
+            line-height: 1.45;
+        }
+
+        .shop-info-content a {
+            color: #111;
+        }
+
+        .add-to-basket {
+            border: 0;
+            background: #111;
+            color: #fff;
+            padding: 19px 32px;
+            font: 24px/1 Helvetica, Arial, sans-serif;
+            cursor: pointer;
+        }
+
+        .add-to-basket:hover {
+            opacity: .72;
+        }
+
+        .basket-message {
+            min-height: 24px;
+            margin-top: 14px;
+            font-size: 16px;
+        }
+
+        .image-lightbox {
+            position: fixed;
+            inset: 0;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            background: rgba(220, 218, 209, .97);
+            padding: 40px;
+            z-index: 9999;
+            cursor: zoom-out;
+        }
+
+        .image-lightbox.open {
+            display: flex;
+        }
+
+        .image-lightbox img {
+            display: block;
+            max-width: 94vw;
+            max-height: 92vh;
+            width: auto;
+            height: auto;
+        }
+
+        @media (max-width: 850px) {
+            .product-page {
+                padding: 24px 20px 90px;
+            }
+
+            .shop-bar {
+                margin-bottom: 34px;
+            }
+
+            .product-layout {
+                grid-template-columns: 1fr;
+                gap: 36px;
+            }
+
+            .product-image-wrap img {
+                max-height: 68vh;
+            }
+
+            .product-title {
+                font-size: 26px;
+            }
+        }
+    </style>
 </head>
-<body><p><a href="shop.html">Online shop coming soon</a></p></body>
+
+<body>
+
+<header class="site-header">
+    <a class="ascii-link" href="index.html" aria-label="Christy Taylor home">
+<pre class="ascii-name">      ___           ___           ___                       ___                                                        ___                                     ___           ___
+     /  /\         /__/\         /  /\        ___          /  /\          ___         ___                  ___        /  /\          ___                      /  /\         /  /\
+    /  /:/         \  \:\       /  /::\      /  /\        /  /:/_        /  /\       /__/|                /  /\      /  /::\        /__/|                    /  /::\       /  /::\
+   /  /:/           \__\:\     /  /:/\:\    /  /:/       /  /:/ /\      /  /:/      |  |:|               /  /:/     /  /:/\:\      |  |:|    ___     ___    /  /:/\:\     /  /:/\:\
+  /  /:/  ___   ___ /  /::\   /  /:/~/:/   /__/::\      /  /:/ /::\    /  /:/       |  |:|              /  /:/     /  /:/~/::\     |  |:|   /__/\   /  /\  /  /:/  \:\   /  /:/~/:/
+ /__/:/  /  /\ /__/\  /:/\:\ /__/:/ /:/___ \__\/\:\__  /__/:/ /:/\:\  /  /::\     __|__|:|             /  /::\    /__/:/ /:/\:\  __|__|:|   \  \:\ /  /:/ /__/:/ \__\:\ /__/:/ /:/___
+ \  \:\ /  /:/ \  \:\/:/__\/ \  \:\/:::::/    \  \:\/\ \  \:\/:/~/:/ /__/:/\:\   /__/::::\            /__/:/\:\   \  \:\/:/__\/ /__/::::\    \  \:\  /:/  \  \:\ /  /:/ \  \:\/:::::/
+  \  \:\  /:/   \  \::/       \  \::/~~~~      \__\::/  \  \::/ /:/  \__\/  \:\     ~\~~\:\           \__\/  \:\   \  \::/         ~\~~\:\    \  \:\/:/    \  \:\  /:/   \  \::/~~~~
+   \  \:\/:/     \  \:\        \  \:\          /__/:/    \__\/ /:/        \  \:\      \  \:\               \  \:\   \  \:\           \  \:\    \  \::/      \  \:\/:/     \  \:\
+    \  \::/       \  \:\        \  \:\         \__\/       /__/:/          \__\/       \__\/                \__\/    \  \:\           \__\/     \__\/        \  \::/       \  \:\
+     \__\/         \__\/         \__\/                     \__\/                                                      \__\/                                   \__\/         \__\/</pre>
+    </a>
+
+    <nav class="site-nav">
+        <a href="hastings.html">Hastings</a>
+        <a href="work.html">Other Work</a>
+        <a href="shop.html">Shop</a>
+        <a href="about.html">About / Contact</a>
+    </nav>
+</header>
+
+<main class="product-page">
+    <div class="shop-bar">
+        <a href="shop.html">PRINT SHOP</a>
+        <a id="basketLink" href="basket.html">Basket (0)</a>
+    </div>
+
+    <div class="product-layout">
+        <div
+            class="product-image-wrap"
+            id="productImageWrap"
+            role="button"
+            tabindex="0"
+            aria-label="Enlarge print"
+        >
+            <img id="productImage" src="" alt="">
+        </div>
+
+        <section class="product-info">
+            <h1 class="product-title" id="productTitle"></h1>
+            <p class="product-price" id="productPrice">£20</p>
+
+            <h2 class="size-heading">Choose size</h2>
+            <div class="size-options" id="sizeOptions"></div>
+            <p class="size-details" id="sizeDetails"></p>
+
+            <p class="product-description">
+                Fine art print on Epson Archival Matte Photo Paper 189gsm, using six-colour Epson Claria ET Premium inks.
+            </p>
+
+            <ul class="product-details">
+                <li>Made to order in Hastings</li>
+                <li>Available in A5, A4 and A3</li>
+                <li>UK delivery</li>
+            </ul>
+
+            <details class="shop-info-dropdown">
+                <summary>Delivery · Returns · Contact</summary>
+
+                <div class="shop-info-content">
+                    <h3>Delivery</h3>
+                    <p>UK delivery only. Prints are sent flat in protective packaging.</p>
+                    <p>The delivery charge will be shown at checkout.</p>
+
+                    <h3>Returns</h3>
+                    <p>If you change your mind, please email within 14 days of receiving your order.</p>
+                    <p>Return postage is the customer’s responsibility unless the item is faulty, damaged or incorrect.</p>
+
+                    <h3>Contact</h3>
+                    <p>
+                        <a href="mailto:studio@christytaylor.co.uk">
+                            studio@christytaylor.co.uk
+                        </a>
+                    </p>
+                </div>
+            </details>
+
+            <button class="add-to-basket" id="addToBasket" type="button">
+                ADD TO BASKET
+            </button>
+
+            <div
+                class="basket-message"
+                id="basketMessage"
+                aria-live="polite"
+            ></div>
+        </section>
+    </div>
+</main>
+
+<div class="image-lightbox" id="imageLightbox" aria-hidden="true">
+    <img id="lightboxImage" src="" alt="">
+</div>
+
+<script src="shop-products.js"></script>
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const requestedID = params.get("id");
+
+    const product =
+        SHOP_PRODUCTS.find(item => item.id === requestedID) ||
+        SHOP_PRODUCTS[0];
+
+    let selectedSize = "A5";
+
+    const productTitle = document.getElementById("productTitle");
+    const productPrice = document.getElementById("productPrice");
+    const productImage = document.getElementById("productImage");
+    const lightboxImage = document.getElementById("lightboxImage");
+    const sizeDetails = document.getElementById("sizeDetails");
+    const basketMessage = document.getElementById("basketMessage");
+
+    productTitle.textContent = product.title;
+    productImage.src = product.image;
+    productImage.alt = `${product.title} print by Christy Taylor`;
+    lightboxImage.src = product.image;
+    lightboxImage.alt = `Enlarged ${product.title} print by Christy Taylor`;
+
+    document.title = `${product.title} — Christy Taylor`;
+
+    function displaySelectedSize() {
+        const choice = SHOP_SIZES[selectedSize];
+
+        productPrice.textContent = `£${choice.price}`;
+        sizeDetails.textContent = `${choice.label} · ${choice.dimensions}`;
+    }
+
+    const sizeOptions = document.getElementById("sizeOptions");
+
+    Object.entries(SHOP_SIZES).forEach(([size, details], position) => {
+        const label = document.createElement("label");
+        label.className = "size-option";
+
+        label.innerHTML = `
+            <input
+                type="radio"
+                name="printSize"
+                value="${size}"
+                ${position === 0 ? "checked" : ""}
+            >
+            <span>${size}<br>£${details.price}</span>
+        `;
+
+        label.querySelector("input").addEventListener("change", event => {
+            selectedSize = event.target.value;
+            displaySelectedSize();
+            basketMessage.textContent = "";
+        });
+
+        sizeOptions.appendChild(label);
+    });
+
+    displaySelectedSize();
+
+    document.getElementById("addToBasket").addEventListener("click", () => {
+        const basket = getShopBasket();
+        const choice = SHOP_SIZES[selectedSize];
+
+        const existingItem = basket.find(
+            item => item.id === product.id && item.size === selectedSize
+        );
+
+        if (existingItem) {
+            existingItem.quantity += 1;
+        } else {
+            basket.push({
+                id: product.id,
+                title: product.title,
+                image: product.image,
+                size: selectedSize,
+                dimensions: choice.dimensions,
+                price: choice.price,
+                quantity: 1
+            });
+        }
+
+        saveShopBasket(basket);
+        updateBasketLink();
+
+        basketMessage.textContent = `${selectedSize} print added to basket.`;
+    });
+
+    const imageWrap = document.getElementById("productImageWrap");
+    const lightbox = document.getElementById("imageLightbox");
+
+    function openLightbox() {
+        lightbox.classList.add("open");
+        lightbox.setAttribute("aria-hidden", "false");
+    }
+
+    function closeLightbox() {
+        lightbox.classList.remove("open");
+        lightbox.setAttribute("aria-hidden", "true");
+    }
+
+    imageWrap.addEventListener("click", openLightbox);
+
+    imageWrap.addEventListener("keydown", event => {
+        if (event.key === "Enter" || event.key === " ") {
+            openLightbox();
+        }
+    });
+
+    lightbox.addEventListener("click", closeLightbox);
+
+    document.addEventListener("keydown", event => {
+        if (event.key === "Escape") {
+            closeLightbox();
+        }
+    });
+
+    updateBasketLink();
+</script>
+
+</body>
 </html>
