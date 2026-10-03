@@ -1,10 +1,608 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="refresh" content="0; url=shop.html">
-  <title>Online Shop Coming Soon — Christy Taylor</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Checking payment — Christy Taylor</title>
+
+    <link rel="stylesheet" href="styles.css">
+    <script src="site-nav.js" defer></script>
+
+    <style>
+        body {
+            background: #dcdad1;
+        }
+
+        .success-page {
+            min-height: calc(100vh - 100px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 30px 100px;
+        }
+
+        .success-box {
+            width: 100%;
+            max-width: 1400px;
+            text-align: center;
+            font-family: Helvetica, Arial, sans-serif;
+        }
+
+        .success-title {
+            margin: 0 0 25px;
+            font-size: 46px;
+            font-weight: 400;
+            line-height: 1;
+            letter-spacing: -0.04em;
+        }
+
+        .success-text {
+            margin: 0 0 55px;
+            font-size: 21px;
+            line-height: 1.4;
+        }
+
+        .return-shop {
+            display: inline-block;
+            background: #000;
+            color: #fff;
+            padding: 18px 30px;
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 22px;
+            text-decoration: none;
+        }
+
+        .return-shop:hover {
+            opacity: 0.75;
+        }
+
+        @media (max-width: 800px) {
+            .success-title {
+                font-size: 36px;
+            }
+        }
+    </style>
 </head>
-<body><p><a href="shop.html">Online shop coming soon</a></p></body>
+
+<body>
+
+<header class="site-header">
+    <a class="ascii-link" href="index.html" aria-label="Christy Taylor home">
+<pre class="ascii-name">      ___           ___           ___                       ___                                                        ___                                     ___           ___
+    /  /\         /__/\         /  /\        ___          /  /\          ___         ___                  ___        /  /\          ___                      /  /\         /  /\
+   /  /:/         \  \:\       /  /::\      /  /\        /  /:/_        /  /\       /__/|                /  /\      /  /::\        /__/|                    /  /::\       /  /::\
+  /  /:/           \__\:\     /  /:/\:\    /  /:/       /  /:/ /\      /  /:/      |  |:|               /  /:/     /  /:/\:\      |  |:|    ___     ___    /  /:/\:\     /  /:/\:\
+ /  /:/  ___   ___ /  /::\   /  /:/~/:/   /__/::\      /  /:/ /::\    /  /:/       |  |:|              /  /:/     /  /:/~/::\     |  |:|   /__/\   /  /\  /  /:/  \:\   /  /:/~/:/
+/__/:/  /  /\ /__/\  /:/\:\ /__/:/ /:/___ \__\/\:\__  /__/:/ /:/\:\  /  /::\     __|__|:|             /  /::\    /__/:/ /:/\:\  __|__|:|   \  \:\ /  /:/ /__/:/ \__\:\ /__/:/ /:/___
+\  \:\ /  /:/ \  \:\/:/__\/ \  \:\/:::::/    \  \:\/\ \  \:\/:/~/:/ /__/:/\:\   /__/::::\            /__/:/\:\   \  \:\/:/__\/ /__/::::\    \  \:\  /:/  \  \:\ /  /:/ \  \:\/:::::/
+ \  \:\  /:/   \  \::/       \  \::/~~~~      \__\::/  \  \::/ /:/  \__\/  \:\     ~\~~\:\           \__\/  \:\   \  \::/         ~\~~\:\    \  \:\/:/    \  \:\  /:/   \  \::/~~~~
+  \  \:\/:/     \  \:\        \  \:\          /__/:/    \__\/ /:/        \  \:\      \  \:\               \  \:\   \  \:\           \  \:\    \  \::/      \  \:\/:/     \  \:\
+   \  \::/       \  \:\        \  \:\         \__\/       /__/:/          \__\/       \__\/                \__\/    \  \:\           \__\/     \__\/        \  \::/       \  \:\
+    \__\/         \__\/         \__\/                     \__\/                                                      \__\/                                   \__\/         \__\/</pre>
+    </a>
+
+    <nav class="site-nav" aria-label="Main navigation">
+        <a href="hastings.html">Hastings</a>
+        <a href="work.html">Other Work</a>
+        <a href="shop.html">Shop</a>
+        <a href="about.html">About / Contact</a>
+    </nav>
+</header>
+
+<main class="success-page">
+    <div
+        class="success-box"
+        aria-live="polite"
+        aria-busy="true"
+    >
+        <h1
+            class="success-title"
+            id="successTitle"
+        >
+            Checking payment
+        </h1>
+
+        <p
+            class="success-text"
+            id="successText"
+        >
+            Please wait while your payment is verified.
+        </p>
+
+        <a
+            class="return-shop"
+            href="shop.html"
+        >
+            RETURN TO SHOP
+        </a>
+    </div>
+</main>
+
+<script>
+    const successBox =
+        document.querySelector(".success-box");
+
+    const successTitle =
+        document.getElementById("successTitle");
+
+    const successText =
+        document.getElementById("successText");
+
+    const CHECKOUT_RECORDS_KEY =
+        "christyCheckoutSessions";
+
+    const BASKET_KEY =
+        "christyBasket";
+
+
+    const hostname =
+        window.location.hostname;
+
+    const IS_LOCAL =
+        ["localhost", "127.0.0.1"].includes(
+            hostname
+        );
+
+    const IS_LIVE_SITE =
+        [
+            "christytaylor.co.uk",
+            "www.christytaylor.co.uk"
+        ].includes(hostname);
+
+
+    const sessionId =
+        new URLSearchParams(
+            window.location.search
+        ).get("session_id");
+
+
+    const checkoutSessionAPI =
+        IS_LOCAL
+            ? "http://127.0.0.1:5000/checkout-session"
+            : IS_LIVE_SITE
+                ? "https://christy-taylor-checkout.onrender.com/checkout-session"
+                : "";
+
+
+    const EXPECTED_SESSION_PREFIX =
+        IS_LOCAL
+            ? "cs_test_"
+            : "cs_live_";
+
+
+    function showResult(
+        title,
+        message
+    ) {
+        successTitle.textContent = title;
+        successText.textContent = message;
+
+        successBox.setAttribute(
+            "aria-busy",
+            "false"
+        );
+
+        document.title =
+            `${title} — Christy Taylor`;
+    }
+
+
+    function groupedQuantities(items) {
+        if (
+            !Array.isArray(items) ||
+            !items.length
+        ) {
+            throw new Error(
+                "Missing checkout items."
+            );
+        }
+
+        const grouped = new Map();
+
+        for (const item of items) {
+            if (
+                !item ||
+                typeof item.id !== "string" ||
+                !item.id ||
+                !["A5", "A4", "A3"].includes(
+                    item.size
+                ) ||
+                !Number.isInteger(item.quantity) ||
+                item.quantity < 1 ||
+                item.quantity > 20
+            ) {
+                throw new Error(
+                    "Invalid checkout item."
+                );
+            }
+
+            const key =
+                JSON.stringify([
+                    item.id,
+                    item.size
+                ]);
+
+            const quantity =
+                (grouped.get(key) || 0) +
+                item.quantity;
+
+            if (quantity > 20) {
+                throw new Error(
+                    "Invalid checkout quantity."
+                );
+            }
+
+            grouped.set(
+                key,
+                quantity
+            );
+        }
+
+        return grouped;
+    }
+
+
+    function removePurchasedItems(data) {
+        const records =
+            JSON.parse(
+                localStorage.getItem(
+                    CHECKOUT_RECORDS_KEY
+                ) || "{}"
+            );
+
+        if (
+            !records ||
+            typeof records !== "object" ||
+            Array.isArray(records)
+        ) {
+            throw new Error(
+                "Invalid checkout records."
+            );
+        }
+
+        const record =
+            records[sessionId];
+
+        /*
+          Older checkouts have no saved
+          basket record. Never use those
+          to remove items from a current
+          basket.
+        */
+        if (!record) return;
+
+        /*
+          Refreshing an old confirmation
+          must not remove items again.
+        */
+        if (record.processed === true) {
+            return;
+        }
+
+        if (record.processed !== false) {
+            throw new Error(
+                "Invalid checkout record."
+            );
+        }
+
+        const purchased =
+            groupedQuantities(
+                data.purchased_items
+            );
+
+        const submitted =
+            groupedQuantities(
+                record.basket
+            );
+
+        if (
+            purchased.size !==
+                submitted.size ||
+            [...purchased].some(
+                ([key, quantity]) =>
+                    submitted.get(key) !==
+                    quantity
+            )
+        ) {
+            throw new Error(
+                "Purchased items do not match this checkout."
+            );
+        }
+
+        const basket =
+            JSON.parse(
+                localStorage.getItem(
+                    BASKET_KEY
+                ) || "[]"
+            );
+
+        if (!Array.isArray(basket)) {
+            throw new Error(
+                "Invalid saved basket."
+            );
+        }
+
+        const remainingToRemove =
+            new Map(purchased);
+
+        const remainingBasket = [];
+
+        for (const item of basket) {
+            if (
+                !item ||
+                typeof item.id !==
+                    "string" ||
+                typeof item.size !==
+                    "string" ||
+                !Number.isInteger(
+                    Number(item.quantity)
+                ) ||
+                Number(item.quantity) < 1
+            ) {
+                throw new Error(
+                    "Invalid saved basket item."
+                );
+            }
+
+            const key =
+                JSON.stringify([
+                    item.id,
+                    item.size
+                ]);
+
+            const quantity =
+                Number(item.quantity);
+
+            const remove =
+                Math.min(
+                    quantity,
+                    remainingToRemove.get(
+                        key
+                    ) || 0
+                );
+
+            remainingToRemove.set(
+                key,
+                (
+                    remainingToRemove.get(
+                        key
+                    ) || 0
+                ) - remove
+            );
+
+            if (quantity > remove) {
+                remainingBasket.push({
+                    ...item,
+                    quantity:
+                        quantity - remove
+                });
+            }
+        }
+
+        /*
+          Mark first so a refresh cannot
+          subtract the same order twice.
+        */
+        record.processed = true;
+
+        localStorage.setItem(
+            CHECKOUT_RECORDS_KEY,
+            JSON.stringify(records)
+        );
+
+        localStorage.setItem(
+            BASKET_KEY,
+            JSON.stringify(
+                remainingBasket
+            )
+        );
+    }
+
+
+    async function updatePaidBasket(data) {
+        /*
+          Coordinate updates if
+          confirmation is open in
+          multiple tabs.
+        */
+        if (
+            navigator.locks &&
+            navigator.locks.request
+        ) {
+            return navigator.locks.request(
+                "christy-paid-basket",
+                () =>
+                    removePurchasedItems(
+                        data
+                    )
+            );
+        }
+
+        removePurchasedItems(data);
+    }
+
+
+    async function verifyPayment() {
+        if (!sessionId) {
+            showResult(
+                "No payment reference",
+                "There is no checkout reference to verify. Your basket has been kept."
+            );
+
+            return;
+        }
+
+        if (
+            !sessionId.startsWith(
+                EXPECTED_SESSION_PREFIX
+            )
+        ) {
+            showResult(
+                "Payment not verified",
+                "The checkout reference is not valid for this website. Your basket has been kept."
+            );
+
+            return;
+        }
+
+        if (!checkoutSessionAPI) {
+            showResult(
+                "Payment not verified",
+                "Payment verification is not connected on this website. Your basket has been kept."
+            );
+
+            return;
+        }
+
+        const controller =
+            new AbortController();
+
+        /*
+          Render free services can take
+          time to wake after inactivity.
+        */
+        const timeout =
+            setTimeout(
+                () =>
+                    controller.abort(),
+                90000
+            );
+
+        try {
+            const response =
+                await fetch(
+                    `${checkoutSessionAPI}?session_id=${encodeURIComponent(sessionId)}`,
+                    {
+                        method: "GET",
+                        cache: "no-store",
+                        signal:
+                            controller.signal
+                    }
+                );
+
+            let data;
+
+            try {
+                data =
+                    await response.json();
+
+            } catch {
+                throw new Error(
+                    "The checkout server returned an unreadable response."
+                );
+            }
+
+            if (!response.ok) {
+                throw new Error(
+                    data.error ||
+                    "The payment reference could not be verified."
+                );
+            }
+
+            if (
+                data.session_id !==
+                sessionId
+            ) {
+                throw new Error(
+                    "The returned payment reference did not match."
+                );
+            }
+
+            if (
+                data.status ===
+                    "complete" &&
+                data.payment_status ===
+                    "paid"
+            ) {
+                let message =
+                    "Your payment was successful.";
+
+                try {
+                    await updatePaidBasket(
+                        data
+                    );
+
+                } catch {
+                    message +=
+                        " Your basket could not be updated automatically.";
+                }
+
+                showResult(
+                    "Thank you",
+                    message
+                );
+
+                return;
+            }
+
+            if (
+                data.status ===
+                "expired"
+            ) {
+                showResult(
+                    "Checkout expired",
+                    "This checkout has expired. Your basket has been kept."
+                );
+
+                return;
+            }
+
+            if (
+                data.status ===
+                "open"
+            ) {
+                showResult(
+                    "Payment not completed",
+                    "This checkout has not been completed. Your basket has been kept."
+                );
+
+                return;
+            }
+
+            showResult(
+                "Payment not confirmed",
+                "A successful payment has not yet been confirmed. Your basket has been kept. Refresh this page to check again."
+            );
+
+        } catch (error) {
+            let message;
+
+            if (
+                error.name ===
+                "AbortError"
+            ) {
+                message =
+                    "Verification took too long. Your basket has been kept. Refresh this page to try again.";
+
+            } else if (
+                error instanceof
+                TypeError
+            ) {
+                message =
+                    IS_LOCAL
+                        ? "Could not connect to the checkout server. Check that server.py is still running, then refresh this page. Your basket has been kept."
+                        : "Could not connect to the checkout server. Please refresh this page to try again. Your basket has been kept.";
+
+            } else {
+                message =
+                    `${error.message || "Payment verification failed."} Your basket has been kept.`;
+            }
+
+            showResult(
+                "Payment not verified",
+                message
+            );
+
+        } finally {
+            clearTimeout(timeout);
+        }
+    }
+
+
+    verifyPayment();
+</script>
+
+</body>
 </html>
