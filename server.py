@@ -282,8 +282,6 @@ def create_checkout_session():
         session = stripe.checkout.Session.create(
             mode="payment",
 
-            payment_method_types=["card"],
-
             line_items=line_items,
 
             shipping_address_collection={
