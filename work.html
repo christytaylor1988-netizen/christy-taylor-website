@@ -8,216 +8,27 @@
     <title>Other Work — Christy Taylor</title>
 
     <link rel="stylesheet" href="styles.css">
+    <script src="site-nav.js" defer></script>
 
     <style>
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            background: #fff;
-            color: #000;
-            font-family: Helvetica, Arial, sans-serif;
-        }
-
-        /* HEADER */
-
-        .site-header {
-            display: flex;
-            align-items: flex-start;
-            gap: 24px;
-            padding: 16px 30px 0;
-        }
-
-        .ascii-link {
-            display: block;
-            width: fit-content;
-            color: #000 !important;
-            text-decoration: none;
-            flex-shrink: 0;
-        }
-
-        .ascii-name {
-            margin: 0;
-            padding: 0;
-            color: #000 !important;
-            font-family: "Courier New", Courier, monospace;
-            font-size: 6px;
-            font-weight: 700;
-            line-height: 1;
-            letter-spacing: 0;
-            white-space: pre;
-        }
-
-        .site-nav {
-            display: flex;
-            gap: 30px;
-            margin-left: auto;
-            padding-top: 2px;
-            white-space: nowrap;
-        }
-
-        .site-nav a {
-            font-family: Helvetica, Arial, sans-serif;
-            font-size: 27px;
-            font-weight: 400;
-            line-height: 1;
-            letter-spacing: -0.04em;
-            text-decoration: none;
-        }
-
-        .site-nav a[href="hastings.html"] {
-            color: #002fa7;
-        }
-
-        .site-nav a[href="work.html"] {
-            color: #000;
-        }
-
-        .site-nav a[href="about.html"] {
-            color: #2c9f45;
-        }
-
-        .site-nav a:hover,
-        .ascii-link:hover {
-            opacity: 0.45;
-        }
-
-        /* OTHER WORK TABLE */
-
-        .work-page {
-            padding: 58px 40px 120px;
-            overflow-x: auto;
-        }
-
-        .work-table {
-            display: grid;
-            width: max-content;
-            grid-template-columns:
-                max-content
-                112px
-                repeat(4, 78px);
-            border-top: 1px solid #000;
-            border-left: 1px solid #000;
-        }
-
-        .work-cell {
-            display: flex;
-            align-items: center;
-            min-height: 40px;
-            padding: 5px 10px;
-            border-right: 1px solid #000;
-            border-bottom: 1px solid #000;
-            font-family: Helvetica, Arial, sans-serif;
-            font-size: 15px;
-            font-weight: 400;
-            line-height: 1.2;
-        }
-
-        .work-head {
-            justify-content: center;
-            padding: 6px;
-            text-align: center;
-            white-space: nowrap;
-        }
-
-        .work-head.title-head {
-            justify-content: flex-start;
-            padding-left: 12px;
-            text-align: left;
-        }
-
-        .title-cell {
-            padding: 5px 12px;
-        }
-
-        .work-title {
-            color: #000;
-            font-family: Helvetica, Arial, sans-serif;
-            font-size: 22px;
-            font-weight: 400;
-            line-height: 1.2;
-            letter-spacing: -0.025em;
-            text-decoration: none;
-        }
-
-        .work-title:hover {
-            opacity: 0.45;
-        }
-
-        .year-cell {
-            justify-content: center;
-            padding: 5px 6px;
-            text-align: center;
-            white-space: nowrap;
-            font-variant-numeric: tabular-nums;
-        }
-
-        .medium-cell {
-            justify-content: center;
-            padding: 5px 6px;
-            text-align: center;
-        }
-
-        .mark {
-            display: block;
-            width: 17px;
-            height: 17px;
-            border: 1px solid #000;
-            border-radius: 50%;
-        }
-
-        .mark.on {
-            background: #000;
-        }
-
-        /* MEDIUM SCREENS */
-
-        @media (max-width: 1050px) {
-            .ascii-name {
-                font-size: 4px;
-            }
-
-            .site-nav {
-                gap: 18px;
-            }
-
-            .site-nav a {
-                font-size: 22px;
-            }
-        }
-
-        /* MOBILE */
-
-        @media (max-width: 760px) {
-            .site-header {
-                padding: 14px 18px 0;
-                flex-direction: column;
-                gap: 14px;
-            }
-
-            .ascii-name {
-                font-size: 3px;
-            }
-
-            .site-nav {
-                width: 100%;
-                margin-left: 0;
-                gap: 15px;
-                flex-wrap: wrap;
-            }
-
-            .site-nav a {
-                font-size: 20px;
-            }
-
-            .work-page {
-                padding: 45px 18px 90px;
-            }
-        }
+        body { background: #dcdad3; }
+        .work-page { padding: 58px 40px 120px; }
+        .work-scroll { overflow-x: auto; }
+        .work-table { width: 100%; max-width: 1380px; min-width: 977.5px; table-layout: fixed; border-collapse: collapse; }
+        .work-table th, .work-table td { border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 4.6px 6.9px; vertical-align: middle; font-size: 11.5px; font-weight: 400; line-height: 1.3; text-align: left; }
+        .work-table tbody td { font-size: 16.1px; }
+        .work-table thead th { padding-top: 9.2px; padding-bottom: 9.2px; }
+        .work-table .title-col { width: 26%; }
+        .work-table .date-col { width: 73.6px; }
+        .work-table .materials-col { width: auto; }
+        .work-table .size-col { width: 18%; }
+        .work-title { color: #000; font-size: 16.1px; font-weight: 400; line-height: 1.2; letter-spacing: -0.025em; text-decoration: none; overflow-wrap: anywhere; }
+        .work-title:hover { opacity: .65; }
+        .work-date { font-variant-numeric: tabular-nums; }
+        .work-table thead th:nth-child(2), .work-table .work-date { text-align: center; }
+        .work-materials-note { max-width: 1380px; margin: 13.8px 0 0; font-size: 11.5px; line-height: 1.4; }
+        @media (max-width: 760px) { .work-page { padding: 45px 18px 90px; } }
     </style>
-
 </head>
 
 <body>
@@ -238,163 +49,85 @@
      \__\/         \__\/         \__\/                     \__\/                                                      \__\/                                   \__\/         \__\/</pre>
     </a>
 
-    <nav class="site-nav">
+    <nav class="site-nav" aria-label="Main navigation">
         <a href="hastings.html">Hastings</a>
         <a href="work.html">Other Work</a>
+        <a href="shop.html">Shop</a>
         <a href="about.html">About / Contact</a>
     </nav>
 
 </header>
 
 <main class="work-page">
-
-    <div class="work-table">
-
-        <!-- COLUMN HEADINGS -->
-
-        <div class="work-cell work-head title-head">Title</div>
-        <div class="work-cell work-head">Year</div>
-        <div class="work-cell work-head">Painting</div>
-        <div class="work-cell work-head">Film</div>
-        <div class="work-cell work-head">Sculpture</div>
-        <div class="work-cell work-head">Other</div>
-
-        <!-- FUTURE GLUE: SCULPTURE + OTHER -->
-
-        <div class="work-cell title-cell">
-            <a class="work-title" href="theseus.html">Future Glue</a>
-        </div>
-        <div class="work-cell year-cell">2023</div>
-        <div class="work-cell medium-cell"></div>
-        <div class="work-cell medium-cell"></div>
-        <div class="work-cell medium-cell">
-            <span class="mark on"></span>
-        </div>
-        <div class="work-cell medium-cell">
-            <span class="mark on"></span>
-        </div>
-
-        <!-- COORDINATES -->
-
-        <div class="work-cell title-cell">
-            <a class="work-title" href="51-55112914315447.html">51.55112914315447, -0.18352334692629535</a>
-        </div>
-        <div class="work-cell year-cell">2024</div>
-        <div class="work-cell medium-cell"></div>
-        <div class="work-cell medium-cell"></div>
-        <div class="work-cell medium-cell">
-            <span class="mark on"></span>
-        </div>
-        <div class="work-cell medium-cell"></div>
-
-        <!-- POLLING BOOTH: SCULPTURE ONLY -->
-
-        <div class="work-cell title-cell">
-            <a class="work-title" href="polling.html">Polling Booth</a>
-        </div>
-        <div class="work-cell year-cell">2023</div>
-        <div class="work-cell medium-cell"></div>
-        <div class="work-cell medium-cell"></div>
-        <div class="work-cell medium-cell">
-            <span class="mark on"></span>
-        </div>
-        <div class="work-cell medium-cell"></div>
-
-        <!-- GUIDE ME -->
-
-        <div class="work-cell title-cell">
-            <a class="work-title" href="painting.html">Guide Me, O Thou Great Redeemer</a>
-        </div>
-        <div class="work-cell year-cell">2024</div>
-        <div class="work-cell medium-cell">
-            <span class="mark on"></span>
-        </div>
-        <div class="work-cell medium-cell"></div>
-        <div class="work-cell medium-cell"></div>
-        <div class="work-cell medium-cell"></div>
-
-        <!-- NATIONAL ANTHEM -->
-
-        <div class="work-cell title-cell">
-            <a class="work-title" href="performance.html">National Anthem</a>
-        </div>
-        <div class="work-cell year-cell">2023</div>
-        <div class="work-cell medium-cell"></div>
-        <div class="work-cell medium-cell"></div>
-        <div class="work-cell medium-cell"></div>
-        <div class="work-cell medium-cell">
-            <span class="mark on"></span>
-        </div>
-
-        <!-- EVERY FOUR TO FIVE YEARS -->
-
-        <div class="work-cell title-cell">
-            <a class="work-title" href="every-four-to-five-years.html">Every Four to Five Years</a>
-        </div>
-        <div class="work-cell year-cell">2023</div>
-        <div class="work-cell medium-cell"></div>
-        <div class="work-cell medium-cell"></div>
-        <div class="work-cell medium-cell"></div>
-        <div class="work-cell medium-cell">
-            <span class="mark on"></span>
-        </div>
-
-        <!-- FOREVER AND EVER, AMEN: FILM ONLY -->
-
-        <div class="work-cell title-cell">
-            <a class="work-title" href="forever-and-ever-amen.html">Forever and Ever, Amen</a>
-        </div>
-        <div class="work-cell year-cell">2025</div>
-        <div class="work-cell medium-cell"></div>
-        <div class="work-cell medium-cell">
-            <span class="mark on"></span>
-        </div>
-        <div class="work-cell medium-cell"></div>
-        <div class="work-cell medium-cell"></div>
-
-        <!-- PILGRIMAGE: FILM ONLY -->
-
-        <div class="work-cell title-cell">
-            <a class="work-title" href="pilgrimage.html">Pilgrimage</a>
-        </div>
-        <div class="work-cell year-cell">2024</div>
-        <div class="work-cell medium-cell"></div>
-        <div class="work-cell medium-cell">
-            <span class="mark on"></span>
-        </div>
-        <div class="work-cell medium-cell"></div>
-        <div class="work-cell medium-cell"></div>
-
-        <!-- HYMN FOR MIDI -->
-
-        <div class="work-cell title-cell">
-            <a class="work-title" href="hymn-for-midi.html">Hymn for MIDI</a>
-        </div>
-        <div class="work-cell year-cell">2024</div>
-        <div class="work-cell medium-cell"></div>
-        <div class="work-cell medium-cell">
-            <span class="mark on"></span>
-        </div>
-        <div class="work-cell medium-cell"></div>
-        <div class="work-cell medium-cell">
-            <span class="mark on"></span>
-        </div>
-
-        <!-- RANDOM IPAD DRAWING ARCHIVE -->
-
-        <div class="work-cell title-cell">
-            <a class="work-title" href="random.html">Random iPad Drawing Archive</a>
-        </div>
-        <div class="work-cell year-cell">2022–Present</div>
-        <div class="work-cell medium-cell"></div>
-        <div class="work-cell medium-cell"></div>
-        <div class="work-cell medium-cell"></div>
-        <div class="work-cell medium-cell">
-            <span class="mark on"></span>
-        </div>
-
+    <div class="work-scroll" role="region" aria-label="Other Work catalogue; scroll horizontally to view all columns" tabindex="0">
+    <table class="work-table" aria-label="Other Work catalogue">
+        <colgroup><col class="title-col"><col class="date-col"><col class="materials-col"><col class="size-col"></colgroup>
+        <thead><tr><th scope="col">Title</th><th scope="col">Year</th><th scope="col">Materials</th><th scope="col">Size / Duration</th></tr></thead>
+        <tbody>
+        <tr>
+            <th scope="row"><a class="work-title" href="51-55112914315447.html">51.55112914315447, -0.18352334692629535</a></th>
+            <td class="work-date">2024</td>
+            <td class="work-materials">Mild steel, spray paint</td>
+            <td>190 × 100 × 100 cm</td>
+        </tr>
+        <tr>
+            <th scope="row"><a class="work-title" href="polling.html">Polling Booth</a></th>
+            <td class="work-date">2024</td>
+            <td class="work-materials">Plywood</td>
+            <td>187 × 67 × 63.5 cm</td>
+        </tr>
+        <tr>
+            <th scope="row"><a class="work-title" href="painting.html">Guide Me, O Thou Great Redeemer</a></th>
+            <td class="work-date">2024</td>
+            <td class="work-materials">Oil on canvas</td>
+            <td>140 × 150 cm</td>
+        </tr>
+        <tr>
+            <th scope="row"><a class="work-title" href="performance.html">National Anthem</a></th>
+            <td class="work-date">2024</td>
+            <td class="work-materials">Performance</td>
+            <td>2 min 52 sec</td>
+        </tr>
+        <tr>
+            <th scope="row"><a class="work-title" href="every-four-to-five-years.html">Every Four to Five Years</a></th>
+            <td class="work-date">2023</td>
+            <td class="work-materials">William Hill betting slips, graphite and ballpoint pen</td>
+            <td>approx. 250 × 75 cm</td>
+        </tr>
+        <tr>
+            <th scope="row"><a class="work-title" href="forever-and-ever-amen.html">Forever and Ever, Amen</a></th>
+            <td class="work-date">2025</td>
+            <td class="work-materials">Google Street View</td>
+            <td>9 min 47 sec, looped video</td>
+        </tr>
+        <tr>
+            <th scope="row"><a class="work-title" href="pilgrimage.html">Pilgrimage</a></th>
+            <td class="work-date">2024</td>
+            <td class="work-materials">Google Street View</td>
+            <td>7 min 44 sec</td>
+        </tr>
+        <tr>
+            <th scope="row"><a class="work-title" href="hymn-for-midi.html">Hymn for MIDI</a></th>
+            <td class="work-date">2024</td>
+            <td class="work-materials">Logic Pro X, MIDI piano roll, voice, sound and text</td>
+            <td>56 sec</td>
+        </tr>
+        <tr class="future-glue">
+            <th scope="row"><a class="work-title" href="theseus.html">Future Glue</a></th>
+            <td class="work-date">2023</td>
+            <td class="work-materials">Mixed media*</td>
+            <td>Variable dimensions</td>
+        </tr>
+        <tr>
+            <th scope="row"><a class="work-title" href="random.html">Random iPad Drawing Archive</a></th>
+            <td class="work-date">2020–ongoing</td>
+            <td class="work-materials">Procreate drawings on iPad</td>
+            <td>200+ digital works</td>
+        </tr>
+        </tbody>
+    </table>
     </div>
-
+    <p class="work-materials-note"><strong>* Future Glue materials:</strong> Peugeot rear hatch door, institutional desks and chairs, timber offcuts, Boost energy-drink cans, paperback copy of Mary Shelley’s <em>Frankenstein</em>, large-format London A–Z street map, duct tape, masking tape, laser-printed etching on red acrylic, inkjet print on paper, coloured unscented candles, cotton T-shirts, scaffolding netting, black pond liner, broken exit sign, coat hangers, Sony PlayStation VR (PSVR) headset, metronome, disposable vomit bags, scissors, grey workshop overalls, and wall inscription incised directly into plaster with a screwdriver; <strong>7-minute looped video with sound; group performance.</strong></p>
 </main>
 
 </body>

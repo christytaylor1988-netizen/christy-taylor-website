@@ -8,72 +8,10 @@
     <title>About / Contact — Christy Taylor</title>
 
     <link rel="stylesheet" href="styles.css">
+    <script src="site-nav.js" defer></script>
 
     <style>
-
-        /* HEADER */
-
-        .site-header {
-            display: flex;
-            align-items: flex-start;
-            gap: 24px;
-            padding: 16px 30px 0;
-        }
-
-        .ascii-link {
-            display: block;
-            width: fit-content;
-            color: #000 !important;
-            text-decoration: none;
-            flex-shrink: 0;
-        }
-
-        .ascii-name {
-            margin: 0;
-            padding: 0;
-            color: #000 !important;
-            font-family: "Courier New", Courier, monospace;
-            font-size: 6px;
-            font-weight: 700;
-            line-height: 1;
-            letter-spacing: 0;
-            white-space: pre;
-        }
-
-        .site-nav {
-            display: flex;
-            gap: 30px;
-            margin-left: auto;
-            padding-top: 2px;
-            white-space: nowrap;
-        }
-
-        .site-nav a {
-            font-size: 27px;
-            font-weight: 400;
-            line-height: 1;
-            letter-spacing: -0.04em;
-            text-decoration: none;
-        }
-
-        .site-nav a[href="hastings.html"] {
-            color: #002fa7;
-        }
-
-        .site-nav a[href="work.html"] {
-            color: #000;
-        }
-
-        .site-nav a[href="about.html"] {
-            color: #2c9f45;
-        }
-
-        .site-nav a:hover,
-        .ascii-link:hover {
-            opacity: 0.45;
-        }
-
-
+        body { background: #E5E3DC; }
         /* ABOUT PAGE */
 
         .about-page {
@@ -122,12 +60,12 @@
             text-decoration: none;
         }
 
-   .cv-link {
-    margin-top: 24px;
-    font-weight: 600;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-}
+        .cv-link {
+            margin-top: 24px;
+            font-weight: 600;
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
 
         .contact-link:hover,
         .cv-link:hover {
@@ -159,50 +97,9 @@
             opacity: 0.45;
         }
 
-
-        /* MEDIUM SCREENS */
-
-        @media (max-width: 1050px) {
-
-            .ascii-name {
-                font-size: 4px;
-            }
-
-            .site-nav {
-                gap: 18px;
-            }
-
-            .site-nav a {
-                font-size: 22px;
-            }
-        }
-
-
         /* MOBILE */
 
         @media (max-width: 800px) {
-
-            .site-header {
-                padding: 14px 18px 0;
-                flex-direction: column;
-                gap: 14px;
-            }
-
-            .ascii-name {
-                font-size: 3px;
-            }
-
-            .site-nav {
-                width: 100%;
-                margin-left: 0;
-                gap: 15px;
-                flex-wrap: wrap;
-            }
-
-            .site-nav a {
-                font-size: 20px;
-            }
-
             .about-page {
                 padding: 60px 20px 90px;
             }
@@ -224,9 +121,7 @@
                 max-width: 100%;
             }
         }
-
     </style>
-
 </head>
 
 <body>
@@ -247,14 +142,14 @@
      \__\/         \__\/         \__\/                     \__\/                                                      \__\/                                   \__\/         \__\/</pre>
     </a>
 
-    <nav class="site-nav">
+    <nav class="site-nav" aria-label="Main navigation">
         <a href="hastings.html">Hastings</a>
         <a href="work.html">Other Work</a>
+        <a href="shop.html">Shop</a>
         <a href="about.html">About / Contact</a>
     </nav>
 
 </header>
-
 
 <main class="about-page">
 
@@ -263,17 +158,9 @@
         <div class="about-text">
 
             <section class="about-bio">
-
-                <p>
-                    Christy Taylor is an artist based in Hastings, UK.
-                    He completed an MA in Contemporary Art Practice at the
-                    Royal College of Art in 2024. His practice spans drawing,
-                    painting, sculpture, video and performance, alongside an
-                    ongoing series of digital drawings made on iPad.
-                </p>
-
+                <p>Christy Taylor is an artist based in Hastings. His work often begins with found images, objects, places and systems. Through repetition, rearrangement and misuse, he looks at how these things influence the way people think, behave and make meaning. The form the work takes is usually determined by the idea, and sometimes the process becomes the subject itself.</p>
+                <p>He completed an MA in Contemporary Art Practice at the Royal College of Art in 2024 and has exhibited internationally, including at Tate Modern and Camden Art Centre. In the interests of transparency and self-humiliation, he would also like it known that this artist biography was written by the fair hand of ChatGPT, using GPT-5.6 Sol.</p>
             </section>
-
 
             <section class="about-contact">
 
@@ -290,7 +177,6 @@
             </section>
 
         </div>
-
 
         <div class="about-photo">
 
@@ -314,5 +200,4 @@
 </main>
 
 </body>
-
 </html>
