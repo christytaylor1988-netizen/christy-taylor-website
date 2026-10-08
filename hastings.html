@@ -16,21 +16,7 @@
         .hastings-sequence .theseus-section:nth-of-type(even) { justify-content: flex-end; }
         body { background: #fff; }
         .hastings-sequence .theseus-section img { transition: opacity 1s ease, transform 1s ease; }
-        .hastings-sequence .theseus-section.hastings-hero { justify-content: center; padding-top: 0; }
-        .hastings-hero-print {
-            position: relative;
-            width: 100%;
-            max-width: 1200px;
-            isolation: isolate;
-            opacity: 0;
-            transform: translateY(25px);
-            transition: opacity 1s ease, transform 1s ease;
-        }
-        .hastings-hero-print.visible { opacity: 1; transform: translateY(0); }
-        .hastings-sequence .hastings-hero-print img {
-            width: 100%; height: auto; max-width: none; max-height: none;
-            opacity: 1; transform: none;
-        }
+        .hastings-sequence .theseus-section.hastings-hero { padding-top: 0; }
         .hastings-end-text {
             margin: 80px auto 0;
             max-width: 700px;
@@ -76,7 +62,7 @@
 
 <main class="theseus-page hastings-sequence">
     <section class="theseus-section hastings-hero">
-        <div class="hastings-hero-print"><img src="images/hastings-web/stleonardsnewA3.jpg" alt="Hastings iPad drawing 21 by Christy Taylor" width="4058" height="2533"></div>
+        <img src="images/hastings-web/stleonardsnewA3.jpg" alt="Hastings iPad drawing 21 by Christy Taylor" width="4058" height="2533">
     </section>
 
     <section class="theseus-section">
@@ -187,7 +173,7 @@
 </main>
 
 <script>
-    const images = document.querySelectorAll(".theseus-section > img, .hastings-hero-print");
+    const images = document.querySelectorAll(".theseus-section > img");
 
     const observer = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
