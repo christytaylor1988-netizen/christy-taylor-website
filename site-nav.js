@@ -23,7 +23,6 @@
                 const toggle = document.createElement("button");
                 toggle.type = "button";
                 toggle.className = "nav-dropdown-toggle";
-                toggle.textContent = "▾";
                 toggle.setAttribute("aria-label", "Hastings submenu");
                 toggle.setAttribute("aria-expanded", "false");
                 const menu = document.createElement("div");
@@ -39,7 +38,12 @@
                 cabs.href = "taxi.html";
                 menu.append(drawings, cabs);
                 group.append(link, toggle, menu);
+                const positionMenu = () => {
+                    // Clear any wrapped navigation row without moving its links.
+                    menu.style.top = `${nav.getBoundingClientRect().bottom - group.getBoundingClientRect().top}px`;
+                };
                 const setOpen = open => {
+                    if (open) positionMenu();
                     menu.hidden = !open;
                     toggle.setAttribute("aria-expanded", String(open));
                 };
@@ -49,6 +53,12 @@
                 });
                 group.addEventListener("pointerleave", event => {
                     if (event.pointerType === "mouse" && !group.contains(document.activeElement)) setOpen(false);
+                });
+                group.addEventListener("focusin", event => {
+                    if (event.target.matches(":focus-visible")) setOpen(true);
+                });
+                window.addEventListener("resize", () => {
+                    if (!menu.hidden) positionMenu();
                 });
                 group.addEventListener("focusout", event => {
                     if (!group.contains(event.relatedTarget)) setOpen(false);
