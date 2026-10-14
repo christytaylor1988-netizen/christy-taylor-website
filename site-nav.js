@@ -12,6 +12,7 @@
 
     function updateNavigation() {
         document.querySelectorAll(".site-header .site-nav").forEach(nav => {
+            nav.style.setProperty("--page-background", getComputedStyle(document.body).backgroundColor);
             const links = navigationLinks.map(item => {
                 const link = document.createElement("a");
                 link.href = item.href;

@@ -181,7 +181,7 @@ body {
     gap: 10px;
     width: max-content;
     padding: 10px 8px 10px 0;
-    background: #fff;
+    background: var(--page-background, #fff);
     text-align: left;
 }
 .site-header .site-nav .nav-dropdown[hidden] { display: none; }
