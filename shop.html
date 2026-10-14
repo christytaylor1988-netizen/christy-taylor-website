@@ -32,25 +32,44 @@
       text-decoration: none;
     }
 
-    .shop-bar a:hover,
-    .product-link:hover .carousel-title,
-    .product-link:hover .print-title {
+    .shop-bar a:hover {
       text-decoration: underline;
+    }
+
+    .product-link,
+    .product-link:hover,
+    .product-link:focus {
+      text-decoration: none;
+      cursor: pointer;
     }
 
     .shop-hero {
       display: flex;
       justify-content: center;
       align-items: center;
-      margin-bottom: 65px;
+      margin-bottom: 32px;
     }
 
     .shop-hero img {
       display: block;
-      max-width: min(760px, 78vw);
-      max-height: 620px;
+      max-width: min(836px, 85.8vw);
+      max-height: 682px;
       width: auto;
       height: auto;
+    }
+
+    .shop-title-note {
+      max-width: 540px;
+      margin: 80px auto 56px;
+      font: 13px/1.6 "Fake Receipt", Helvetica, Arial, sans-serif;
+      text-align: center;
+    }
+
+    .shop-title-pin {
+      display: block;
+      width: 52px;
+      height: 52px;
+      margin: 0 auto 12px;
     }
 
     .shop-carousel-section {
@@ -96,15 +115,30 @@
 
     .carousel-title,
     .print-title {
-      margin: 14px 0 0;
-      font: 17px/1.2 Helvetica, Arial, sans-serif;
+      width: var(--caption-width, 100%);
+      margin: 34px auto 0;
+      font: 400 16px/1.4 "Fake Receipt", Helvetica, Arial, sans-serif;
+      text-align: center;
       letter-spacing: -.02em;
+      overflow-wrap: anywhere;
+    }
+
+    .product-link:hover .caption-text {
+      background-color: #c8c6bd;
+    }
+
+    .caption-text {
+      -webkit-box-decoration-break: clone;
+      box-decoration-break: clone;
     }
 
     .carousel-details,
     .print-details {
-      margin: 5px 0 0;
-      font: 14px/1.3 Helvetica, Arial, sans-serif;
+      width: var(--caption-width, 100%);
+      margin: 8px auto 0;
+      font: 400 14px/1.3 Helvetica, Arial, sans-serif;
+      text-align: center;
+      color: #444;
     }
 
     .carousel-arrow {
@@ -173,23 +207,8 @@
       height: auto;
     }
 
-    .print-title {
-      font-size: 25px;
-      overflow-wrap: anywhere;
-    }
-
     .shop-index-item > .product-link {
       display: block;
-    }
-
-    .shop-index-item.portrait .print-title {
-      width: 70.71%;
-      margin: 14px auto 0;
-    }
-
-    .shop-index-item.portrait .print-details {
-      width: 70.71%;
-      margin: 5px auto 0;
     }
 
     @media (max-width: 850px) {
@@ -280,6 +299,12 @@
       aria-label="Featured print">
     </section>
 
+    <div class="print-info-line" aria-label="Print information">
+      <div class="print-info-track">
+        <span class="ticker-copy">· EPSON ARCHIVAL MATTE PHOTO PAPER 189GSM · SIX-COLOUR EPSON CLARIA ET PREMIUM INKS · MADE TO ORDER IN HASTINGS · A5 £20 · A4 £35 · A3 £60 · TITLED WITH THE MAP CO&#8209;ORDINATES OF ITS LOCATION</span><span class="ticker-copy" aria-hidden="true">· EPSON ARCHIVAL MATTE PHOTO PAPER 189GSM · SIX-COLOUR EPSON CLARIA ET PREMIUM INKS · MADE TO ORDER IN HASTINGS · A5 £20 · A4 £35 · A3 £60 · TITLED WITH THE MAP CO&#8209;ORDINATES OF ITS LOCATION</span>
+      </div>
+    </div>
+
     <section class="shop-carousel-section" aria-label="Browse prints">
       <button
         class="carousel-arrow"
@@ -296,11 +321,7 @@
         aria-label="Next prints">→</button>
     </section>
 
-    <div class="print-info-line" aria-label="Print information">
-      <div class="print-info-track">
-        <span class="ticker-copy">· EPSON ARCHIVAL MATTE PHOTO PAPER 189GSM · SIX-COLOUR EPSON CLARIA ET PREMIUM INKS · MADE TO ORDER IN HASTINGS · A5 £20 · A4 £35 · A3 £60 · TITLED WITH THE MAP CO&#8209;ORDINATES OF ITS LOCATION</span><span class="ticker-copy" aria-hidden="true">· EPSON ARCHIVAL MATTE PHOTO PAPER 189GSM · SIX-COLOUR EPSON CLARIA ET PREMIUM INKS · MADE TO ORDER IN HASTINGS · A5 £20 · A4 £35 · A3 £60 · TITLED WITH THE MAP CO&#8209;ORDINATES OF ITS LOCATION</span>
-      </div>
-    </div>
+    <p class="shop-title-note"><svg class="shop-title-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>Each print is titled using the map coordinates of its location in Hastings or St Leonards-on-Sea.</p>
 
     <section
       class="shop-index"
@@ -312,7 +333,7 @@
   <script src="shop-products.js"></script>
 
   <script>
-    const details = "A5 £20 · A4 £35 · A3 £60";
+    const details = "A5 £20 / A4 £35 / A3 £60";
 
     const productUrl = product =>
       `product.html?id=${encodeURIComponent(product.id)}`;
@@ -343,7 +364,7 @@
               ${position > 3 ? 'loading="lazy"' : ""}>
           </div>
 
-          <p class="carousel-title">${product.title}</p>
+          <p class="carousel-title"><span class="caption-text">${product.title}</span></p>
         </a>
 
         <p class="carousel-details">${details}</p>
@@ -363,7 +384,7 @@
               loading="lazy">
           </div>
 
-          <p class="print-title">${product.title}</p>
+          <p class="print-title"><span class="caption-text">${product.title}</span></p>
         </a>
 
         <p class="print-details">${details}</p>
@@ -386,6 +407,20 @@
 
       index.appendChild(gridItem);
     });
+
+    // Match caption widths to the rendered prints without changing image sizing.
+    const captionObserver = new ResizeObserver(entries => {
+      entries.forEach(({ target, contentRect }) => {
+        if (contentRect.width > 0) {
+          target.closest("article").style.setProperty(
+            "--caption-width", `${contentRect.width}px`
+          );
+        }
+      });
+    });
+
+    document.querySelectorAll(".carousel-image img, .shop-index-image img")
+      .forEach(image => captionObserver.observe(image));
 
     document
       .getElementById("carouselLeft")

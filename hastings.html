@@ -13,7 +13,38 @@
     <style>
         .hastings-sequence .theseus-section { min-height: 0; padding: 6vh 0; margin-bottom: 8vh; }
         .hastings-sequence .theseus-section:nth-of-type(odd) { justify-content: flex-start; }
-        .hastings-sequence .theseus-section:nth-of-type(even) { justify-content: flex-end; }
+        .hastings-sequence .theseus-section:nth-of-type(even) { justify-content: flex-end; flex-direction: row-reverse; }
+        .hastings-sequence .theseus-section { gap: clamp(24px, 4vw, 64px); }
+        .hastings-sequence .theseus-section > img { flex-shrink: 0; }
+        .hastings-artwork-title {
+            flex: 1;
+            min-width: 0;
+            margin: 0;
+            font: 400 15.3px/27px Helvetica, Arial, sans-serif;
+            color: #555555;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        .hastings-rotated-artwork {
+            position: relative;
+            flex-shrink: 0;
+            width: min(66vw, calc(86vh * 2693 / 3727));
+            aspect-ratio: 2693 / 3727;
+        }
+        .hastings-sequence .hastings-rotated-artwork img {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: calc(100% * 3727 / 2693);
+            max-width: none;
+            max-height: none;
+            transform: translate(-50%, calc(-50% + 25px)) rotate(90deg);
+        }
+        .hastings-sequence .hastings-rotated-artwork img.visible {
+            transform: translate(-50%, -50%) rotate(90deg);
+        }
         body { background: #fff; }
         .hastings-sequence .theseus-section img { transition: opacity 1s ease, transform 1s ease; }
         .hastings-sequence .theseus-section.hastings-hero { padding-top: 0; }
@@ -27,9 +58,129 @@
             text-align: center;
         }
         .hastings-end-text a { color: inherit; text-underline-offset: 3px; }
+        @media (min-width: 701px) {
+            .hastings-artwork-title { align-self: center; }
+            .hastings-sequence .theseus-section:nth-of-type(odd) .hastings-artwork-title {
+                text-align: right;
+            }
+            .hastings-sequence .theseus-section:nth-of-type(even) .hastings-artwork-title {
+                text-align: left;
+            }
+        }
         @media (max-width: 700px) {
+            .hastings-sequence .theseus-section,
+            .hastings-sequence .theseus-section:nth-of-type(even) {
+                flex-direction: column;
+                gap: 28px;
+            }
+            .hastings-sequence .theseus-section > img { max-width: 100%; }
+            .hastings-rotated-artwork {
+                width: min(100%, calc(72vh * 2693 / 3727));
+            }
+            .hastings-artwork-title { flex: none; }
             .hastings-end-text { margin-top: 50px; }
         }
+        .hastings-sequence .theseus-section img { cursor: pointer; }
+        /* Hide the uneven dark export edge without changing the source image. */
+        .hastings-sequence img[src$="/seagullorange.jpg"],
+        .hastings-lightbox-image[src$="/seagullorange.jpg"] {
+            clip-path: inset(0.75% 0.5% 0.75% 0.3%);
+        }
+        .hastings-sequence img[src$="/seafront bus a4.jpg"],
+        .hastings-lightbox-image[src$="/seafront%20bus%20a4.jpg"] {
+            clip-path: inset(0.1% 0.15% 0 0);
+        }
+        .hastings-sequence img[src$="/seagull sellout a4.jpg"],
+        .hastings-lightbox-image[src$="/seagull%20sellout%20a4.jpg"] {
+            clip-path: inset(0 0 0 0.08%);
+        }
+        .hastings-sequence img[src$="/issabelle 4.jpg"],
+        .hastings-lightbox-image[src$="/issabelle%204.jpg"] {
+            clip-path: inset(0.25% 0.12% 0.2% 0.08%);
+        }
+        .hastings-sequence img[src$="/cafe print a4 NEW.jpg"],
+        .hastings-lightbox-image[src$="/cafe%20print%20a4%20NEW.jpg"] {
+            clip-path: inset(0.2% 0.08% 0.12% 0.08%);
+        }
+        @media (hover: hover) and (pointer: fine) {
+            .theseus-section:has(img:hover) .hastings-artwork-title { opacity: 1; }
+        }
+        .theseus-section:has(img:focus-visible) .hastings-artwork-title { opacity: 1; }
+        .hastings-lightbox {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            height: 100dvh;
+            max-width: none;
+            max-height: none;
+            margin: 0;
+            padding: 56px 24px 24px;
+            border: 0;
+            background: #fff;
+            color: #555555;
+        }
+        .hastings-lightbox::backdrop { background: #fff; }
+        .hastings-lightbox[open] { display: flex; flex-direction: column; gap: 16px; }
+        .hastings-lightbox-stage { position: relative; flex: 1; min-height: 0; }
+        /* Add this class only to artworks with white backgrounds. */
+        .hastings-sequence img.hastings-white-background,
+        .hastings-lightbox-image.hastings-white-background {
+            outline: 1px solid #c7c7c7;
+            outline-offset: 0;
+        }
+        .hastings-lightbox-image {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            display: block;
+            object-fit: contain;
+            transform: translate(-50%, -50%);
+        }
+        .hastings-lightbox-caption {
+            margin: 0;
+            text-align: center;
+            font: 400 15.3px/27px Helvetica, Arial, sans-serif;
+        }
+        .hastings-lightbox-close {
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            width: 44px;
+            height: 44px;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: #555555;
+            font: 400 28px/1 Helvetica, Arial, sans-serif;
+            cursor: pointer;
+        }
+        @media (max-width: 700px) {
+            .hastings-lightbox { padding: 56px 16px 20px; }
+            .hastings-lightbox-caption { font-size: 14px; }
+        }
+        .hastings-artist-text {
+            max-width: 520px;
+            margin: 10vh auto 14vh;
+            color: #000;
+            font: 400 15px/1.6 Helvetica, Arial, sans-serif;
+            text-align: left;
+        }
+        .hastings-lightbox-arrow {
+            position: absolute;
+            top: 8px;
+            width: 44px;
+            height: 44px;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: #555555;
+            font: 400 24px/1 Helvetica, Arial, sans-serif;
+            cursor: pointer;
+        }
+        .hastings-lightbox-previous { left: 12px; }
+        .hastings-lightbox-next { left: 56px; }
+        .hastings-lightbox-stage { touch-action: pan-y pinch-zoom; }
     </style>
 </head>
 
@@ -63,117 +214,248 @@
 <main class="theseus-page hastings-sequence">
     <section class="theseus-section hastings-hero">
         <img src="images/hastings-web/stleonardsnewA3.jpg" alt="Hastings iPad drawing 21 by Christy Taylor" width="4058" height="2533">
+        <p class="hastings-artwork-title">50.853145, 0.559987</p>
     </section>
 
     <section class="theseus-section">
         <img src="images/hastings-web/LONDon road a4.jpg" alt="Hastings iPad drawing 1 by Christy Taylor" width="1776" height="2577" loading="lazy">
-    </section>
-
-    <section class="theseus-section">
-        <img src="images/hastings-web/Untitled_Artwork 16.jpg" alt="Hastings iPad drawing 2 by Christy Taylor" width="3508" height="2480" loading="lazy">
+        <p class="hastings-artwork-title">50.853112, 0.559995</p>
     </section>
 
     <section class="theseus-section">
         <img src="images/hastings-web/Untitled_Artwork 20.jpg" alt="Hastings iPad drawing 3 by Christy Taylor" width="2388" height="1668" loading="lazy">
+        <p class="hastings-artwork-title">50.855229, 0.583683</p>
     </section>
 
     <section class="theseus-section">
         <img src="images/hastings-web/Untitled_Artwork 21.jpg" alt="Hastings iPad drawing 4 by Christy Taylor" width="2278" height="1275" loading="lazy">
+        <p class="hastings-artwork-title">50.855449, 0.588500</p>
     </section>
 
     <section class="theseus-section">
         <img src="images/hastings-web/Untitled_Artwork 36.jpg" alt="Hastings iPad drawing 5 by Christy Taylor" width="6047" height="3508" loading="lazy">
+        <p class="hastings-artwork-title">50.855638, 0.577302</p>
     </section>
+
+    <p class="hastings-artist-text">The titles are map coordinates taken from Google Maps, identifying places in Hastings and St Leonards-on-Sea.</p>
 
     <section class="theseus-section">
         <img src="images/hastings-web/Untitled_Artwork 39.jpg" alt="Hastings iPad drawing 6 by Christy Taylor" width="4601" height="2913" loading="lazy">
+        <p class="hastings-artwork-title">50.855275, 0.585361</p>
     </section>
 
     <section class="theseus-section">
         <img src="images/hastings-web/Untitled_Artwork 41.jpg" alt="Hastings iPad drawing 7 by Christy Taylor" width="5831" height="3337" loading="lazy">
+        <p class="hastings-artwork-title">50.852023, 0.563457</p>
     </section>
 
     <section class="theseus-section">
         <img src="images/hastings-web/Untitled_Artwork 42.jpg" alt="Hastings iPad drawing 8 by Christy Taylor" width="3043" height="4303" loading="lazy">
+        <p class="hastings-artwork-title">50.852023, 0.563457</p>
     </section>
 
     <section class="theseus-section">
         <img src="images/hastings-web/bigmoon.jpg" alt="Hastings iPad drawing 9 by Christy Taylor" width="2110" height="2478" loading="lazy">
+        <p class="hastings-artwork-title">50.850318, 0.534556</p>
     </section>
 
     <section class="theseus-section">
         <img src="images/hastings-web/bottle alley a4.jpg" alt="Hastings iPad drawing 10 by Christy Taylor" width="2545" height="1771" loading="lazy">
+        <p class="hastings-artwork-title">50.852960, 0.569896</p>
     </section>
 
     <section class="theseus-section">
         <img src="images/hastings-web/bus8.jpg" alt="Hastings iPad drawing 11 by Christy Taylor" width="1878" height="1314" loading="lazy">
+        <p class="hastings-artwork-title">50.855084, 0.585302</p>
     </section>
 
     <section class="theseus-section">
         <img src="images/hastings-web/cafe print a4 NEW.jpg" alt="Hastings iPad drawing 12 by Christy Taylor" width="2679" height="1768" loading="lazy">
+        <p class="hastings-artwork-title">50.850267, 0.536971</p>
     </section>
 
     <section class="theseus-section">
         <img src="images/hastings-web/deary winner.jpg" alt="Hastings iPad drawing 13 by Christy Taylor" width="2097" height="1395" loading="lazy">
+        <p class="hastings-artwork-title">50.856325, 0.578582</p>
     </section>
 
     <section class="theseus-section">
         <img src="images/hastings-web/issabelle 4.jpg" alt="Hastings iPad drawing 14 by Christy Taylor" width="2799" height="1775" loading="lazy">
+        <p class="hastings-artwork-title">50.852659, 0.560467</p>
     </section>
 
     <section class="theseus-section">
         <img src="images/hastings-web/orange bus stop a4.jpg" alt="Hastings iPad drawing 15 by Christy Taylor" width="1692" height="1944" loading="lazy">
+        <p class="hastings-artwork-title">50.853551, 0.572615</p>
     </section>
 
     <section class="theseus-section">
-        <img src="images/hastings-web/queen.jpg" alt="Hastings iPad drawing 16 by Christy Taylor" width="3727" height="2693" loading="lazy">
+        <div class="hastings-rotated-artwork">
+            <img src="images/hastings-web/queen.jpg" alt="Hastings iPad drawing 16 by Christy Taylor" width="3727" height="2693" loading="lazy">
+        </div>
+        <p class="hastings-artwork-title">50.852072, 0.563411</p>
     </section>
 
     <section class="theseus-section">
         <img src="images/hastings-web/queenvica3 landscaperain.jpg" alt="Hastings iPad drawing 17 by Christy Taylor" width="4048" height="2406" loading="lazy">
+        <p class="hastings-artwork-title">50.852072, 0.563411</p>
     </section>
 
     <section class="theseus-section">
         <img src="images/hastings-web/seafront bus a4.jpg" alt="Hastings iPad drawing 18 by Christy Taylor" width="1769" height="2306" loading="lazy">
+        <p class="hastings-artwork-title">50.852016, 0.563494</p>
     </section>
 
     <section class="theseus-section">
         <img src="images/hastings-web/seagull sellout a4.jpg" alt="Hastings iPad drawing 19 by Christy Taylor" width="2701" height="1779" loading="lazy">
+        <p class="hastings-artwork-title">50.853665, 0.573997</p>
     </section>
 
     <section class="theseus-section">
         <img src="images/hastings-web/seagullorange.jpg" alt="Hastings iPad drawing 20 by Christy Taylor" width="2814" height="1704" loading="lazy">
+        <p class="hastings-artwork-title">50.851208, 0.572943</p>
     </section>
 
     <section class="theseus-section">
         <img src="images/hastings-web/the selkie benches a4 cool palette.jpg" alt="Hastings iPad drawing 22 by Christy Taylor" width="2794" height="1490" loading="lazy">
+        <p class="hastings-artwork-title">50.852243, 0.565940</p>
     </section>
 
     <section class="theseus-section">
         <img src="images/hastings-web/the sheds a4.jpg" alt="Hastings iPad drawing 23 by Christy Taylor" width="2501" height="1768" loading="lazy">
+        <p class="hastings-artwork-title">50.856033, 0.593798</p>
     </section>
 
     <section class="theseus-section">
         <img src="images/hastings-web/timestamp.jpg" alt="Hastings iPad drawing 24 by Christy Taylor" width="2684" height="3854" loading="lazy">
+        <p class="hastings-artwork-title">50.851506, 0.560672</p>
     </section>
 
     <section class="theseus-section">
         <img src="images/hastings-web/west st lens a4.jpg" alt="Hastings iPad drawing 25 by Christy Taylor" width="2558" height="1672" loading="lazy">
+        <p class="hastings-artwork-title">50.850310, 0.534667</p>
     </section>
 
     <section class="theseus-section">
         <img src="images/hastings-web/whiterock landscapetfff 2.jpg" alt="Hastings iPad drawing 26 by Christy Taylor" width="2795" height="1706" loading="lazy">
+        <p class="hastings-artwork-title">50.853526, 0.572662</p>
+    </section>
+
+    <section class="theseus-section" id="hastings-new-artworks">
+        <img src="images/hastings-web/50.851286, 0.539793.jpg" alt="50.851286, 0.539793 — iPad drawing by Christy Taylor" width="2388" height="1668" loading="lazy">
+        <p class="hastings-artwork-title">50.851286, 0.539793</p>
     </section>
 
     <section class="theseus-section">
-        <img src="images/hastings-web/whiterock landscapetfff.jpg" alt="Hastings iPad drawing 27 by Christy Taylor" width="2795" height="1706" loading="lazy">
+        <img src="images/hastings-web/50.851710, 0.572599.jpg" alt="50.851710, 0.572599 — iPad drawing by Christy Taylor" width="2388" height="1668" loading="lazy">
+        <p class="hastings-artwork-title">50.851710, 0.572599</p>
     </section>
 
-    <p class="hastings-end-text">All these drawings were made on iPad since 2025. They are available to purchase in the <a href="shop.html">Shop</a>.</p>
+    <section class="theseus-section">
+        <img src="images/hastings-web/50.852111, 0.563835 night.jpg" alt="50.852111, 0.563835 — iPad drawing by Christy Taylor" width="2760" height="1840" loading="lazy">
+        <p class="hastings-artwork-title">50.852111, 0.563835</p>
+    </section>
+
+    <section class="theseus-section">
+        <img src="images/hastings-web/50.852735, 0.558096.jpg" alt="50.852735, 0.558096 — iPad drawing by Christy Taylor" width="2608" height="1832" loading="lazy">
+        <p class="hastings-artwork-title">50.852735, 0.558096</p>
+    </section>
+
+    <section class="theseus-section">
+        <img src="images/hastings-web/50.853719, 0.574627.jpg" alt="50.853719, 0.574627 — iPad drawing by Christy Taylor" width="2616" height="1832" loading="lazy">
+        <p class="hastings-artwork-title">50.853719, 0.574627</p>
+    </section>
+
+    <section class="theseus-section">
+        <img src="images/hastings-web/50.853806, 0.568275.jpg" alt="50.853806, 0.568275 — iPad drawing by Christy Taylor" width="2528" height="1720" loading="lazy">
+        <p class="hastings-artwork-title">50.853806, 0.568275</p>
+    </section>
+
+    <section class="theseus-section">
+        <img src="images/hastings-web/50.854546, 0.580549.jpg" alt="50.854546, 0.580549 — iPad drawing by Christy Taylor" width="2388" height="1432" loading="lazy">
+        <p class="hastings-artwork-title">50.854546, 0.580549</p>
+    </section>
+
+    <section class="theseus-section">
+        <img src="images/hastings-web/50.854734, 0.585455 peach.jpg" alt="50.854734, 0.585455 — iPad drawing by Christy Taylor" width="2152" height="1280" loading="lazy">
+        <p class="hastings-artwork-title">50.854734, 0.585455</p>
+    </section>
+
+    <section class="theseus-section">
+        <img src="images/hastings-web/50.855084, 0.585302 jockey.jpg" alt="50.855084, 0.585302 — iPad drawing by Christy Taylor" width="2388" height="1668" loading="lazy">
+        <p class="hastings-artwork-title">50.855084, 0.585302</p>
+    </section>
+
+    <section class="theseus-section">
+        <img src="images/hastings-web/50.855213, 0.582515 red.jpg" alt="50.855213, 0.582515 — iPad drawing by Christy Taylor" width="2388" height="1668" loading="lazy">
+        <p class="hastings-artwork-title">50.855213, 0.582515</p>
+    </section>
+
+    <section class="theseus-section">
+        <img src="images/hastings-web/50.855572, 0.582126.jpg" alt="50.855572, 0.582126 — iPad drawing by Christy Taylor" width="2026" height="1365" loading="lazy">
+        <p class="hastings-artwork-title">50.855572, 0.582126</p>
+    </section>
+
+    <section class="theseus-section">
+        <img src="images/hastings-web/50.855613, 0.575311.jpg" alt="50.855613, 0.575311 — iPad drawing by Christy Taylor" width="2312" height="1424" loading="lazy">
+        <p class="hastings-artwork-title">50.855613, 0.575311</p>
+    </section>
+
+    <section class="theseus-section">
+        <img src="images/hastings-web/50.855770, 0.575777.jpg" alt="50.855770, 0.575777 — iPad drawing by Christy Taylor" width="2388" height="1668" loading="lazy">
+        <p class="hastings-artwork-title">50.855770, 0.575777</p>
+    </section>
+
+    <section class="theseus-section">
+        <img src="images/hastings-web/50.855990, 0.590448.jpg" alt="50.855990, 0.590448 — iPad drawing by Christy Taylor" width="2080" height="1264" loading="lazy">
+        <p class="hastings-artwork-title">50.855990, 0.590448</p>
+    </section>
+
+    <section class="theseus-section">
+        <img src="images/hastings-web/50.856036, 0.580748.jpg" alt="50.856036, 0.580748 — iPad drawing by Christy Taylor" width="3508" height="2480" loading="lazy">
+        <p class="hastings-artwork-title">50.856036, 0.580748</p>
+    </section>
+
+    <section class="theseus-section">
+        <img src="images/hastings-web/50.856302, 0.575434.jpg" alt="50.856302, 0.575434 — iPad drawing by Christy Taylor" width="2256" height="1168" loading="lazy">
+        <p class="hastings-artwork-title">50.856302, 0.575434</p>
+    </section>
+
+    <section class="theseus-section">
+        <img src="images/hastings-web/50.856728, 0.578242.jpg" alt="50.856728, 0.578242 — iPad drawing by Christy Taylor" width="1679" height="1502" loading="lazy">
+        <p class="hastings-artwork-title">50.856728, 0.578242</p>
+    </section>
+
+    <section class="theseus-section">
+        <img src="images/hastings-web/50.857106, 0.576581.jpg" alt="50.857106, 0.576581 — iPad drawing by Christy Taylor" width="1668" height="2388" loading="lazy">
+        <p class="hastings-artwork-title">50.857106, 0.576581</p>
+    </section>
+
+    <section class="theseus-section">
+        <img src="images/hastings-web/50.857216, 0.582095.jpg" alt="50.857216, 0.582095 — iPad drawing by Christy Taylor" width="2388" height="1668" loading="lazy">
+        <p class="hastings-artwork-title">50.857216, 0.582095</p>
+    </section>
+
+    <section class="theseus-section">
+        <img src="images/hastings-web/50.860918, 0.561829.jpg" alt="50.860918, 0.561829 — iPad drawing by Christy Taylor" width="2304" height="1272" loading="lazy">
+        <p class="hastings-artwork-title">50.860918, 0.561829</p>
+    </section>
+
+    <p class="hastings-end-text">All these drawings were made on the iPad since 2025. Some are available to purchase in the <a href="shop.html">Shop</a>. If you can't see one, please email <a href="mailto:studio@christytaylor.co.uk">studio@christytaylor.co.uk</a>.</p>
 </main>
 
+<dialog class="hastings-lightbox" aria-labelledby="hastingsLightboxCaption">
+    <button class="hastings-lightbox-close" type="button" aria-label="Close enlarged artwork" autofocus>×</button>
+    <button class="hastings-lightbox-arrow hastings-lightbox-previous" type="button" aria-label="Previous artwork">←</button>
+    <button class="hastings-lightbox-arrow hastings-lightbox-next" type="button" aria-label="Next artwork">→</button>
+    <div class="hastings-lightbox-stage">
+        <img class="hastings-lightbox-image" alt="">
+    </div>
+    <p class="hastings-lightbox-caption" id="hastingsLightboxCaption" aria-live="polite"></p>
+</dialog>
+
 <script>
-    const images = document.querySelectorAll(".theseus-section > img");
+    const images = document.querySelectorAll(".hastings-sequence .theseus-section img");
 
     const observer = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
@@ -190,6 +472,121 @@
     });
 
     images.forEach((image) => observer.observe(image));
+
+    const lightbox = document.querySelector(".hastings-lightbox");
+    const lightboxImage = lightbox.querySelector("img");
+    const lightboxStage = lightbox.querySelector(".hastings-lightbox-stage");
+    const lightboxCaption = lightbox.querySelector(".hastings-lightbox-caption");
+    const artworkList = Array.from(images);
+    let activeArtwork = null;
+    let openingArtwork = null;
+    let previousOverflow = "";
+
+    function sizeEnlargedArtwork() {
+        if (!lightbox.open || !activeArtwork) return;
+        const rotated = !!activeArtwork.closest(".hastings-rotated-artwork");
+        const width = activeArtwork.naturalWidth || Number(activeArtwork.getAttribute("width"));
+        const height = activeArtwork.naturalHeight || Number(activeArtwork.getAttribute("height"));
+        const scale = Math.min(
+            lightboxStage.clientWidth / (rotated ? height : width),
+            lightboxStage.clientHeight / (rotated ? width : height)
+        );
+        lightboxImage.style.width = `${width * scale}px`;
+        lightboxImage.style.height = `${height * scale}px`;
+        const displayedHeight = (rotated ? width : height) * scale;
+        lightboxCaption.style.transform = `translateY(-${Math.max(0, (lightboxStage.clientHeight - displayedHeight) / 2)}px)`;
+        lightboxImage.style.transform = `translate(-50%, -50%) rotate(${rotated ? 90 : 0}deg)`;
+    }
+
+    function showArtwork(image) {
+        activeArtwork = image;
+        lightboxImage.src = image.currentSrc || image.src;
+        lightboxImage.alt = image.alt;
+        lightboxImage.classList.toggle("hastings-white-background",
+            image.classList.contains("hastings-white-background"));
+        lightboxCaption.textContent = image.closest(".theseus-section")
+            .querySelector(".hastings-artwork-title").textContent;
+        sizeEnlargedArtwork();
+    }
+
+    function openArtwork(image) {
+        openingArtwork = image;
+        previousOverflow = document.documentElement.style.overflow;
+        lightbox.showModal();
+        document.documentElement.style.overflow = "hidden";
+        showArtwork(image);
+    }
+
+    // Approved white-background uploads; extend this list for future drawings.
+    const whiteBackgroundArtworks = new Set([
+        "50.855213, 0.582515 red.jpg",
+        "50.856036, 0.580748.jpg",
+        "50.856728, 0.578242.jpg",
+        "50.857106, 0.576581.jpg",
+        "50.857216, 0.582095.jpg"
+    ]);
+
+    images.forEach((image) => {
+        const filename = decodeURIComponent(new URL(image.src).pathname.split("/").pop());
+        if (whiteBackgroundArtworks.has(filename)) {
+            image.classList.add("hastings-white-background");
+        }
+        const coordinates = image.closest(".theseus-section")
+            .querySelector(".hastings-artwork-title").textContent;
+        image.tabIndex = 0;
+        image.setAttribute("role", "button");
+        image.setAttribute("aria-haspopup", "dialog");
+        image.setAttribute("aria-label", `Enlarge artwork: ${coordinates}`);
+        image.addEventListener("click", () => openArtwork(image));
+        image.addEventListener("keydown", (event) => {
+            if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                openArtwork(image);
+            }
+        });
+    });
+
+    function moveArtwork(direction) {
+        const index = artworkList.indexOf(activeArtwork);
+        showArtwork(artworkList[(index + direction + artworkList.length) % artworkList.length]);
+    }
+
+    lightbox.querySelector(".hastings-lightbox-previous")
+        .addEventListener("click", () => moveArtwork(-1));
+    lightbox.querySelector(".hastings-lightbox-next")
+        .addEventListener("click", () => moveArtwork(1));
+    lightbox.addEventListener("keydown", (event) => {
+        if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+            event.preventDefault();
+            moveArtwork(event.key === "ArrowLeft" ? -1 : 1);
+        }
+    });
+
+    let swipeStart = null;
+    lightboxStage.addEventListener("touchstart", (event) => {
+        swipeStart = event.touches.length === 1
+            ? { x: event.touches[0].clientX, y: event.touches[0].clientY }
+            : null;
+    }, { passive: true });
+    lightboxStage.addEventListener("touchend", (event) => {
+        if (!swipeStart) return;
+        const touch = event.changedTouches[0];
+        const dx = touch.clientX - swipeStart.x;
+        const dy = touch.clientY - swipeStart.y;
+        swipeStart = null;
+        if (Math.abs(dx) >= 50 && Math.abs(dx) > Math.abs(dy) * 1.25) {
+            moveArtwork(dx < 0 ? 1 : -1);
+        }
+    }, { passive: true });
+    lightboxStage.addEventListener("touchcancel", () => { swipeStart = null; });
+
+    lightbox.querySelector(".hastings-lightbox-close").addEventListener("click", () => lightbox.close());
+    lightbox.addEventListener("close", () => {
+        document.documentElement.style.overflow = previousOverflow;
+        swipeStart = null;
+        openingArtwork?.focus({ preventScroll: true });
+    });
+    new ResizeObserver(sizeEnlargedArtwork).observe(lightboxStage);
 </script>
 
 </body>
