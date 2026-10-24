@@ -50,14 +50,14 @@ body {
     --header-font: "Courier New", Courier, monospace;
 
     --header-colour: #000000;
-    --hastings-colour: #1e9f33;
-    --work-colour: #346eb9;
+    --hastings-colour: #14966b;
+    --work-colour: #4956ab;
     --shop-colour: #000000;
-    --about-colour: #9d602a;
+    --about-colour: #995642;
 
     --header-font-size: 6px;
     --nav-font-size: 20px;
-    --nav-gap: 30px;
+    --nav-gap: 36px;
     --header-gap: 24px;
     --header-padding: 16px 30px 0;
     --nav-top-padding: 2px;
@@ -517,7 +517,7 @@ body {
     :root {
         --header-font-size: 4px;
         --nav-font-size: 22px;
-        --nav-gap: 18px;
+        --nav-gap: 22px;
     }
 
     #main-hastings-image {
@@ -534,7 +534,7 @@ body {
     :root {
         --header-font-size: 3px;
         --nav-font-size: 20px;
-        --nav-gap: 15px;
+        --nav-gap: 18px;
         --header-gap: 14px;
         --header-padding: 14px 18px 0;
     }
