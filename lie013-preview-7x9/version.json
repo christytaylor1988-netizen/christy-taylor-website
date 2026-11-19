@@ -4,11 +4,10 @@
   "version": "0.4.4",
   "edition": "Batch 3B \u2014 rhythmic fragmentation, drum effects and flexible strumming",
   "website_base_commit": "e0b00c92f938e53375322d544f108b2d113a0e36",
-  "source_zip_sha256": "4f25bdcf9ed405278cfa03a1f9ff08bb790c1ef4063ac5337fd61f5798805110",
   "deployment_change": "Clocked audio fragments and HOLD; per-voice drum pitch and shared spring/delay; melody LOCK; independent strum sound; separate chord and arp lengths; shared BPM slider. CASSETTE retained for old saved sets only. Physical iPhone testing remains required.",
   "files": {
-    "index.html": "cd19237381e57063d2b6d3f33b70001cded61c8376cee5b02b67e6f038206bb8",
-    "worklet.js": "d4be5dcff010f1ae431edc1743fc560a33cec694c8ebf3fedbf1f4e011a9b214",
+    "index.html": "fbf122fb85e75c3e6e7b68196afa904765e6b757b78d3b5b93107ac72efe46df",
+    "worklet.js": "cc740c2d02f58eaeb35239af99d0e45a3b10ed991ef24a44444dd1687082b5d7",
     "SOUND-CREDITS.txt": "0c6d9cb39f81babb57b5fb1ef6118676f5c59d815a42915dc227e3447aa4c5d1"
   },
   "diagnostic_build": "audio-diag-1",

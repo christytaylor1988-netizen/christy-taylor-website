@@ -443,7 +443,7 @@ class Engine {
   this.equalizer=new InstrumentEQ(sr);this.eqLow=0;this.eqMid=0;this.eqHigh=0;this.presence=0;this.performance=new PerformanceFX(sr);this.tone=0;this.glitch=0;this.glitchTarget='all';this.glitchHold=false;this.balance=.5;this.silentCleared=false;this.balanceNow=.5;this.chordGain=1;this.arpGain=1;this.crushDry=0;this.crushWet=0;this.crushGain=1;this.crushComfort=1;this.crushHPDry=0;this.crushHPWet=0;this.crushLowDry=new Float64Array(2);this.crushLowWet=new Float64Array(2);this.crushEarK=1-Math.exp(-TAU*2200/sr);this.swing=0;this.drumCustom=false;this.editGrid=null;this.grid=factoryGrid(0);this.timeline=drumTimeline(0,false);this.gridPlayhead=-1;
   this.chord={root:0,quality:''};this.key=0;this.octave=0;this.held=false;
   this.tempo=110;this.clock=new MusicalClock(sr);this.beat=0;this.samples=[];this.missingSamples=0;this.strings=9;this.strumMode='pluck';this.strumLock=false;this.lockedNotes=null;this.strumPreset=null;this.strumPointers=new Map();this.snare='dry';this.activeSnare='dry';this.trace=null;this.drums=false;this.sequence=false;this.paused=false;this.pattern=0;this.pendingPattern=0;
-  this.drumEffects=new DrumEffects(sr);this.drumWetL=0;this.drumWetR=0;
+  this.drumEffects=new DrumEffects(sr);this.drumWetL=0;this.drumWetR=0;this.drumControlsActive=false;
   this.drumTune=new Float64Array(7).fill(1);this.drumTuneTarget=new Float64Array(7).fill(1);this.drumSemitones=new Float64Array(7);this.drumNoise=new Float64Array(7);this.drumNoiseK=new Float64Array(7).fill(1-Math.exp(-TAU*1800/sr));this.drumSends=new Float64Array(14);this.drumSendTargets=new Float64Array(14);this.drumFxSmooth=1-Math.exp(-1/(sr*.02));this.tunedSnareK=null;
   this.drumStep=0;this.drumStart=0;this.nextDrum=0;this.drumVolume=.6;this.drumEnv=new Float64Array(7);this.drumAge=new Float64Array(7);this.drumPhase=new Float64Array(7);this.drumPitch=new Float64Array(7);this.drumLast=new Float64Array(7);this.drumBridge=new Float64Array(7);this.drumBridgeAge=new Float64Array(7);this.drumBridgeFrames=Math.round(sr*.004);this.drumBridgeAge.fill(this.drumBridgeFrames);
   this.drumDecay=[.19,.105,.027,.17,.038,.14,.085].map(t=>Math.exp(-1/(sr*t)));this.noiseLow=0;this.speaker=0;this.openChoke=false;this.noiseK=1-Math.exp(-TAU*1800/sr);this.speakerK=1-Math.exp(-TAU*3700/sr);this.snareDecay=Math.exp(-1/(sr*.32));this.chokeDecay=Math.exp(-1/(sr*.006));this.snareK={dry:1-Math.exp(-TAU*6500/sr),vintage:1-Math.exp(-TAU*6500/sr),sixties:1-Math.exp(-TAU*4500/sr),dub:1-Math.exp(-TAU*1900/sr),lofi:1-Math.exp(-TAU*6500/sr),noise:1-Math.exp(-TAU*6500/sr)};this.cachedAttack=NaN;this.cachedRelease=NaN;this.cachedCrush=NaN;
@@ -471,12 +471,12 @@ class Engine {
   if(Number.isFinite(s.key))this.key=s.key;if(Number.isFinite(s.octave))this.octave=clamp(s.octave,-1,2);
   if(Number.isFinite(s.rhythm))this.pendingPattern=clamp(s.rhythm,0,5);
   if(s.drumCustom!==undefined){const grid=s.drumEdits?.[this.pendingPattern];this.drumCustom=!!s.drumCustom&&validDrumGrid(grid);this.editGrid=this.drumCustom?grid.map(r=>r.slice()):null;}
-  if(Array.isArray(s.drumFx))for(let i=0;i<7;i++){
+  if(Array.isArray(s.drumFx)){for(let i=0;i<7;i++){
    const p=s.drumFx[i];if(!p)continue;
    const pitch=Number.isFinite(p.pitch)?clamp(p.pitch,-12,12):0;
    if(pitch!==this.drumSemitones[i]){this.drumSemitones[i]=pitch;const ratio=2**(pitch/12);this.drumTuneTarget[i]=ratio;this.drumNoiseK[i]=1-Math.exp(-TAU*1800*ratio/this.sr);if(i===1){this.tunedSnareK={};for(const kind of SNARES){const f=kind.id==='sixties'?4500:kind.id==='dub'?1900:6500;this.tunedSnareK[kind.id]=1-Math.exp(-TAU*Math.min(this.sr*.4,f*ratio)/this.sr);}}}
    this.drumSendTargets[i*2]=Number.isFinite(p.spring)?clamp(p.spring,0,1):0;this.drumSendTargets[i*2+1]=Number.isFinite(p.delay)?clamp(p.delay,0,1):0;
-  }
+  }for(let i=0;i<7;i++)if(this.drumTuneTarget[i]!==1||this.drumSendTargets[i*2]!==0||this.drumSendTargets[i*2+1]!==0){if(!this.drumControlsActive)this.drumNoise.fill(this.noiseLow);this.drumControlsActive=true;break;}}
   if(Number.isFinite(s.drumVolume))this.drumVolume=clamp(s.drumVolume,0,1);
   if(Number.isFinite(s.chordLength)){this.chordLength=clamp(s.chordLength,.1,1.25);for(const v of this.voices)if(v.origin==='seq'&&v.gate!==0)v.offTick=v.chordTick+96*this.chordLength;}
   if(s.arp){const old=this.arp;this.arp={...this.arp,...s.arp};if(this.sequence&&old.mode!==this.arp.mode){this.pendingMode=this.arp.mode;this.arp.mode=old.mode;}else if(this.sequence&&s.arp.mode===old.mode)this.pendingMode=null;if(old.speed!==this.arp.speed)this.nextArp=Math.ceil(this.clock.tick/(DIVISIONS[this.arp.speed]*24))*(DIVISIONS[this.arp.speed]*24);}
@@ -615,9 +615,10 @@ class Engine {
  drumSample(){
   const noise=this.random()*2-1;this.noiseLow+=this.noiseK*(noise-this.noiseLow);const high=noise-this.noiseLow;let sum=0,springSend=0,delaySend=0;
   for(let i=0;i<7;i++){
-   let tune=this.drumTune[i];if(tune!==this.drumTuneTarget[i]){tune+=(this.drumTuneTarget[i]-tune)*this.drumFxSmooth;if(Math.abs(tune-this.drumTuneTarget[i])<1e-8)tune=this.drumTuneTarget[i];this.drumTune[i]=tune;}
+   let tune=1,tunedHigh=high;
+   if(this.drumControlsActive){tune=this.drumTune[i];if(tune!==this.drumTuneTarget[i]){tune+=(this.drumTuneTarget[i]-tune)*this.drumFxSmooth;if(Math.abs(tune-this.drumTuneTarget[i])<1e-8)tune=this.drumTuneTarget[i];this.drumTune[i]=tune;}
    const k=i*2;for(let j=k;j<k+2;j++){let v=this.drumSends[j];if(v!==this.drumSendTargets[j]){v+=(this.drumSendTargets[j]-v)*this.drumFxSmooth;if(Math.abs(v-this.drumSendTargets[j])<1e-8)v=this.drumSendTargets[j];this.drumSends[j]=v;}}
-   this.drumNoise[i]+=this.drumNoiseK[i]*(noise-this.drumNoise[i]);const tunedHigh=tune===1?high:noise-this.drumNoise[i];
+   this.drumNoise[i]+=this.drumNoiseK[i]*(noise-this.drumNoise[i]);tunedHigh=tune===1?high:noise-this.drumNoise[i];}
    if(this.drumEnv[i]<.000001&&this.drumBridgeAge[i]>=this.drumBridgeFrames){this.drumLast[i]=0;continue;}const t=this.drumAge[i]++/this.sr;let sound=0,f=0;
    if(i===0)f=48+48*Math.exp(-t*48);if(i===1)f=177;if(i===2||i===3)f=3371;if(i===4)f=796;if(i===5)f=91+27*Math.exp(-t*24);
    this.drumPhase[i]+=TAU*f*this.drumPitch[i]*tune/this.sr;const p=this.drumPhase[i];
@@ -629,7 +630,7 @@ class Engine {
    if(this.drumBridgeAge[i]<this.drumBridgeFrames){value+=this.drumBridge[i]*(.5+.5*Math.cos(Math.PI*this.drumBridgeAge[i]/this.drumBridgeFrames));this.drumBridgeAge[i]++;}
    this.drumLast[i]=value;sum+=value;springSend+=value*this.drumSends[i*2];delaySend+=value*this.drumSends[i*2+1];this.drumEnv[i]*=i===1?this.snareDecay:this.drumDecay[i];if(i===3&&this.openChoke)this.drumEnv[i]*=this.chokeDecay;
   }
-  const wet=this.drumEffects.process(springSend*this.drumVolume,delaySend*this.drumVolume);this.drumWetL=wet[0];this.drumWetR=wet[1];
+  if(springSend!==0||delaySend!==0||this.drumEffects.active){const wet=this.drumEffects.process(springSend*this.drumVolume,delaySend*this.drumVolume);this.drumWetL=wet[0];this.drumWetR=wet[1];}else{this.drumWetL=0;this.drumWetR=0;}
   this.speaker+=this.speakerK*(Math.tanh(sum*1.4)*.55-this.speaker);return this.speaker*this.drumVolume;
  }
  snareSample(noise,t,p){
@@ -644,6 +645,9 @@ class Engine {
  }
  process(left,right){
   this.peak=0;
+  // Re-enter the exact neutral path after smoothed controls settle. Check once
+  // per block, avoiding seven extra smoothing/filter loops on every sample.
+  if(this.drumControlsActive){let active=false;for(let i=0;i<7;i++)if(this.drumTune[i]!==1||this.drumTuneTarget[i]!==1||this.drumSends[i*2]!==0||this.drumSends[i*2+1]!==0||this.drumSendTargets[i*2]!==0||this.drumSendTargets[i*2+1]!==0){active=true;break;}this.drumControlsActive=active;}
   for(let i=0;i<left.length;i++){
    this.schedule();const t=this.frame/this.sr;
    this.pulseSpeedNow+=(this.pulseSpeed-this.pulseSpeedNow)*this.paramSmooth;this.pulseDepthNow+=(this.pulseDepth-this.pulseDepthNow)*this.paramSmooth;

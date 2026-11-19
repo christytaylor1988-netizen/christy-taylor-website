@@ -1,0 +1,52 @@
+name: WILMACHORD V0.4.4 checks
+on:
+  push:
+    branches: [wilmachord-v044-20261119]
+    paths: ['lie013-preview-7x9/**', '.github/wilmachord/**', '.github/workflows/wilmachord-v044.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  instrument-checks:
+    runs-on: ubuntu-24.04
+    container: mcr.microsoft.com/playwright:v1.57.0-noble
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          filter: blob:none
+          sparse-checkout: |
+            lie013-preview-7x9
+            .github/wilmachord
+      - name: Align disposable checkout ownership with the container user
+        run: chown -R "$(id -u):$(id -g)" "$GITHUB_WORKSPACE"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Preserved sound engine and shared transport
+        run: |
+          node .github/wilmachord/stability-eq.test.mjs
+          node .github/wilmachord/fragmentation.test.mjs
+          node .github/wilmachord/drum-fx.test.mjs
+          node .github/wilmachord/strum-flexibility.test.mjs
+          node .github/wilmachord/progression-length.test.mjs
+          node .github/wilmachord/sound-refinement.test.mjs
+          node .github/wilmachord/transport.test.mjs
+          node .github/wilmachord/controller.test.mjs
+          node .github/wilmachord/audio-regression.test.mjs
+          node .github/wilmachord/diagnostic-worklet.test.mjs
+          node .github/wilmachord/diagnostic-controller.test.mjs
+      - name: Install pinned test API (browsers are preinstalled)
+        timeout-minutes: 3
+        working-directory: .github/wilmachord
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+      - name: Chromium and WebKit at iPhone 13 mini dimensions
+        run: node .github/wilmachord/browser.test.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: wilmachord-v044-test-results
+          path: .github/wilmachord/output/
+          retention-days: 30

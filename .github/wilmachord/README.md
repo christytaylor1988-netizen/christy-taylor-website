@@ -1,4 +1,4 @@
-# WILMACHORD LIE013 — V0.4.2
+# WILMACHORD LIE013 — V0.4.4
 
 The application is the existing self-contained build in `lie013-preview-7x9/`.
 `index.html` contains the editable interface/controller source and all 38 bundled
@@ -6,7 +6,11 @@ PCM sample zones. `worklet.js` contains the audio engine. Its identical embedded
 fallback remains in the HTML. No npm packages, external sample servers or build
 process are required by the deployed instrument. Serve the directory over HTTPS.
 
-The working V0.4.1 baseline is `10df54224eebb79e28063b1cd34fbe82b9449218`.
+Current Batch 3B parameters, migration, test commands and rollback are documented in
+[V044-DEVELOPMENT.md](V044-DEVELOPMENT.md). The release has 11 selectable instruments;
+CASSETTE remains supported internally for old saved sets. All 38 samples are retained.
+
+The historical working V0.4.1 baseline is `10df54224eebb79e28063b1cd34fbe82b9449218`.
 The branch `recovery/before-v042-20261119` preserves that release.
 The user confirmed audible iPhone 13 mini output with the physical Silent Mode
 switch OFF. Software tests do not replace listening on the phone.
@@ -79,7 +83,7 @@ real-world multi-finger performance and battery usage.
 
 The existing Render Static Site is `christy-taylor-static`, service
 `srv-dap8q48ae00c739four0`, publishing repository root `.` with no build required.
-Use **Manual Deploy → Deploy a specific commit** with the tested V0.4.2 commit.
+Use **Manual Deploy → Deploy a specific commit** with the tested V0.4.4 commit.
 Keep the established public website and its separate checkout service unchanged.
 Do not change the configured branch or enable automatic deployments as a shortcut.
 
@@ -88,6 +92,7 @@ and `SOUND-CREDITS.txt` against that commit. `version.json` contains SHA-256 has
 The preview remains `/lie013-preview-7x9/`, unlisted and marked noindex, not
 password-protected. A Git push alone does not establish Render publication.
 
-Rollback uses the same manual deployment control with the baseline commit above.
+Current rollback uses the same manual deployment control with
+`95dd29d2e699b145df669551e8675a041846bc3f` (V0.4.3).
 An independently deployable copy of the baseline is also in the recovery ZIP.
 No public navigation, artwork, shop, Stripe code or other project is changed.
