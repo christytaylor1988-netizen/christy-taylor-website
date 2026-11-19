@@ -26,6 +26,8 @@ jobs:
           node .github/wilmachord/transport.test.mjs
           node .github/wilmachord/controller.test.mjs
           node .github/wilmachord/audio-regression.test.mjs
+          node .github/wilmachord/diagnostic-worklet.test.mjs
+          node .github/wilmachord/diagnostic-controller.test.mjs
       - name: Install isolated browser test dependencies
         working-directory: .github/wilmachord
         run: |

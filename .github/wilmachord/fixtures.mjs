@@ -16,7 +16,7 @@ export function oldFile(name){return execFileSync('git',['show',baseline+':lie01
 export const scratch=fs.mkdtempSync(path.join(os.tmpdir(),'wilmachord-test-'));
 export async function fixture(code,name){
  const file=path.join(scratch,name+'.mjs');
- fs.writeFileSync(file,`globalThis.AudioWorkletProcessor=class{constructor(){this.port={postMessage(){}};}};globalThis.registerProcessor=()=>{};globalThis.sampleRate=48000;\n`+code+'\n'+samples+'\nexport {Engine,WilmachordProcessor,PerformanceFX,factoryGrid,drumTimeline,paintDrumCell,decodeSamples,PRESETS,percussionStep,patternSteps,patternStepTime,defaultState,VERSION,PALETTES,SNARES,RHYTHMS};');
+ fs.writeFileSync(file,`globalThis.AudioWorkletProcessor=class{constructor(){this.messages=[];this.port={postMessage:m=>this.messages.push(m)};}};globalThis.registerProcessor=()=>{};globalThis.sampleRate=48000;\n`+code+'\n'+samples+'\nexport {Engine,WilmachordProcessor,PerformanceFX,factoryGrid,drumTimeline,paintDrumCell,decodeSamples,PRESETS,percussionStep,patternSteps,patternStepTime,defaultState,VERSION,PALETTES,SNARES,RHYTHMS};');
  return import(pathToFileURL(file).href);
 }
 export const current=await fixture(worklet,'current');

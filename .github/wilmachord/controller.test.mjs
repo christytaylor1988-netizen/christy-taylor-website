@@ -1,7 +1,7 @@
 // Controller-level event simulation, NOT a browser or hardware test.
 import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:assert/strict';
 import {html,script,current,out} from './fixtures.mjs';const music=current,drums=current,{decodeSamples}=current;
-const elements=new Map(),messages=[],timers=new Map(),windowEvents={};let timerId=0,hit=null;
+const elements=new Map(),messages=[],timers=new Map(),windowEvents={},frames=new Map();let timerId=0,hit=null;const connections=new Set();
 class Element {
  constructor(tag='div'){this.tagName=tag.toUpperCase();this.children=[];this.dataset={};this.attrs={};this.style={};this.listeners={};this.value='';this.className='';this.hidden=false;this.clientWidth=300;this.offsetLeft=0;this.open=false;this.textContent='';this.classList={add:(c)=>this.classes().add(c)&&this.sync(),remove:c=>{this.classes().delete(c);this.sync();},toggle:(c,on)=>{if(on??!this.classes().has(c))this.classes().add(c);else this.classes().delete(c);this.sync();},contains:c=>this.classes().has(c)};}
  classes(){if(this._last!==this.className){this._classes=new Set(this.className.split(' ').filter(Boolean));this._last=this.className;}return this._classes;}
@@ -9,6 +9,7 @@ class Element {
  set id(v){this._id=v;elements.set(v,this);}get id(){return this._id;}
  append(...xs){for(const x of xs){x.parent=this;this.children.push(x);}}replaceChildren(...xs){this.children=[];this.append(...xs);}add(e){this.append(e);}
  setAttribute(k,v){this.attrs[k]=v;}getAttribute(k){return this.attrs[k];}setPointerCapture(){}
+ getContext(){return this.tagName==='CANVAS'?{fillRect(){},beginPath(){},moveTo(){},lineTo(){},stroke(){},fillText(){}}:null;}
  getBoundingClientRect(){return {left:0,top:0,width:360,height:80};}
  matches(q){return q.split(',').some(x=>this.match(x.trim()));}
  match(q){if(q==='dialog[open]')return this.tagName==='DIALOG'&&this.open;if(q==='[data-step]')return this.dataset.step!==undefined;if(q==='[data-close]')return this.dataset.close!==undefined;if(q.startsWith('.'))return this.classes().has(q.slice(1));return this.tagName===q.toUpperCase();}
@@ -22,11 +23,11 @@ for(const id of ['rhythm-toggle','seq-drums','drum-play'])elements.get(id).appen
 const header=new Element('header');header.append(elements.get('about'));
 for(let i=0;i<4;i++)elements.get('beats').append(new Element('i'));
 const doc={hidden:false,getElementById:id=>elements.get(id),createElement:t=>new Element(t),querySelectorAll:q=>[...elements.values()].flatMap(e=>[e,...e.all()]).filter((e,i,a)=>a.indexOf(e)===i&&e.matches(q)),querySelector:q=>doc.querySelectorAll(q)[0]||null,elementFromPoint:()=>hit,addEventListener:(k,fn)=>{doc[k]=fn;}};
-class AudioContext {constructor(){this.state='running';this.sampleRate=48000;this.destination={};this.audioWorklet={addModule:async()=>{}};}async resume(){this.state='running';}suspend(){this.state='suspended';}}
-class AudioWorkletNode {constructor(){this.port={postMessage:m=>messages.push(JSON.parse(JSON.stringify(m.type==='samples'?{type:m.type,zones:m.zones.length}:m)))};}connect(){}}
-const store=new Map(),scope={...music,...drums,decodeSamples,atob,document:doc,window:{AudioContext,addEventListener(k,fn){windowEvents[k]=fn;}},AudioWorkletNode,Option:class extends Element{constructor(n,v){super('option');this.textContent=n;this.value=v;}},localStorage:{getItem:k=>store.get(k),setItem:(k,v)=>store.set(k,v)},setTimeout:fn=>{timers.set(++timerId,fn);return timerId;},clearTimeout:id=>timers.delete(id),requestAnimationFrame:fn=>fn(),performance:{now:()=>1000},Blob,URL,Event:class{constructor(type){this.type=type;}},confirm:()=>true,console};
+class AudioContext {constructor(){this.state='running';this.sampleRate=48000;this.destination={};this.audioWorklet={addModule:async()=>{}};}async resume(){this.state='running';}suspend(){this.state='suspended';}createAnalyser(){return {fftSize:256,getFloatTimeDomainData(d){d.fill(.1);}};}}
+class AudioWorkletNode {constructor(){this.port={postMessage:m=>messages.push(JSON.parse(JSON.stringify(m.type==='samples'?{type:m.type,zones:m.zones.length}:m)))};}connect(dest){connections.add(dest);}disconnect(dest){connections.delete(dest);}}
+const store=new Map(),scope={...music,...drums,decodeSamples,atob,document:doc,window:{AudioContext,addEventListener(k,fn){windowEvents[k]=fn;}},AudioWorkletNode,Option:class extends Element{constructor(n,v){super('option');this.textContent=n;this.value=v;}},localStorage:{getItem:k=>store.get(k)??null,setItem:(k,v)=>store.set(k,v)},setTimeout:fn=>{timers.set(++timerId,fn);return timerId;},clearTimeout:id=>timers.delete(id),requestAnimationFrame:fn=>{frames.set(++timerId,fn);return timerId;},cancelAnimationFrame:id=>frames.delete(id),performance:{now:()=>1000},Blob,URL,Event:class{constructor(type){this.type=type;}},confirm:()=>true,console};
 const bundled=true,context=vm.createContext(scope);
-vm.runInContext(script+'\nglobalThis.probe={state:()=>s,held:()=>held,validate,showPage,audio,stop,strums:()=>strums.size,context:()=>ctx,loadWorklet,wakeAudio};',context);
+vm.runInContext(script+'\nglobalThis.probe={state:()=>s,held:()=>held,validate,showPage,audio,stop,strums:()=>strums.size,context:()=>ctx,loadWorklet,wakeAudio,transport:()=>({seqOn,seqPaused,drumsOn}),scope:()=>({scopeEnabled,scopeAnalyser,scopeFrameId}),bank:()=>drumBank,update:(step)=>{lastStatus={...lastStatus,gridStep:step};updateDrumPlayhead();}};',context);
 await context.probe.audio();const $=id=>elements.get(id),state=()=>context.probe.state(),pointer=(id,x=0,y=0,t=0)=>({pointerId:id,button:0,clientX:x,clientY:y,timeStamp:t,preventDefault(){}});
 const tests=[];function test(name,fn){fn();tests.push(name);console.log('PASS',name);}
 test('Controller initialises 12 tiles per page, twelve sounds and rhythm buttons',()=>{assert.equal($('chords').children.length,12);assert.equal($('seq-chords').children.length,12);assert.equal($('preset-strip').children.length,12);assert.equal($('rhythms').children.length,6);assert.equal($('start-overlay').hidden,true);});
@@ -123,4 +124,29 @@ test('External module failure invokes identical embedded fallback',()=>{assert.e
 await assert.rejects(context.probe.loadWorklet({audioWorklet:{addModule:async()=>{throw Error('both unavailable');}}}),/Audio engine could not load/);
 test('Failure of both module routes reports an explicit error',()=>{});
 
+
+test('Long PLAY holds and double taps never open the editor',()=>{
+ context.probe.stop();const b=$('chords').children[0];b.onpointerdown(pointer(90));for(const f of [...timers.values()])f();assert.equal($('editor').open,false);assert.equal(b.ondblclick,undefined);b.onpointerup(pointer(90));
+});
+test('Explicit EDIT silences manual holds; DONE restores PLAY without altering palettes',()=>{
+ const before=JSON.stringify(state().custom);$('edit-palette').onclick();assert.equal($('edit-palette').textContent,'DONE');assert.equal(context.probe.held(),false);const b=$('chords').children[0];b.onpointerdown(pointer(91));b.onpointerup(pointer(91));assert.equal($('editor').open,true);$('editor').close();$('edit-palette').onclick();assert.equal($('edit-palette').textContent,'EDIT');assert.equal(JSON.stringify(state().custom),before);
+});
+test('Main and sequencer transports share state; PLAY cannot send duplicate starts',()=>{
+ context.probe.stop();$('main-play').onclick();const count=messages.filter(m=>m.type==='sequence').length;$('seq-play').onclick();assert.equal(messages.filter(m=>m.type==='sequence').length,count);$('seq-pause').onclick();assert.equal(context.probe.transport().seqPaused,true);assert.equal($('main-pause').getAttribute('aria-pressed'),true);assert.equal(messages.at(-1).type,'pause');$('main-play').onclick();assert.equal(messages.at(-1).type,'resume');assert.equal(context.probe.transport().seqPaused,false);$('main-stop').onclick();assert.equal(context.probe.transport().seqOn,false);assert.equal(context.probe.transport().drumsOn,false);
+});
+test('All three explicit mode buttons select one mode without restarting transport',()=>{
+ $('main-play').onclick();const count=messages.filter(m=>m.type==='sequence').length;
+ for(const mode of ['chord','arp','both']){$('mode-'+mode).onclick();assert.equal(state().arp.mode,mode);for(const other of ['chord','arp','both'])assert.equal($('mode-'+other).getAttribute('aria-pressed'),other===mode);}
+ assert.equal(messages.filter(m=>m.type==='sequence').length,count);context.probe.stop();
+});
+test('Scope OFF removes only its side tap and cancels animation; preference persists',()=>{
+ assert.equal(context.probe.scope().scopeEnabled,true);const a=context.probe.scope().scopeAnalyser;assert.ok(a);assert.ok(connections.has(context.probe.context().destination));assert.ok(connections.has(a));const id=context.probe.scope().scopeFrameId;assert.ok(frames.has(id));$('scope-toggle').onclick();assert.equal(context.probe.scope().scopeAnalyser,null);assert.equal(context.probe.scope().scopeFrameId,null);assert.ok(!frames.has(id));assert.ok(!connections.has(a));assert.ok(connections.has(context.probe.context().destination));assert.equal(store.get('wilmachord.lie013.scope'),'off');$('scope-toggle').onclick();assert.ok(context.probe.scope().scopeAnalyser);
+});
+test('Vertical direction lock cannot turn into horizontal page switching',()=>{
+ context.probe.showPage(0);const target=new Element('div');instrument.listeners.touchstart({touches:[gesture(300,200)],target});instrument.listeners.touchmove({touches:[gesture(290,240)],preventDefault(){throw Error('vertical scroll prevented');}});instrument.listeners.touchend({changedTouches:[gesture(30,245)],preventDefault(){}});assert.equal(state().page,0);
+});
+test('Live bank changes preserve the Swing control and defer while painting',()=>{
+ context.probe.stop();$('drum-play').onclick();const swing=$('swing');context.probe.update(7);assert.equal(context.probe.bank(),0);context.probe.update(8);assert.equal(context.probe.bank(),1);assert.equal($('swing'),swing);context.probe.update(0);assert.equal(context.probe.bank(),0);
+ const start=cell(1,0);$('drum-grid').onpointerdown({...pointer(92),target:start});context.probe.update(9);assert.equal(context.probe.bank(),0);assert.ok($('drum-grid').children.includes(start));$('drum-grid').onpointerup(pointer(92));context.probe.update(10);assert.equal(context.probe.bank(),0);context.probe.update(0);context.probe.update(8);assert.equal(context.probe.bank(),1);context.probe.stop();$('drum-bank-a').onclick();assert.equal(context.probe.bank(),0);$('drum-bank-b').onclick();assert.equal(context.probe.bank(),1);
+});
 fs.mkdirSync(out,{recursive:true});fs.writeFileSync(out+'/'+(bundled?'bundled-controller-results.json':'controller-results.json'),JSON.stringify({testType:'Controller event simulation; not real browser or touch hardware',bundled,tests,pass:true},null,2));
