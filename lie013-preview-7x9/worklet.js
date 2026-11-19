@@ -437,7 +437,57 @@ class Engine {
 function structuredCopy(x){return JSON.parse(JSON.stringify(x));}
 
 class WilmachordProcessor extends AudioWorkletProcessor {
- constructor(){super();this.engine=new Engine(sampleRate);this.counter=0;this.port.onmessage=e=>this.engine.message(e.data);}
- process(inputs,outputs){const o=outputs[0];if(o?.[0]){this.engine.process(o[0],o[1]||o[0]);if(++this.counter%12===0)this.port.postMessage(this.engine.status());}return true;}
+ constructor(){
+  super();this.engine=new Engine(sampleRate);this.counter=0;this.audioTest=null;
+  this.port.onmessage=e=>{
+   const m=e.data;
+   if(m.type==='audio-test'){
+    if(!['B','C'].includes(m.kind))return;
+    this.engine.message({type:'stop'});
+    this.audioTest={id:m.id,kind:m.kind,frame:0,end:Math.round(sampleRate*1.5),peak:0,enginePeak:0,channels:0,started:false,stopped:false,cancelled:false};
+   }else if(m.type==='audio-test-cancel'){
+    if(this.audioTest?.id===m.id)this.cancelAudioTest();
+   }else{
+    // A normal stop or new performance gesture always ends the temporary test.
+    if(this.audioTest&&['stop','chord','lane','drums','sequence'].includes(m.type))this.cancelAudioTest();
+    this.engine.message(m);
+   }
+  };
+ }
+ cancelAudioTest(){
+  const d=this.audioTest;if(!d)return;
+  d.cancelled=true;d.fadeEnd=Math.min(d.end,d.frame+Math.round(sampleRate*.025));
+  // Keep the test path silent until the existing master's stop fade has cleared.
+  // Removing its attenuation after only 25 ms would expose a quiet residual tail.
+  d.end=Math.min(d.end,d.frame+Math.round(sampleRate*.1));
+  if(d.kind==='C')this.engine.message({type:'stop'});
+ }
+ process(inputs,outputs){
+  const o=outputs[0];if(!o?.[0])return true;
+  const d=this.audioTest;
+  if(d?.kind==='C'&&!d.cancelled){
+   // Let any old performance fade before triggering a finite note. No settings change.
+   if(!d.started&&d.frame>=sampleRate*.12){d.started=true;this.engine.masterTarget=1;this.engine.note(69,.6,.7,'manual');}
+   if(!d.stopped&&d.frame>=sampleRate*1.1){d.stopped=true;this.engine.message({type:'stop'});}
+  }
+  this.engine.process(o[0],o[1]||o[0]);
+  if(d){
+   d.channels=o.length;d.enginePeak=Math.max(d.enginePeak,this.engine.peak);
+   for(let i=0;i<o[0].length;i++){
+    const frame=d.frame+i,env=Math.max(0,Math.min(1,frame/(sampleRate*.02),((d.fadeEnd??d.end)-frame)/(sampleRate*.025)));
+    for(let channel=0;channel<o.length;channel++){
+     const value=d.kind==='B'?Math.sin(TAU*440*frame/sampleRate)*.04:o[channel][i]*.25;
+     o[channel][i]=value*env;d.peak=Math.max(d.peak,Math.abs(o[channel][i]));
+    }
+   }
+   d.frame+=o[0].length;
+   if(d.frame>=d.end){
+    this.audioTest=null;
+    this.port.postMessage({type:'audio-diagnostic',id:d.id,kind:d.kind,cancelled:d.cancelled,peak:d.peak,enginePeak:d.enginePeak,channels:d.channels,frames:d.frame,missingSamples:this.engine.missingSamples});
+   }
+  }
+  if(++this.counter%12===0)this.port.postMessage(this.engine.status());
+  return true;
+ }
 }
 registerProcessor('wilmachord',WilmachordProcessor);

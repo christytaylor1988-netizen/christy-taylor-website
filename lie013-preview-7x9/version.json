@@ -5,10 +5,12 @@
   "edition": "iPhone compatibility edition",
   "website_base_commit": "e0b00c92f938e53375322d544f108b2d113a0e36",
   "source_zip_sha256": "4f25bdcf9ed405278cfa03a1f9ff08bb790c1ef4063ac5337fd61f5798805110",
-  "deployment_change": "Added robots noindex metadata only; application code and sounds preserved.",
+  "deployment_change": "Tap-only A/B/C output diagnostics inside existing info window; engine DSP, presets, samples, audio session and normal output graph unchanged.",
   "files": {
-    "index.html": "7355c0f21780328b7ebd7a7a1be1b85ed027ab0778ba5059e919972db3a2f4cc",
-    "worklet.js": "c7339aebd1d0ebf4552257288c7ab5015d0b61a9145c8922265256da05ee0036",
+    "index.html": "cb6cc86f13451fa0da5b1906c4e167cf80da3594a4a7f046e88e721e9403eb66",
+    "worklet.js": "617fd70f96ef2818533c853c724d645ce5e314dbd91a6adf9045b13ba99f5599",
     "SOUND-CREDITS.txt": "0c6d9cb39f81babb57b5fb1ef6118676f5c59d815a42915dc227e3447aa4c5d1"
-  }
+  },
+  "diagnostic_build": "audio-diag-1",
+  "recovery_commit": "7553dfa397c16338a1e3f64dc70de6978b66379c"
 }
