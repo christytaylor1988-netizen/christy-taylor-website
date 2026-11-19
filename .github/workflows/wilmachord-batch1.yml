@@ -1,0 +1,37 @@
+name: WILMACHORD Batch 1 checks
+on:
+  push:
+    branches: [wilmachord-v04-batch1-20261119]
+    paths: ['lie013-preview-7x9/**', '.github/wilmachord/**', '.github/workflows/wilmachord-batch1.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  instrument-checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Preserved sound engine and shared transport
+        run: |
+          node .github/wilmachord/transport.test.mjs
+          node .github/wilmachord/controller.test.mjs
+          node .github/wilmachord/audio-regression.test.mjs
+      - name: Install isolated browser test dependencies
+        working-directory: .github/wilmachord
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npx playwright install --with-deps chromium webkit
+      - name: Chromium and WebKit at iPhone 13 mini dimensions
+        run: node .github/wilmachord/browser.test.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: wilmachord-batch1-test-results
+          path: .github/wilmachord/output/
+          retention-days: 30
