@@ -1,16 +1,19 @@
 {
   "application": "WILMACHORD",
   "catalogue": "LIE013",
-  "version": "0.4.3",
-  "edition": "Batch 3A \u2014 audio stability, three-band EQ and Presence",
+  "version": "0.4.4",
+  "edition": "Batch 3B \u2014 rhythmic fragmentation, drum effects and flexible strumming",
   "website_base_commit": "e0b00c92f938e53375322d544f108b2d113a0e36",
   "source_zip_sha256": "4f25bdcf9ed405278cfa03a1f9ff08bb790c1ef4063ac5337fd61f5798805110",
-  "deployment_change": "Pooled voices, cached sample/DSP work, protected held notes and bounded fade tails; optional render diagnostics; instrument-only per-preset EQ and upper-mid Presence. Output routing and samples unchanged. Physical iPhone stability remains to be verified.",
+  "deployment_change": "Clocked audio fragments and HOLD; per-voice drum pitch and shared spring/delay; melody LOCK; independent strum sound; separate chord and arp lengths; shared BPM slider. CASSETTE retained for old saved sets only. Physical iPhone testing remains required.",
   "files": {
-    "index.html": "cbde811750e32c4c5d87fb46b0c801bb98f947728a563db5096155407823c4ca",
-    "worklet.js": "30efa164e5fbdba684fbb588c26f5d65c8dfe190d358bcfb741026ff80ce62a0",
+    "index.html": "cd19237381e57063d2b6d3f33b70001cded61c8376cee5b02b67e6f038206bb8",
+    "worklet.js": "d4be5dcff010f1ae431edc1743fc560a33cec694c8ebf3fedbf1f4e011a9b214",
     "SOUND-CREDITS.txt": "0c6d9cb39f81babb57b5fb1ef6118676f5c59d815a42915dc227e3447aa4c5d1"
   },
   "diagnostic_build": "audio-diag-1",
-  "recovery_commit": "5f520d5e36219c50c9c5ee50b864b9c5664deb8b"
+  "recovery_commit": "95dd29d2e699b145df669551e8675a041846bc3f",
+  "selectable_instruments": 11,
+  "legacy_instruments": 1,
+  "drum_voices": 7
 }

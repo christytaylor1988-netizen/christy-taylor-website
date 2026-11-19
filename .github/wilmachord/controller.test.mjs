@@ -30,7 +30,7 @@ const bundled=true,context=vm.createContext(scope);
 vm.runInContext(script+'\nglobalThis.probe={state:()=>s,held:()=>held,validate,showPage,audio,stop,strums:()=>strums.size,context:()=>ctx,loadWorklet,wakeAudio,transport:()=>({seqOn,seqPaused,drumsOn}),scope:()=>({scopeEnabled,scopeAnalyser,scopeFrameId}),bank:()=>drumBank,update:(step)=>{lastStatus={...lastStatus,gridStep:step};updateDrumPlayhead();}};',context);
 await context.probe.audio();const $=id=>elements.get(id),state=()=>context.probe.state(),pointer=(id,x=0,y=0,t=0)=>({pointerId:id,button:0,clientX:x,clientY:y,timeStamp:t,preventDefault(){}});
 const tests=[];function test(name,fn){fn();tests.push(name);console.log('PASS',name);}
-test('Controller initialises 12 tiles per page, twelve sounds and rhythm buttons',()=>{assert.equal($('chords').children.length,12);assert.equal($('seq-chords').children.length,12);assert.equal($('preset-strip').children.length,12);assert.equal($('rhythms').children.length,6);assert.equal($('start-overlay').hidden,true);});
+test('Controller initialises 12 tiles per page, eleven selectable sounds and rhythm buttons',()=>{assert.equal($('chords').children.length,12);assert.equal($('seq-chords').children.length,12);assert.equal($('preset-strip').children.length,11);assert.equal($('rhythms').children.length,6);assert.equal($('start-overlay').hidden,true);});
 test('Chord pointer selection sends actual notes; latch retains release',()=>{const b=$('chords').children[2];b.onpointerdown(pointer(1));b.onpointerup(pointer(1));assert.equal(state().selected,2);assert.equal(context.probe.held(),true);assert.equal(messages.at(-1).type,'chord');assert.equal(messages.at(-1).chord.root,9);});
 test('Fast strum crossing fills every skipped lane in both directions',()=>{const before=messages.filter(m=>m.type==='lane').length;$('strum').onpointerdown(pointer(2,1,0,0));$('strum').onpointermove(pointer(2,359,0,50));$('strum').onpointermove(pointer(2,1,0,100));$('strum').onpointerup(pointer(2));const lanes=messages.filter(m=>m.type==='lane').slice(before).map(m=>m.lane);assert.deepEqual(lanes,[0,1,2,3,4,5,6,7,8,7,6,5,4,3,2,1,0]);});
 test('Non-latch simultaneous chord and strum pointers; chord release stops hold',()=>{$('latch').onclick();assert.equal(context.probe.held(),false);const b=$('chords').children[0];b.onpointerdown(pointer(3));$('strum').onpointerdown(pointer(4,100));assert.equal(messages.at(-1).type,'lane');b.onpointerup(pointer(3));assert.equal(context.probe.held(),false);assert.equal(messages.at(-1).type,'release');$('strum').onpointercancel(pointer(4));});
@@ -118,8 +118,8 @@ test('Next touch resumes suspended AudioContext',()=>assert.equal(audioCtx.state
 audioCtx.state='suspended';doc.pointerdown();await Promise.resolve();
 test('Mouse or pen resumes suspended AudioContext',()=>assert.equal(audioCtx.state,'running'));
 const moduleURLs=[];await context.probe.loadWorklet({audioWorklet:{addModule:async u=>moduleURLs.push(u)}});
-test('AudioWorklet loads the same-origin relative worklet path',()=>assert.deepEqual(moduleURLs,['./worklet.js?v=0.4.3']));
-const fallbackURLs=[];await context.probe.loadWorklet({audioWorklet:{addModule:async u=>{fallbackURLs.push(u);if(u==='./worklet.js?v=0.4.3')throw Error('test failure');}}});
+test('AudioWorklet loads the same-origin relative worklet path',()=>assert.deepEqual(moduleURLs,['./worklet.js?v=0.4.4']));
+const fallbackURLs=[];await context.probe.loadWorklet({audioWorklet:{addModule:async u=>{fallbackURLs.push(u);if(u==='./worklet.js?v=0.4.4')throw Error('test failure');}}});
 test('External module failure invokes identical embedded fallback',()=>{assert.equal(fallbackURLs.length,2);assert.ok(fallbackURLs[1].startsWith('blob:'));});
 await assert.rejects(context.probe.loadWorklet({audioWorklet:{addModule:async()=>{throw Error('both unavailable');}}}),/Audio engine could not load/);
 test('Failure of both module routes reports an explicit error',()=>{});
@@ -154,15 +154,15 @@ test('Legacy CRUSH LEVEL cannot mute imported sets; pulse and DRIVE still save i
  const set=(id,value)=>{$(id).value=value;$(id).oninput();};$('fx-sound').onclick();set('drive',.63);
  const before=JSON.stringify([state().paletteId,state().progression,state().rhythm,state().drumEdits]);$('preset-strip').children[1].onclick();assert.equal($('effects').children.length,14);set('pulse-speed',.5);set('pulse-depth',.81);
  const restored=context.probe.validate(JSON.parse(JSON.stringify(state())));assert.equal(restored.kosmische.pulseDepth,.81);assert.ok(Math.abs(restored.kosmische.pulseSpeed-.12*Math.sqrt(200))<1e-10);assert.equal(restored.drive,.63);assert.equal(restored.crushLevel,undefined);
- $('preset-strip').children[11].onclick();assert.equal($('effects').children.length,12);assert.equal(state().kosmische.pulseDepth,.81);assert.equal(JSON.stringify([state().paletteId,state().progression,state().rhythm,state().drumEdits]),before);assert.ok(!$('effects').children.some(x=>x.children.some(c=>c.id==='crush-level')));
+ $('preset-strip').children.find(b=>b.textContent==='GARAGE').onclick();assert.equal($('effects').children.length,12);assert.equal(state().kosmische.pulseDepth,.81);assert.equal(JSON.stringify([state().paletteId,state().progression,state().rhythm,state().drumEdits]),before);assert.ok(!$('effects').children.some(x=>x.children.some(c=>c.id==='crush-level')));
 });
 test('ROCKSTEADY selection defaults to 50 ms, manual and deliberately saved attacks survive validation',()=>{
  $('preset-strip').children[4].onclick();assert.equal(state().fx.attack,.05);$('fx-attack').value=.137;$('fx-attack').oninput();assert.equal(state().fx.attack,.137);const saved=context.probe.validate(JSON.parse(JSON.stringify(state())));assert.equal(saved.fx.attack,.137);assert.equal(context.probe.validate({schema:1,preset:'rocksteady',fx:{attack:.004}}).fx.attack,.004);assert.equal(context.probe.validate({schema:1,preset:'rocksteady'}).fx.attack,.05);
  $('preset-strip').children[0].onclick();assert.equal(state().fx.attack,.008);$('preset-strip').children[4].onclick();assert.equal(state().fx.attack,.05);
 });
 test('Per-instrument EQ roundtrips, RESET is neutral and other presets keep their bands',()=>{
- $('preset-strip').children[6].onclick();$('eq-low').value=6;$('eq-low').oninput();$('eq-mid').value=-3;$('eq-mid').oninput();$('eq-high').value=4;$('eq-high').oninput();
- $('preset-strip').children[0].onclick();assert.equal(+$('eq-low').value,0);$('eq-low').value=-4;$('eq-low').oninput();$('preset-strip').children[6].onclick();assert.equal(+$('eq-low').value,6);assert.equal(+$('eq-mid').value,-3);
+ $('preset-strip').children.find(b=>b.textContent==='TAPE STRINGS').onclick();$('eq-low').value=6;$('eq-low').oninput();$('eq-mid').value=-3;$('eq-mid').oninput();$('eq-high').value=4;$('eq-high').oninput();
+ $('preset-strip').children[0].onclick();assert.equal(+$('eq-low').value,0);$('eq-low').value=-4;$('eq-low').oninput();$('preset-strip').children.find(b=>b.textContent==='TAPE STRINGS').onclick();assert.equal(+$('eq-low').value,6);assert.equal(+$('eq-mid').value,-3);
  const saved=context.probe.validate(JSON.parse(JSON.stringify(state())));assert.equal(saved.eqByPreset['tape-strings'].high,4);$('eq-reset').onclick();for(const k of ['low','mid','high'])assert.equal(+$('eq-'+k).value,0);assert.equal(state().eqByPreset.motorik.low,-4);
 });
 test('Old TONE imports preserve their color until Presence is deliberately adjusted',()=>{
@@ -183,5 +183,10 @@ test('LOCK persists a note snapshot, FOLLOW clears it, and separate strum sound 
  const sound=$('strum-sound-buttons').children.find(b=>b.textContent==='TAPE STRINGS');sound.onclick();assert.equal(state().preset,main);assert.equal(state().strumPreset,'tape-strings');assert.equal(JSON.stringify(state().lockedNotes),notes);
  const restored=context.probe.validate(JSON.parse(JSON.stringify(state())));assert.equal(restored.strumLock,true);assert.equal(JSON.stringify(restored.lockedNotes),notes);assert.equal(restored.strumPreset,'tape-strings');
  $('strum-follow').onclick();assert.equal(state().strumLock,false);$('strum-sound-buttons').children[0].onclick();assert.equal(state().strumPreset,'same');
+});
+test('Independent progression gates and shared BPM controls survive safe legacy migration',()=>{
+ $('chord-length').value=1.15;$('chord-length').oninput();$('arp-length').value=.31;$('arp-length').oninput();$('arp-speed').value=4;$('arp-speed').oninput();$('seq-bpm').value=143;$('seq-bpm').oninput();assert.equal(state().chordLength,1.15);assert.equal(state().arp.length,.31);assert.equal(state().arp.speed,4);assert.equal(state().tempo,143);assert.equal($('seq-tempo').textContent,'143 BPM');
+ $('clock').onclick();$('tempo-range').value=137;$('tempo-range').oninput();assert.equal(+$('seq-bpm').value,137);const legacy=music.defaultState();delete legacy.chordLength;legacy.arp.length=.42;legacy.preset='cassette';const d=context.probe.validate(legacy);assert.equal(d.chordLength,.42);assert.equal(d.preset,'cassette');assert.ok(!$('preset-strip').children.some(b=>b.textContent==='CASSETTE'));assert.ok(!$('strum-sound-buttons').children.some(b=>b.textContent==='CASSETTE'));
+ const saved=context.probe.validate(JSON.parse(JSON.stringify(state())));assert.equal(saved.chordLength,1.15);assert.equal(saved.arp.length,.31);
 });
 fs.mkdirSync(out,{recursive:true});fs.writeFileSync(out+'/'+(bundled?'bundled-controller-results.json':'controller-results.json'),JSON.stringify({testType:'Controller event simulation; not real browser or touch hardware',bundled,tests,pass:true},null,2));
