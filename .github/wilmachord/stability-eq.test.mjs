@@ -11,7 +11,7 @@ test('V0.4.2 samples, all 12 presets, clock and routing remain unchanged',()=>{
  const embedded=JSON.parse(script.slice(script.indexOf('const EMBEDDED_WORKLET_SOURCE=')+30,script.indexOf(';\nconst $=')));assert.equal(embedded,worklet);
 });
 test('All twelve voices and all six drums are sample-exact to V0.4.2 below the voice limit at both rates',()=>{
- metrics.baseline=[];for(const sr of [44100,48000])for(const p of PRESETS){const a=engine(Engine,sr,p.id,{drive:.5,glitch:.3,tone:.3}),b=engine(old.Engine,sr,p.id,{drive:.5,glitch:.3,tone:.3});
+ metrics.baseline=[];for(const sr of [44100,48000])for(const p of PRESETS){const a=engine(Engine,sr,p.id,{drive:.5,glitch:0,tone:.3}),b=engine(old.Engine,sr,p.id,{drive:.5,glitch:0,tone:.3});
  for(const e of [a,b]){e.message({type:'chord',chord:{root:0,quality:'maj9'},hold:true});e.message({type:'drums',on:true});}
  const l=new Float32Array(128),r=new Float32Array(128),x=new Float32Array(128),y=new Float32Array(128);
  for(let n=0;n<sr*1.5;n+=128){a.process(l,r);b.process(x,y);assert.deepEqual(l,x,`${sr} ${p.id} ${n} L`);assert.deepEqual(r,y);}

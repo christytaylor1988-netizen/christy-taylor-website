@@ -1,7 +1,7 @@
 import fs from 'node:fs';import {performance,PerformanceObserver} from 'node:perf_hooks';
 import {fixture,worklet,current,out} from './fixtures.mjs';
 import {execFileSync} from 'node:child_process';
-const dir=new URL('./output/',import.meta.url),repo=new URL('../../',import.meta.url);
+const dir=new URL('file://'+out+'/'),repo=new URL('../../',import.meta.url);
 const baseline=execFileSync('git',['show','5f520d5e36219c50c9c5ee50b864b9c5664deb8b:lie013-preview-7x9/worklet.js'],{cwd:repo,maxBuffer:32e6}).toString();
 const label=process.argv[2]||'baseline',lib=await fixture(label==='baseline'?baseline:worklet,'stress-'+label),zones=current.decodeSamples();
 const long=process.argv.includes('--long'),profile=process.argv.includes('--profile'),results=[],gc=[];

@@ -111,48 +111,57 @@ function paintDrumCell(rows,track,step,on,original){
 }
 
 // Bounded feed-forward effects. All musical decisions use the engine's audio clock.
+// Clocked dry-history splicing. Three fixed stereo rings; no feedback or allocation
+// in the audio loop. HOLD freezes recording, preserving the captured fragment.
 class PerformanceFX {
  constructor(sr){
   this.sr=sr;this.amount=0;this.tone=0;this.balance=.5;this.hold=false;this.target='all';
-  this.seed=0x4c494530;this.quantum=-1;this.lastTick=-1;this.write=0;
+  this.seed=0x4c494530;this.quantum=-1;this.lastTick=-1;this.write=0;this.filled=0;
   this.size=Math.ceil(sr*.9);this.low=[0,0];this.toneK=1-Math.exp(-2*Math.PI*1200/sr);
-  this.buses=Array.from({length:3},()=>({l:new Float32Array(this.size),r:new Float32Array(this.size),mix:0,action:0,anchor:0,length:1,read:0,lastL:0,lastR:0,fromL:0,fromR:0,transition:1}));
-  this.out=new Float64Array(2);this.smooth=1-Math.exp(-1/(sr*.003));
+  this.buses=Array.from({length:3},()=>({l:new Float32Array(this.size),r:new Float32Array(this.size),mix:0,action:0,anchor:0,length:1,read:0,lastL:0,lastR:0,fromL:0,fromR:0,transition:1,enabled:false,frozen:false,fade:1,cycle:1,gap:false}));
+  this.out=new Float64Array(2);this.smooth=1-Math.exp(-1/(sr*.003));this.transitionStep=1/(sr*.003);
  }
  random(){this.seed=(Math.imul(this.seed,1664525)+1013904223)>>>0;return this.seed/4294967296;}
- reset(){this.hold=false;this.quantum=-1;this.lastTick=-1;for(const b of this.buses){b.mix=0;b.action=0;b.lastL=0;b.lastR=0;b.fromL=0;b.fromR=0;b.l.fill(0);b.r.fill(0);}}
+ reset(){this.hold=false;this.quantum=-1;this.lastTick=-1;this.filled=0;for(const b of this.buses){b.mix=0;b.action=0;b.lastL=0;b.lastR=0;b.fromL=0;b.fromR=0;b.frozen=false;b.l.fill(0);b.r.fill(0);}}
  begin(tick,tempo,amount,target,hold){
-  this.amount=amount;this.target=target;this.hold=hold;
-  const q=Math.floor((tick+1e-8)/3),rewound=tick<this.lastTick;this.lastTick=tick;
-  if(q===this.quantum&&!rewound)return;this.quantum=q;
-  const strength=hold?Math.max(.85,amount):amount;
+  const changed=hold!==this.hold||target!==this.target,rewound=tick<this.lastTick;
+  this.amount=amount;this.target=target;this.hold=hold;this.lastTick=tick;
+  const strength=hold?Math.max(.8,amount):amount,grid=strength>.7?1.5:3,q=Math.floor((tick+1e-8)/grid);
+  if(q===this.quantum&&!changed&&!rewound)return;this.quantum=q;
   for(let i=0;i<3;i++){
-   const b=this.buses[i],enabled=target==='all'||target===['chord','arp','drums'][i];
-   b.fromL=b.lastL;b.fromR=b.lastR;b.transition=0;
-   b.action=enabled&&strength>0&&this.random()<strength*.9?1+Math.floor(this.random()*(strength>.65?3:2)):0;
-   if(b.action>1){const ticks=[3,1.5,.75][Math.floor(this.random()*(strength>.5?3:2))];b.length=Math.max(32,Math.min(this.size/3,Math.round(this.sr*60/tempo*ticks/24)));b.anchor=(this.write-b.length+this.size)%this.size;b.read=0;}
+   const b=this.buses[i];b.enabled=target==='all'||i===0&&target==='chord'||i===1&&target==='arp'||i===2&&target==='drums';
+   if(hold&&b.frozen&&b.enabled&&!rewound)continue;
+   b.frozen=false;b.fromL=b.lastL;b.fromR=b.lastR;b.transition=0;
+   if(!b.enabled||strength===0||this.filled<Math.ceil(this.sr*.008)||(!hold&&this.random()>strength*.94)){b.action=0;continue;}
+   // Every edit replays recorded audio. Intensity changes density, fragment size,
+   // look-back and reverse probability; it is not an amplitude-LFO substitute.
+   const pick=this.random(),ticks=strength<.3?(pick<.5?6:3):strength<.7?(pick<.34?3:pick<.7?1.5:.75):(pick<.2?1.5:pick<.55?.75:pick<.85?.375:.25);
+   b.length=Math.max(96,Math.min(this.filled,Math.floor(this.size/3),Math.round(this.sr*60/tempo*ticks/24)));
+   b.fade=Math.max(8,Math.min(Math.round(this.sr*.0015),Math.floor(b.length/4)));b.cycle=b.length-b.fade;
+   const available=Math.min(this.filled-b.length,Math.round(this.sr*60/tempo*(strength>.7?.5:.25)));
+   const back=Math.max(0,Math.floor(this.random()*available));b.anchor=(this.write-b.length-back+this.size)%this.size;
+   b.action=strength>.35&&this.random()<strength*.24?3:2;b.gap=strength>.8&&this.random()<.2;b.read=0;b.frozen=hold;
   }
  }
  bus(i,l,r){
-  const b=this.buses[i];b.l[this.write]=l;b.r[this.write]=r;
-  const enabled=(this.amount>0||this.hold)&&(this.target==='all'||this.target===['chord','arp','drums'][i]);
-  const target=enabled&&b.action?1:0;b.mix+=(target-b.mix)*this.smooth;
+  const b=this.buses[i];if(!b.frozen){b.l[this.write]=l;b.r[this.write]=r;}
+  const selected=this.target==='all'||i===0&&this.target==='chord'||i===1&&this.target==='arp'||i===2&&this.target==='drums';
+  const target=(this.amount>0||this.hold)&&selected&&b.action?1:0;b.mix+=(target-b.mix)*this.smooth;
   if(!target&&b.mix<.00001)b.mix=0;
-  let wl=0,wr=0;
+  // Exact clean bypass at rest. Keep recording so the first edit has real audio.
+  if(b.mix===0){b.lastL=l;b.lastR=r;this.out[0]=l;this.out[1]=r;return this.out;}
+  let wl=l,wr=r;
   if(b.action>1){
-   // Read only recorded dry input: there is no feedback path. A short loop-edge
-   // crossfade removes discontinuities even at rapid / reversed subdivisions.
-   const fade=Math.min(64,Math.floor(b.length/4)),pos=b.read%(b.length-fade)+fade,rev=b.action===3;
-   const at=x=>(b.anchor+(rev?b.length-1-x:x)+this.size)%this.size;
-   let p=at(pos);wl=b.l[p];wr=b.r[p];
-   if(pos>=b.length-fade){const f=(pos-(b.length-fade))/fade,p2=at(pos-(b.length-fade));wl=wl*(1-f)+b.l[p2]*f;wr=wr*(1-f)+b.r[p2]*f;}
-   b.read++;wl*=.9;wr*=.9;
+   const pos=b.read%b.cycle+b.fade,rev=b.action===3;
+   let p=(b.anchor+(rev?b.length-1-pos:pos)+this.size)%this.size;wl=b.l[p];wr=b.r[p];
+   if(pos>=b.cycle){const f=(pos-b.cycle)/b.fade,head=pos-b.cycle,p2=(b.anchor+(rev?b.length-1-head:head)+this.size)%this.size;wl+=(b.l[p2]-wl)*f;wr+=(b.r[p2]-wr)*f;}
+   if(b.gap){const phase=b.read%(b.cycle*4),edge=Math.min(b.fade,Math.max(0,b.cycle*3-phase),Math.max(0,phase));const gain=Math.min(1,edge/b.fade);wl*=gain;wr*=gain;}
+   b.read++;
   }
-  b.transition=Math.min(1,b.transition+1/(this.sr*.004));wl=b.fromL+(wl-b.fromL)*b.transition;wr=b.fromR+(wr-b.fromR)*b.transition;b.lastL=wl;b.lastR=wr;
-  this.out[0]=b.mix?l+(wl-l)*b.mix:l;this.out[1]=b.mix?r+(wr-r)*b.mix:r;
-  return this.out;
+  b.transition=Math.min(1,b.transition+this.transitionStep);wl=b.fromL+(wl-b.fromL)*b.transition;wr=b.fromR+(wr-b.fromR)*b.transition;
+  b.lastL=wl;b.lastR=wr;this.out[0]=l+(wl-l)*b.mix;this.out[1]=r+(wr-r)*b.mix;return this.out;
  }
- end(){this.write=(this.write+1)%this.size;}
+ end(){this.write=(this.write+1)%this.size;if(this.filled<this.size)this.filled++;}
  colour(l,r,value){
   this.tone+=(value-this.tone)*this.smooth;if(Math.abs(this.tone-value)<1e-8)this.tone=value;
   this.low[0]+=this.toneK*(l-this.low[0]);this.low[1]+=this.toneK*(r-this.low[1]);
@@ -161,6 +170,7 @@ class PerformanceFX {
   this.out[1]=this.tone===0?r:(this.low[1]+(r-this.low[1])*high)*comp;return this.out;
  }
 }
+
 
 // One integer musical timeline, advanced only by rendered audio samples.
 // 24 ticks/quarter represents every offered straight/triplet subdivision exactly.

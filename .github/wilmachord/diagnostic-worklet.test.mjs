@@ -18,8 +18,8 @@ test('B/C cancellation fades in 25 ms and clears within 100 ms plus one render q
 test('Unknown tests cannot start audio; stale cancellation cannot cancel the next test',()=>{
  const p=setup();p.port.onmessage({data:{type:'audio-test',id:4,kind:'invalid'}});assert.equal(p.audioTest,null);p.port.onmessage({data:{type:'audio-test',id:5,kind:'B'}});p.port.onmessage({data:{type:'audio-test-cancel',id:4}});assert.equal(p.audioTest.cancelled,false);render(p,1.6);assert.equal(p.audioTest,null);
 });
-test('One-channel buffers remain finite; eleven unmodified instruments are bit-identical to V0.4.1',()=>{
+test('One-channel buffers remain finite; eleven unmodified instruments are bit-identical to V0.4.1 with redesigned GLITCH bypassed',()=>{
  const mono=setup();mono.port.onmessage({data:{type:'audio-test',id:6,kind:'B'}});assert.ok(render(mono,1.6,1).peak<.040001);
- for(const preset of PRESETS.filter(p=>p.id!=='haunted')){const a=setup(48000,preset.id),b=setup(48000,preset.id,BaselineProcessor);for(const p of [a,b]){p.port.onmessage({data:{type:'config',state:{drumVolume:0,arp:{mode:'both'},fx:{crush:.4,reverb:.5},tone:.3,glitch:.2}}});p.port.onmessage({data:{type:'sequence',on:true}});}const l=new Float32Array(128),r=new Float32Array(128),x=new Float32Array(128),y=new Float32Array(128);for(let n=0;n<48000;n+=128){a.process([],[[l,r]]);b.process([],[[x,y]]);assert.deepEqual(l,x);assert.deepEqual(r,y);}}
+ for(const preset of PRESETS.filter(p=>p.id!=='haunted')){const a=setup(48000,preset.id),b=setup(48000,preset.id,BaselineProcessor);for(const p of [a,b]){p.port.onmessage({data:{type:'config',state:{drumVolume:0,arp:{mode:'both'},fx:{crush:.4,reverb:.5},tone:.3,glitch:0}}});p.port.onmessage({data:{type:'sequence',on:true}});}const l=new Float32Array(128),r=new Float32Array(128),x=new Float32Array(128),y=new Float32Array(128);for(let n=0;n<48000;n+=128){a.process([],[[l,r]]);b.process([],[[x,y]]);assert.deepEqual(l,x);assert.deepEqual(r,y);}}
 });
 fs.writeFileSync(out+'/diagnostic-worklet-results.json',JSON.stringify({testType:'Numerical output buffer tests, not audible speaker testing',results,metrics,pass:true},null,2));
