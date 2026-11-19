@@ -1,16 +1,17 @@
 {
   "application": "WILMACHORD",
   "catalogue": "LIE013",
-  "version": "0.3.1",
-  "edition": "iPhone compatibility edition",
+  "version": "0.4.0",
+  "edition": "Batch 1 — interface, navigation and performance controls",
   "website_base_commit": "e0b00c92f938e53375322d544f108b2d113a0e36",
   "source_zip_sha256": "4f25bdcf9ed405278cfa03a1f9ff08bb790c1ef4063ac5337fd61f5798805110",
-  "deployment_change": "Tap-only A/B/C output diagnostics inside existing info window; engine DSP, presets, samples, audio session and normal output graph unchanged.",
+  "deployment_change": "Scrollable first two pages, explicit chord editing and mode controls, shared pause/resume, rhythm access, output scope and drum bank auto-follow. Existing synthesis, samples, effects and direct audio destination connection preserved.",
   "files": {
-    "index.html": "cb6cc86f13451fa0da5b1906c4e167cf80da3594a4a7f046e88e721e9403eb66",
-    "worklet.js": "617fd70f96ef2818533c853c724d645ce5e314dbd91a6adf9045b13ba99f5599",
+    "index.html": "66f27f25aeb0d602a2de0b976ccead825a701742f2977552e9cf09d5fb74e127",
+    "worklet.js": "1e05566295ec5eea203396ef4b1ce1004c1ecf86a206e9ecf078bb6fdc80f363",
     "SOUND-CREDITS.txt": "0c6d9cb39f81babb57b5fb1ef6118676f5c59d815a42915dc227e3447aa4c5d1"
   },
   "diagnostic_build": "audio-diag-1",
-  "recovery_commit": "7553dfa397c16338a1e3f64dc70de6978b66379c"
+  "recovery_commit": "f633d54f0a721881bc3c5c2b70a8996749700cae",
+  "batch": 1
 }

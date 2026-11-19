@@ -1,5 +1,5 @@
 // WILMACHORD musical schema 1. Pure data/logic shared by UI, renderer and tests.
-const VERSION = '0.3.1';
+const VERSION = '0.4.0';
 const ROOTS = ['C','C♯','D','E♭','E','F','F♯','G','A♭','A','B♭','B'];
 const QUALITIES = {
   '': [0,4,7], m:[0,3,7], '7':[0,4,7,10], maj7:[0,4,7,11], m7:[0,3,7,10],
@@ -247,7 +247,7 @@ class Engine {
   this.target={attack:.012,release:.85,reverb:.18,wooze:.1,crush:.04};this.fx={...this.target};
   this.performance=new PerformanceFX(sr);this.tone=0;this.glitch=0;this.glitchTarget='all';this.glitchHold=false;this.balance=.5;this.silentCleared=false;this.balanceNow=.5;this.chordGain=1;this.arpGain=1;this.crushDry=0;this.crushWet=0;this.crushGain=1;this.swing=0;this.drumCustom=false;this.editGrid=null;this.grid=factoryGrid(0);this.timeline=drumTimeline(0,false);this.gridPlayhead=-1;
   this.chord={root:0,quality:''};this.key=0;this.octave=0;this.held=false;
-  this.tempo=110;this.clock=new MusicalClock(sr);this.beat=0;this.samples=[];this.missingSamples=0;this.strings=9;this.strumMode='pluck';this.strumPointers=new Map();this.snare='dry';this.activeSnare='dry';this.trace=null;this.drums=false;this.sequence=false;this.pattern=0;this.pendingPattern=0;
+  this.tempo=110;this.clock=new MusicalClock(sr);this.beat=0;this.samples=[];this.missingSamples=0;this.strings=9;this.strumMode='pluck';this.strumPointers=new Map();this.snare='dry';this.activeSnare='dry';this.trace=null;this.drums=false;this.sequence=false;this.paused=false;this.pattern=0;this.pendingPattern=0;
   this.drumStep=0;this.drumStart=0;this.nextDrum=0;this.drumVolume=.6;this.drumEnv=new Float64Array(7);this.drumAge=new Float64Array(7);this.drumPhase=new Float64Array(7);this.drumPitch=new Float64Array(7);
   this.drumDecay=[.19,.105,.027,.17,.038,.14,.085].map(t=>Math.exp(-1/(sr*t)));this.noiseLow=0;this.speaker=0;this.openChoke=false;
   this.progression=[this.chord];this.pendingProgression=null;this.arp={speed:1,order:0,octaves:1,length:.65,glide:0,mode:'arp'};
@@ -288,17 +288,33 @@ class Engine {
   if(m.type==='strum-release')this.releaseStrum(String(m.pointer));
   if(m.type==='strum-clear')this.releaseStrums();
   if(m.type==='drums'){
-   if(m.on&&!this.drums){this.masterTarget=1;if(!this.sequence)this.resetTransport();this.drums=true;}
+   if(m.on&&!this.drums){this.masterTarget=this.paused?0:1;if(!this.sequence)this.resetTransport();this.drums=true;}
    else if(!m.on){this.drums=false;/* Existing drum tails decay naturally. */}
   }
+  if(m.type==='pause'&&this.sequence&&!this.paused){
+   this.paused=true;this.held=false;this.glitchHold=false;this.masterTarget=0;
+   for(const v of this.voices){v.gate=0;v.release=.008;}this.releaseStrums();
+  }
+  if(m.type==='resume'&&this.paused){
+   this.paused=false;this.masterTarget=1;
+   // Restore the current chord only for the remaining part of its existing gate.
+   const offTick=this.absoluteBar*96+96*this.arp.length;
+   if(this.sequence&&this.currentChord&&this.arp.mode!=='arp'&&this.clock.beat*24<offTick){
+    this.previousNotes=this.playChord(this.currentChord,-1,'seq',this.previousNotes);
+    for(const v of this.voices)if(v.origin==='seq'&&v.gate!==0)v.offTick=offTick;
+   }
+  }
   if(m.type==='sequence'){
+   if(m.on&&this.paused){this.message({type:'resume'});return;}
+   if(m.on&&this.sequence)return;
    this.release('seq');this.release('arp');this.releaseStrums();
    if(m.on&&!this.sequence){this.release('manual');this.held=false;this.resetTransport();this.sequence=true;this.drums=true;this.masterTarget=1;}
-   else if(!m.on){this.sequence=false;this.drums=false;this.currentChord=null;this.currentBar=-1;}
+   else if(!m.on){this.message({type:'stop'});}
   }
-  if(m.type==='stop'){this.glitchHold=false;this.gridPlayhead=-1;this.drums=false;this.sequence=false;this.held=false;this.currentBar=-1;this.currentChord=null;this.masterTarget=0;for(const v of this.voices){v.gate=0;v.release=.008;}this.drumEnv.fill(0);this.releaseStrums();}
+  if(m.type==='stop'){this.glitchHold=false;this.gridPlayhead=-1;this.drums=false;this.sequence=false;this.held=false;this.currentBar=-1;this.currentChord=null;this.masterTarget=0;for(const v of this.voices){v.gate=0;v.release=.008;}this.drumEnv.fill(0);this.releaseStrums();this.resetTransport();}
  }
  resetTransport(){
+  this.paused=false;
   if(this.pendingMode){this.arp.mode=this.pendingMode;this.pendingMode=null;}
   this.clock.reset();this.performance.quantum=-1;this.beat=0;this.pattern=this.pendingPattern;this.drumStep=0;this.drumStart=0;this.nextDrum=0;
   this.seqOrigin=0;this.nextArp=0;this.arpStep=0;this.currentBar=-1;this.absoluteBar=-1;this.previousNotes=[];this.lastArp=null;
@@ -325,6 +341,7 @@ class Engine {
   ns.forEach((n,i)=>this.note(n,.65,seconds,origin,previous.length&&this.arp.glide>0?previous[i%previous.length]:null));return ns;
  }
  schedule(){
+  if(this.paused)return;
   const position=this.clock.tick+this.clock.phase;
   // Drum swing is scheduled at fractional ticks, on the same sample clock.
   this.scheduleDrums(position);
@@ -425,14 +442,14 @@ class Engine {
    this.master+=(this.masterTarget-this.master)*.004;
    const dl=l-this.dcX[0]+.9984*this.dcY[0],dr=r-this.dcX[1]+.9984*this.dcY[1];this.dcX[0]=l;this.dcX[1]=r;this.dcY[0]=dl;this.dcY[1]=dr;
    left[i]=Math.tanh(dl*.9)*.88*this.master;right[i]=Math.tanh(dr*.9)*.88*this.master;this.peak=Math.max(this.peak,Math.abs(left[i]),Math.abs(right[i]));
-   if(this.drums||this.sequence||this.masterTarget>0&&(this.glitch>0||this.glitchHold))this.clock.advance(this.tempo);this.beat=this.clock.beat;this.frame++;
+   if(!this.paused&&(this.drums||this.sequence||this.masterTarget>0&&(this.glitch>0||this.glitchHold)))this.clock.advance(this.tempo);this.beat=this.clock.beat;this.frame++;
   }
   this.tails=this.tails.filter(v=>v.tailFrames>0&&v.env>=.00001);
   this.voices=this.voices.filter(v=>v.gate!==0||v.env>=.00001);
   if(this.masterTarget>0)this.silentCleared=false;
   if(this.master<.00001&&this.masterTarget===0&&!this.silentCleared){this.silentCleared=true;this.performance.reset();this.voices=[];this.tails=[];for(const c of this.combs)c.data.fill(0);}
  }
- status(){return {frame:this.frame,peak:this.peak,voices:this.voices.length,tails:this.tails.length,heldStrings:this.strumPointers.size,missingSamples:this.missingSamples,tick:this.clock.tick,events:{...this.events},bar:this.currentBar,beat:Math.floor((this.beat-this.seqOrigin)%4),drumStep:this.drumStep,gridStep:this.gridPlayhead,glitchHold:this.glitchHold,mode:this.arp.mode,lastNote:this.lastNote,drums:this.drums,sequence:this.sequence};}
+ status(){return {frame:this.frame,peak:this.peak,voices:this.voices.length,tails:this.tails.length,heldStrings:this.strumPointers.size,missingSamples:this.missingSamples,tick:this.clock.tick,events:{...this.events},bar:this.currentBar,beat:Math.floor((this.beat-this.seqOrigin)%4),drumStep:this.drumStep,gridStep:this.gridPlayhead,glitchHold:this.glitchHold,mode:this.arp.mode,lastNote:this.lastNote,drums:this.drums,sequence:this.sequence,paused:this.paused};}
 }
 function structuredCopy(x){return JSON.parse(JSON.stringify(x));}
 
@@ -449,7 +466,7 @@ class WilmachordProcessor extends AudioWorkletProcessor {
     if(this.audioTest?.id===m.id)this.cancelAudioTest();
    }else{
     // A normal stop or new performance gesture always ends the temporary test.
-    if(this.audioTest&&['stop','chord','lane','drums','sequence'].includes(m.type))this.cancelAudioTest();
+    if(this.audioTest&&['stop','pause','resume','chord','lane','drums','sequence'].includes(m.type))this.cancelAudioTest();
     this.engine.message(m);
    }
   };
