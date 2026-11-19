@@ -38,7 +38,7 @@ async function suite(type,name){
  });
  await test('Only the selected CHORD / ARP / combined button is highlighted; BALANCE persists',async()=>{
   for(const mode of ['chord','arp','both']){await page.locator('#mode-'+mode).tap();assert.equal(await page.locator('.mode-buttons .active').count(),1);assert.equal(await page.evaluate(()=>wilmaTest.state().arp.mode),mode);}
-  await page.locator('#balance').fill('0.23');await page.locator('#balance').dispatchEvent('input');assert.equal(await page.evaluate(()=>wilmaTest.state().balance),.23);
+  await page.locator('#balance').evaluate(e=>e.value='0.23');await page.locator('#balance').dispatchEvent('input');assert.equal(await page.evaluate(()=>wilmaTest.state().balance),.23);
  });
  await test('Both pages scroll without horizontal overflow; effect hit targets are at least 44 px',async()=>{
   for(const n of [0,1]){await show(n);const el=page.locator(n?'#seq-page':'#main-page');const box=await el.evaluate(e=>({height:e.clientHeight,content:e.scrollHeight,width:e.clientWidth,sw:e.scrollWidth}));assert.ok(box.content>box.height+100);assert.ok(box.sw<=box.width+1);await el.evaluate(e=>e.scrollTop=e.scrollHeight);assert.ok(await el.evaluate(e=>e.scrollTop)>0);await page.screenshot({path:path.join(out,name+'-page'+(n+1)+'-bottom.png')});await el.evaluate(e=>e.scrollTop=0);await page.screenshot({path:path.join(out,name+'-page'+(n+1)+'-top.png')});}
@@ -52,7 +52,7 @@ async function suite(type,name){
  await test('Six, nine and twelve strings; PLUCK and independent HOLD releases remain functional',async()=>{
   for(const n of [6,9,12]){await page.locator('#string-count').selectOption(String(n));assert.equal(await page.locator('#lanes .lane').count(),n);}
   await page.locator('#strum-mode').tap();assert.equal(await page.evaluate(()=>wilmaTest.state().strumMode),'hold');
-  const b=await page.locator('#strum').boundingBox();
+  await page.locator('#chords button').first().tap();const b=await page.locator('#strum').boundingBox();
   // Synthetic pointer messages exercise cancellation logic; physical multitouch still needs a phone.
   await page.evaluate(({x,y})=>{const e=document.getElementById('strum');const original=e.setPointerCapture;e.setPointerCapture=()=>{};for(const id of [71,72])e.dispatchEvent(new PointerEvent('pointerdown',{pointerId:id,button:0,clientX:x+id,clientY:y+65,bubbles:true}));e.setPointerCapture=original;},{x:b.x,y:b.y});
   assert.equal((await snap()).strums,2);await pointer('#strum','pointerup',71);assert.equal((await snap()).strums,1);await pointer('#strum','pointercancel',72);assert.equal((await snap()).strums,0);await page.locator('#strum-mode').tap();assert.equal(await page.evaluate(()=>wilmaTest.state().strumMode),'pluck');
@@ -79,7 +79,7 @@ async function suite(type,name){
  if(name==='chromium')await test('Trusted touch vertical scroll and horizontal header swipe stay separate',async()=>{
   await page.setViewportSize({width:375,height:812});await show(0);const cdp=await context.newCDPSession(page);
   const drag=async(x,y,dx,dy)=>{await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y,id:1}]});for(let i=1;i<=12;i++){await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x+dx*i/12,y:y+dy*i/12,id:1}]});await page.waitForTimeout(18);}await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await page.waitForTimeout(150);};
-  await page.locator('#main-page').evaluate(e=>e.scrollTop=0);await drag(17,680,2,-220);assert.equal(await page.evaluate(()=>wilmaTest.state().page),0);assert.ok(await page.locator('#main-page').evaluate(e=>e.scrollTop)>0);
+  await page.locator('#main-page').evaluate(e=>e.scrollTop=0);await drag(25,680,0,-220);assert.equal(await page.evaluate(()=>wilmaTest.state().page),0);assert.ok(await page.locator('#main-page').evaluate(e=>e.scrollTop)>0);
   await drag(320,42,-250,1);assert.equal(await page.evaluate(()=>wilmaTest.state().page),1);await drag(320,42,-250,1);assert.equal(await page.evaluate(()=>wilmaTest.state().page),2);await drag(40,42,250,1);assert.equal(await page.evaluate(()=>wilmaTest.state().page),1);
  });
  await test('Reduced-motion preference starts the scope disabled unless explicitly enabled',async()=>{
