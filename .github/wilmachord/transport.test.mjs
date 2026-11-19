@@ -14,8 +14,8 @@ test('All 12 preset definitions and all 38 sample waveforms remain byte-for-byte
  const inline=JSON.parse(html.match(/const EMBEDDED_WORKLET_SOURCE=(.*);\n/)[1]);assert.equal(inline,worklet);
 });
 const parity={};
-test('Normal audio is sample-for-sample identical to the working release for all instruments, combined mode and effects',()=>{
- for(const p of PRESETS){const config={preset:p.id,glitch:.44,tone:.3,swing:.42,fx:{attack:.03,release:.8,crush:.7,wooze:.4,reverb:.3}};
+test('Normal audio is sample-for-sample identical to the Batch 1 for the ten unmodified instruments, combined mode and effects',()=>{
+ for(const p of PRESETS.filter(p=>!['kosmische','haunted'].includes(p.id))){const config={preset:p.id,glitch:.44,tone:.3,swing:.42,fx:{attack:.03,release:.8,crush:.7,wooze:.4,reverb:.3}};
   const a=make(Engine,48000,config),b=make(previous.Engine,48000,config);a.message({type:'sequence',on:true});b.message({type:'sequence',on:true});
   const al=new Float32Array(128),ar=new Float32Array(128),bl=new Float32Array(128),br=new Float32Array(128),hash=crypto.createHash('sha256');
   for(let n=0;n<96000;n+=128){a.process(al,ar);b.process(bl,br);assert.deepEqual(al,bl,p.id);assert.deepEqual(ar,br,p.id);hash.update(Buffer.from(al.buffer));}

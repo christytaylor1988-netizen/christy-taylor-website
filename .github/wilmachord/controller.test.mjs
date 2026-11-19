@@ -63,7 +63,7 @@ test('Six snare choices are independent; V0.1 imports preserve original settings
 });
 test('Three pages and performance controls preserve original five effects',()=>{
  $('page-drums').onclick();assert.equal(state().page,2);assert.equal($('drum-page').hidden,false);assert.equal($('seq-page').hidden,true);
- $('fx-performance').onclick();assert.equal($('effects').hidden,true);assert.equal($('performance-controls').hidden,false);assert.equal($('effects').children.length,5);
+ $('fx-performance').onclick();assert.equal($('effects').hidden,true);assert.equal($('performance-controls').hidden,false);assert.equal($('effects').children.length,7);
  $('tone').value=-.5;$('tone').oninput();$('glitch').value=.7;$('glitch').oninput();$('glitch-target').onchange({target:{value:'drums'}});
  $('preset-strip').children[4].onclick();assert.equal(state().tone,-.5);assert.equal(state().glitch,.7);assert.equal(state().glitchTarget,'drums');
 });
@@ -118,8 +118,8 @@ test('Next touch resumes suspended AudioContext',()=>assert.equal(audioCtx.state
 audioCtx.state='suspended';doc.pointerdown();await Promise.resolve();
 test('Mouse or pen resumes suspended AudioContext',()=>assert.equal(audioCtx.state,'running'));
 const moduleURLs=[];await context.probe.loadWorklet({audioWorklet:{addModule:async u=>moduleURLs.push(u)}});
-test('AudioWorklet loads the same-origin relative worklet path',()=>assert.deepEqual(moduleURLs,['./worklet.js?v=0.4.0-batch1']));
-const fallbackURLs=[];await context.probe.loadWorklet({audioWorklet:{addModule:async u=>{fallbackURLs.push(u);if(u==='./worklet.js?v=0.4.0-batch1')throw Error('test failure');}}});
+test('AudioWorklet loads the same-origin relative worklet path',()=>assert.deepEqual(moduleURLs,['./worklet.js?v=0.4.1-batch2']));
+const fallbackURLs=[];await context.probe.loadWorklet({audioWorklet:{addModule:async u=>{fallbackURLs.push(u);if(u==='./worklet.js?v=0.4.1-batch2')throw Error('test failure');}}});
 test('External module failure invokes identical embedded fallback',()=>{assert.equal(fallbackURLs.length,2);assert.ok(fallbackURLs[1].startsWith('blob:'));});
 await assert.rejects(context.probe.loadWorklet({audioWorklet:{addModule:async()=>{throw Error('both unavailable');}}}),/Audio engine could not load/);
 test('Failure of both module routes reports an explicit error',()=>{});
@@ -148,5 +148,15 @@ test('Vertical direction lock cannot turn into horizontal page switching',()=>{
 test('Live bank changes preserve the Swing control and defer while painting',()=>{
  context.probe.stop();$('drum-play').onclick();const swing=$('swing');context.probe.update(7);assert.equal(context.probe.bank(),0);context.probe.update(8);assert.equal(context.probe.bank(),1);assert.equal($('swing'),swing);context.probe.update(0);assert.equal(context.probe.bank(),0);
  const start=cell(1,0);$('drum-grid').onpointerdown({...pointer(92),target:start});context.probe.update(9);assert.equal(context.probe.bank(),0);assert.ok($('drum-grid').children.includes(start));$('drum-grid').onpointerup(pointer(92));context.probe.update(10);assert.equal(context.probe.bank(),0);context.probe.update(0);context.probe.update(8);assert.equal(context.probe.bank(),1);context.probe.stop();$('drum-bank-a').onclick();assert.equal(context.probe.bank(),0);$('drum-bank-b').onclick();assert.equal(context.probe.bank(),1);
+});
+test('DRIVE and CRUSH LEVEL persist independently; Kosmische-only pulse controls roundtrip through old saved schema',()=>{
+ const old=context.probe.validate({schema:1,preset:'garage',fx:{crush:.91},latch:true});assert.equal(old.drive,0);assert.equal(old.crushLevel,1);assert.equal(old.kosmische.pulseSpeed,17.3);assert.equal(old.fx.crush,.91);
+ const set=(id,value)=>{$(id).value=value;$(id).oninput();};
+ $('fx-sound').onclick();set('drive',.63);set('crush-level',.27);
+ const before=JSON.stringify([state().paletteId,state().progression,state().rhythm,state().drumEdits]);
+ $('preset-strip').children[1].onclick();assert.equal($('effects').children.length,9);assert.equal(state().drive,.63);assert.equal(state().crushLevel,.27);set('pulse-speed',.5);set('pulse-depth',.81);
+ const restored=context.probe.validate(JSON.parse(JSON.stringify(state())));assert.equal(restored.kosmische.pulseDepth,.81);assert.ok(Math.abs(restored.kosmische.pulseSpeed-.12*Math.sqrt(200))<1e-10);assert.equal(restored.drive,.63);assert.equal(restored.crushLevel,.27);
+ $('preset-strip').children[11].onclick();assert.equal($('effects').children.length,7);assert.ok(!$('effects').children.some(x=>x.children.some(c=>c.id==='pulse-speed')));assert.equal(state().kosmische.pulseDepth,.81);assert.equal(JSON.stringify([state().paletteId,state().progression,state().rhythm,state().drumEdits]),before);
+ const invalid=context.probe.validate({schema:1,drive:NaN,crushLevel:-2,kosmische:{pulseSpeed:999,pulseDepth:Infinity}});assert.equal(invalid.drive,0);assert.equal(invalid.crushLevel,0);assert.equal(invalid.kosmische.pulseSpeed,24);assert.equal(invalid.kosmische.pulseDepth,.44);
 });
 fs.mkdirSync(out,{recursive:true});fs.writeFileSync(out+'/'+(bundled?'bundled-controller-results.json':'controller-results.json'),JSON.stringify({testType:'Controller event simulation; not real browser or touch hardware',bundled,tests,pass:true},null,2));

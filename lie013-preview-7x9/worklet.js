@@ -1,5 +1,5 @@
 // WILMACHORD musical schema 1. Pure data/logic shared by UI, renderer and tests.
-const VERSION = '0.4.0';
+const VERSION = '0.4.1';
 const ROOTS = ['C','C♯','D','E♭','E','F','F♯','G','A♭','A','B♭','B'];
 const QUALITIES = {
   '': [0,4,7], m:[0,3,7], '7':[0,4,7,10], maj7:[0,4,7,11], m7:[0,3,7,10],
@@ -81,7 +81,7 @@ function arpIndex(step,length,order,random=.5){
  if(order===3)return Math.min(length-1,Math.floor(random*length));
  return step%length;
 }
-function defaultState(){return {schema:1,paletteId:'golden',custom:[],key:0,octave:0,latch:true,selected:0,preset:'motorik',fx:{attack:.012,release:.85,reverb:.18,wooze:.1,crush:.04},tone:0,glitch:0,glitchTarget:'all',balance:.5,swing:0,drumEdits:{},drumCustom:false,tempo:110,rhythm:0,drumVolume:.6,snare:'dry',strings:9,strumMode:'pluck',progression:[c(0),c(9,'m'),c(5),c(7)],arp:{speed:1,glide:0,order:0,octaves:1,length:.65,mode:'arp'},page:0};}
+function defaultState(){return {schema:1,paletteId:'golden',custom:[],key:0,octave:0,latch:true,selected:0,preset:'motorik',fx:{attack:.012,release:.85,reverb:.18,wooze:.1,crush:.04},drive:0,crushLevel:1,kosmische:{pulseSpeed:17.3,pulseDepth:.44},tone:0,glitch:0,glitchTarget:'all',balance:.5,swing:0,drumEdits:{},drumCustom:false,tempo:110,rhythm:0,drumVolume:.6,snare:'dry',strings:9,strumMode:'pluck',progression:[c(0),c(9,'m'),c(5),c(7)],arp:{speed:1,glide:0,order:0,octaves:1,length:.65,mode:'arp'},page:0};}
 
 const DRUM_TRACKS=['KICK','SNARE','CLAP','CLOSED HAT','OPEN HAT','PERCUSSION'];
 const DRUM_LANES=[[0],[1],[6],[2],[3],[4,5]];
@@ -178,10 +178,11 @@ function sine(p){p=(p-Math.floor(p))*4096;const i=p|0;return TABLE[i]+(TABLE[i+1
 function blep(p,dt){if(p<dt){p/=dt;return p+p-p*p-1;}if(p>1-dt){p=(p-1)/dt;return p*p+p+p+1;}return 0;}
 function saw(p,dt){return p*2-1-blep(p,dt);}
 function pulse(p,dt,width=.5){return (p<width?1:-1)+blep(p,dt)-blep((p-width+1)%1,dt);}
-const MODAL_RATIOS=[1,2.013,5.067,8.11],MODAL_WEIGHTS=[.6,.28,.16,.07],MODAL_DECAYS=[1.6,3.1,6.8,15];
+const MODAL_RATIOS=[1,2.013,5.067,8.11],MODAL_WEIGHTS=[.6,.28,.16,.07],MODAL_DECAYS=[.28,.75,1.6,3.8],MODAL_FLOORS=[.24,.09,.025,.008];
 const noteHz=n=>440*2**((n-69)/12);
 function prepareVoice(v,engine){
  v.p=0;v.q=0;v.r=0;v.low=0;v.low2=0;v.band=0;v.dc=0;v.filter=0;v.samples=[];v.sampleEnded=false;v.modes=new Float64Array(4);const p=v.preset;const cutoff=p.method==='fm'?5200:p.bank==='strings'||p.bank==='choir'?4300:p.id==='school-piano'?7600:11000;v.filterK=1-Math.exp(-VTAU*Math.min(cutoff,engine.sr*.4)/engine.sr);
+ if(p.method==='modal'){v.modeAmp=new Float64Array([v.gate===-1&&!v.pluck?1:.82,.82,.82,.82]);v.modeDecay=MODAL_DECAYS.map(d=>Math.exp(-d/engine.sr));v.modeRelease=MODAL_DECAYS.map(d=>Math.exp(-d*.12/engine.sr));v.bodyAmp=1;v.bodyDecay=Math.exp(-.28/engine.sr);v.bodyRelease=Math.exp(-.04/engine.sr);}
  if(v.preset.method==='sample'){
   const bank=engine.samples.filter(z=>z.bank===v.preset.bank);if(!bank.length){engine.missingSamples++;v.gate=0;return;}
   const root=bank.reduce((a,b)=>Math.abs(b.root-v.n)<Math.abs(a.root-v.n)?b:a).root;
@@ -216,15 +217,22 @@ function voiceTone(v,e,f,age){
   y*=.88+.12*sine(t*.31);
  }else if(p.method==='subtractive'){
   const input=.45*saw(v.p%1,dt)+.25*pulse(v.q%1,Math.min(.44,dt*1.008),.32+.08*sine(t*.19))+.18*sine(v.p*.5);
-  const cutoff=Math.min(e.sr*.15,700+f*2.5+1500*(.5+.5*sine(t*.23+v.n*.07)));
+  const cutoff=Math.min(e.sr*.15,.86*(700+f*2.5+1500*(.5+.5*sine(t*.23+v.n*.07))));
   const g=Math.tan(Math.PI*cutoff/e.sr),k=.65,a=1/(1+g*(g+k));
   const band=(v.band+g*(input-v.low))*a,low=v.low+g*band;
-  v.band=2*band-v.band;v.low=2*low-v.low;y=low*(.78+.22*sine(t*17.3));
+  v.band=2*band-v.band;v.low=2*low-v.low;y=low*(1-.5*e.pulseDepthNow+.5*e.pulseDepthNow*sine(e.pulsePhase));
  }else if(p.method==='modal'){
   const hold=v.gate===-1&&!v.pluck;
-  const ratios=MODAL_RATIOS,weights=MODAL_WEIGHTS,decays=MODAL_DECAYS;
-  for(let i=0;i<4;i++){if(f*ratios[i]<e.sr*.43)y+=weights[i]*sine(v.modes[i])*((hold&&i===0?.18:0)+Math.exp(-age*decays[i])*.82);v.modes[i]=(v.modes[i]+dt*ratios[i])%1;}
-  y+=.08*sine(v.q)*Math.exp(-age*.7);
+  const ratios=MODAL_RATIOS,weights=MODAL_WEIGHTS;
+  // Preserve resonator energy at note-off. The existing RELEASE envelope controls
+  // the tail; slow internal damping lets its upper partials ring naturally.
+  for(let i=0;i<4;i++){
+   if(f*ratios[i]<e.sr*.43)y+=weights[i]*sine(v.modes[i])*v.modeAmp[i];
+   const floor=hold?MODAL_FLOORS[i]:0,decay=v.gate===0?v.modeRelease[i]:v.modeDecay[i];
+   v.modeAmp[i]=floor+(v.modeAmp[i]-floor)*decay;v.modes[i]=(v.modes[i]+dt*ratios[i])%1;
+  }
+  y+=.08*sine(v.q)*v.bodyAmp;
+  const floor=hold?.2:0;v.bodyAmp=floor+(v.bodyAmp-floor)*(v.gate===0?v.bodyRelease:v.bodyDecay);
  }else if(p.method==='fm'){
   const tine=sine(v.p*7)*(.08*Math.exp(-age*12)),mod=sine(v.p*2+tine)*(.35+1.6*Math.exp(-age*4));
   y=.75*sine(v.p+mod*.16)+.14*sine(v.q+ sine(v.q*3)*.08*Math.exp(-age*2));
@@ -238,6 +246,60 @@ function voiceTone(v,e,f,age){
  return y;
 }
 
+// Portable stereo insert; no Web Audio nodes, timers, allocations or shared RNG.
+// Two-times oversampling + first-order antiderivative antialiasing (ADAA).
+// The log-cosh primitive integrates the biased tanh curve between input samples.
+class WarmDrive {
+ constructor(sr){
+  this.sr=sr;this.amount=0;this.out=new Float64Array(2);this.previous=new Float64Array(2);
+  this.state=Array.from({length:2},()=>new Float64Array(8));this.coefficients=[];
+  const w=2*Math.PI*Math.min(15000,sr*.31)/(sr*2),cs=Math.cos(w),sn=Math.sin(w);
+  for(const q of [.541196100146197,1.306562964876377]){
+   const a=sn/(2*q),d=1+a;
+   this.coefficients.push([(1-cs)/2/d,(1-cs)/d,(1-cs)/2/d,-2*cs/d,(1-a)/d]);
+  }
+  this.smooth=1-Math.exp(-1/(sr*.025));this.rmsK=1-Math.exp(-1/(sr*.018));
+  this.gainDown=1-Math.exp(-1/(sr*.005));this.gainUp=1-Math.exp(-1/(sr*.09));
+  this.dryEnergy=0;this.wetEnergy=0;this.gain=1;this.phase=0;
+ }
+ primitive(x){const a=Math.abs(x);return a+Math.log1p(Math.exp(-2*a))-Math.LN2;}
+ segment(x0,x1,k,bias,offset){
+  const d=x1-x0;
+  return Math.abs(k*d)<1e-5?Math.tanh(k*(x0+x1)*.5+bias)-offset:
+   (this.primitive(k*x1+bias)-this.primitive(k*x0+bias))/(k*d)-offset;
+ }
+ filter(x,ch){
+  const s=this.state[ch];
+  for(let j=0;j<2;j++){const c=this.coefficients[j],i=j*4,y=c[0]*x+c[1]*s[i]+c[2]*s[i+1]-c[3]*s[i+2]-c[4]*s[i+3];s[i+1]=s[i];s[i]=x;s[i+3]=s[i+2];s[i+2]=y;x=y;}
+  return x;
+ }
+ process(l,r,target){
+  this.amount+=(target-this.amount)*this.smooth;
+  if(target===0&&this.amount<1e-8){
+   this.amount=0;this.previous[0]=l;this.previous[1]=r;this.out[0]=l;this.out[1]=r;
+   this.dryEnergy=this.wetEnergy=0;this.gain=1;for(const s of this.state)s.fill(0);return this.out;
+  }
+  const a=this.amount,k=1+18*a*a,broken=Math.max(0,(a-.65)/.35);
+  // Bounded, deterministic bias drift creates uneven breakup, never a hard gate.
+  const bias=.02+.16*a+broken*.16*(sine(this.phase)*sine(this.phase*.413));
+  this.phase=(this.phase+3.7/this.sr)%1000;
+  const offset=Math.tanh(bias),mix=Math.min(1,a*3);
+  for(let ch=0;ch<2;ch++){
+   const x=ch===0?l:r,old=this.previous[ch],mid=(old+x)*.5;
+   this.filter(this.segment(old,mid,k,bias,offset)/k,ch);
+   this.out[ch]=this.filter(this.segment(mid,x,k,bias,offset)/k,ch);this.previous[ch]=x;
+  }
+  this.dryEnergy+=this.rmsK*((l*l+r*r)*.5-this.dryEnergy);
+  this.wetEnergy+=this.rmsK*((this.out[0]**2+this.out[1]**2)*.5-this.wetEnergy);
+  // Bounded makeup after small-signal normalization; no initial transient boost.
+  const desired=this.dryEnergy>1e-12?clamp(Math.sqrt(this.dryEnergy/(this.wetEnergy+1e-12)),.5,Math.min(k,1+3.5*a)):1;
+  this.gain+=(desired-this.gain)*(desired<this.gain?this.gainDown:this.gainUp);
+  // Clamp the applied gain too when a downward amount sweep lowers its ceiling.
+  const gain=Math.min(this.gain,k,1+3.5*a);
+  this.out[0]=l+mix*(this.out[0]*gain-l);this.out[1]=r+mix*(this.out[1]*gain-r);return this.out;
+ }
+}
+
 const TAU=Math.PI*2, hz=n=>440*Math.pow(2,(n-69)/12);
 // No DOM, Web Audio nodes or timers here. The same renderer runs in the worklet
 // and offline verification. A native port can consume the versioned music schema.
@@ -245,6 +307,8 @@ class Engine {
  constructor(sr=48000){
   this.sr=sr;this.frame=0;this.voices=[];this.seed=0x534d4348;this.preset=PRESETS[0];
   this.target={attack:.012,release:.85,reverb:.18,wooze:.1,crush:.04};this.fx={...this.target};
+  this.warmDrive=new WarmDrive(sr);this.drive=0;this.crushLevel=1;this.crushLevelNow=1;this.paramSmooth=1-Math.exp(-1/(sr*.025));
+  this.pulseSpeed=17.3;this.pulseSpeedNow=17.3;this.pulseDepth=.44;this.pulseDepthNow=.44;this.pulsePhase=0;
   this.performance=new PerformanceFX(sr);this.tone=0;this.glitch=0;this.glitchTarget='all';this.glitchHold=false;this.balance=.5;this.silentCleared=false;this.balanceNow=.5;this.chordGain=1;this.arpGain=1;this.crushDry=0;this.crushWet=0;this.crushGain=1;this.swing=0;this.drumCustom=false;this.editGrid=null;this.grid=factoryGrid(0);this.timeline=drumTimeline(0,false);this.gridPlayhead=-1;
   this.chord={root:0,quality:''};this.key=0;this.octave=0;this.held=false;
   this.tempo=110;this.clock=new MusicalClock(sr);this.beat=0;this.samples=[];this.missingSamples=0;this.strings=9;this.strumMode='pluck';this.strumPointers=new Map();this.snare='dry';this.activeSnare='dry';this.trace=null;this.drums=false;this.sequence=false;this.paused=false;this.pattern=0;this.pendingPattern=0;
@@ -259,7 +323,9 @@ class Engine {
  random(){this.seed=(Math.imul(this.seed,1664525)+1013904223)>>>0;return this.seed/4294967296;}
  configure(s){
   if(s.fx)for(const k of Object.keys(this.target))if(Number.isFinite(s.fx[k]))this.target[k]=clamp(s.fx[k],k==='attack'?.002:k==='release'?.03:0,k==='release'?4:k==='attack'?.8:1);
-  for(const k of ['tone','glitch','balance','swing'])if(Number.isFinite(s[k]))this[k]=clamp(s[k],k==='tone'?-1:0,1);
+  for(const k of ['tone','glitch','balance','swing','drive','crushLevel'])if(Number.isFinite(s[k]))this[k]=clamp(s[k],k==='tone'?-1:0,1);
+  if(Number.isFinite(s.kosmische?.pulseSpeed))this.pulseSpeed=clamp(s.kosmische.pulseSpeed,.12,24);
+  if(Number.isFinite(s.kosmische?.pulseDepth))this.pulseDepth=clamp(s.kosmische.pulseDepth,0,1);
   if(['chord','arp','drums','all'].includes(s.glitchTarget))this.glitchTarget=s.glitchTarget;
   if(s.preset)this.preset=PRESETS.find(p=>p.id===s.preset)||this.preset;
   if(Number.isFinite(s.tempo))this.tempo=clamp(s.tempo,40,220);
@@ -403,6 +469,8 @@ class Engine {
   this.peak=0;
   for(let i=0;i<left.length;i++){
    this.schedule();const t=this.frame/this.sr;
+   this.crushLevelNow+=(this.crushLevel-this.crushLevelNow)*this.paramSmooth;
+   this.pulseSpeedNow+=(this.pulseSpeed-this.pulseSpeedNow)*this.paramSmooth;this.pulseDepthNow+=(this.pulseDepth-this.pulseDepthNow)*this.paramSmooth;
    for(const k in this.fx)this.fx[k]+=(this.target[k]-this.fx[k])*.002;
    const woozeAmount=2*this.fx.wooze+70*this.fx.wooze*this.fx.wooze,flutter=.1*Math.sin(t*TAU*7.1);for(let k=0;k<5;k++)this.lfo[k]=woozeAmount*(.75*Math.sin(t*TAU*(.27+k*.031))+flutter);
    const attackStep=1/(this.sr*this.fx.attack),releaseCoef=Math.exp(-6.9/(this.sr*this.fx.release)),pluckCoef=Math.exp(-5/(this.sr*(.45+this.fx.release*2)));
@@ -426,6 +494,7 @@ class Engine {
    }
    const arpGain=this.arpGain;al*=arpGain;ar*=arpGain;
    let fxOut=this.performance.bus(0,l,r);l=fxOut[0];r=fxOut[1];fxOut=this.performance.bus(1,al,ar);l+=fxOut[0];r+=fxOut[1];
+   if(this.drive>0||this.warmDrive.amount>0){fxOut=this.warmDrive.process(l,r,this.drive);l=fxOut[0];r=fxOut[1];}
    const crush=this.fx.crush,levels=Math.pow(2,15-11*crush);this.crushPhase+=1/(1+23*crush*crush);
    if(this.crushPhase>=1){this.crushPhase%=1;this.heldL=Math.round(l*levels)/levels;this.heldR=Math.round(r*levels)/levels;}
    const drive=1+12*crush*crush,wl=Math.tanh(this.heldL*drive)/Math.sqrt(drive),wr=Math.tanh(this.heldR*drive)/Math.sqrt(drive);
@@ -433,7 +502,7 @@ class Engine {
    this.crushDry+=.0005*((l*l+r*r)*.5-this.crushDry);this.crushWet+=.0005*((wl*wl+wr*wr)*.5-this.crushWet);
    const compensation=this.crushDry>1e-10?clamp(Math.sqrt(this.crushDry/(this.crushWet+1e-12)),.16,1.5):1/Math.sqrt(drive);
    this.crushGain+=(compensation-this.crushGain)*(compensation<this.crushGain?.004:.0004);
-   l+=crush*(wl*this.crushGain-l);r+=crush*(wr*this.crushGain-r);
+   l+=crush*(wl*this.crushGain*this.crushLevelNow-l);r+=crush*(wr*this.crushGain*this.crushLevelNow-r);
    fxOut=this.performance.colour(l,r,this.tone);l=fxOut[0];r=fxOut[1];
    const cutoff=this.outputFilterK;this.lowL+=cutoff*(l-this.lowL);this.lowR+=cutoff*(r-this.lowR);l=this.lowL;r=this.lowR;
    let wetL=0,wetR=0;
@@ -442,7 +511,7 @@ class Engine {
    this.master+=(this.masterTarget-this.master)*.004;
    const dl=l-this.dcX[0]+.9984*this.dcY[0],dr=r-this.dcX[1]+.9984*this.dcY[1];this.dcX[0]=l;this.dcX[1]=r;this.dcY[0]=dl;this.dcY[1]=dr;
    left[i]=Math.tanh(dl*.9)*.88*this.master;right[i]=Math.tanh(dr*.9)*.88*this.master;this.peak=Math.max(this.peak,Math.abs(left[i]),Math.abs(right[i]));
-   if(!this.paused&&(this.drums||this.sequence||this.masterTarget>0&&(this.glitch>0||this.glitchHold)))this.clock.advance(this.tempo);this.beat=this.clock.beat;this.frame++;
+   if(!this.paused&&(this.drums||this.sequence||this.masterTarget>0&&(this.glitch>0||this.glitchHold)))this.clock.advance(this.tempo);this.beat=this.clock.beat;this.frame++;this.pulsePhase=(this.pulsePhase+this.pulseSpeedNow/this.sr)%1;
   }
   this.tails=this.tails.filter(v=>v.tailFrames>0&&v.env>=.00001);
   this.voices=this.voices.filter(v=>v.gate!==0||v.env>=.00001);

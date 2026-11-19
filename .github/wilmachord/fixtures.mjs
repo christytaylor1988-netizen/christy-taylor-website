@@ -11,12 +11,12 @@ export const html=fs.readFileSync(path.join(dist,'index.html'),'utf8');
 export const script=html.match(/<script\b[^>]*>([\s\S]*?)<\/script>/)[1];
 export const worklet=fs.readFileSync(path.join(dist,'worklet.js'),'utf8');
 export const samples=script.slice(script.indexOf('const SAMPLE_ZONES='),script.indexOf('const EMBEDDED_WORKLET_SOURCE='));
-export const baseline='f633d54f0a721881bc3c5c2b70a8996749700cae';
+export const baseline='b74a6b95542d4d533b366a234aff4d8375f7f4a7';
 export function oldFile(name){return execFileSync('git',['show',baseline+':lie013-preview-7x9/'+name],{cwd:repo,maxBuffer:32*1024*1024}).toString();}
 export const scratch=fs.mkdtempSync(path.join(os.tmpdir(),'wilmachord-test-'));
 export async function fixture(code,name){
  const file=path.join(scratch,name+'.mjs');
- fs.writeFileSync(file,`globalThis.AudioWorkletProcessor=class{constructor(){this.messages=[];this.port={postMessage:m=>this.messages.push(m)};}};globalThis.registerProcessor=()=>{};globalThis.sampleRate=48000;\n`+code+'\n'+samples+'\nexport {Engine,WilmachordProcessor,PerformanceFX,factoryGrid,drumTimeline,paintDrumCell,decodeSamples,PRESETS,percussionStep,patternSteps,patternStepTime,defaultState,VERSION,PALETTES,SNARES,RHYTHMS};');
+ fs.writeFileSync(file,`globalThis.AudioWorkletProcessor=class{constructor(){this.messages=[];this.port={postMessage:m=>this.messages.push(m)};}};globalThis.registerProcessor=()=>{};globalThis.sampleRate=48000;\n`+code+'\nconst DriveClass=typeof WarmDrive==="undefined"?null:WarmDrive;\n'+samples+'\nexport {DriveClass,voiceTone,prepareVoice,Engine,WilmachordProcessor,PerformanceFX,factoryGrid,drumTimeline,paintDrumCell,decodeSamples,PRESETS,percussionStep,patternSteps,patternStepTime,defaultState,VERSION,PALETTES,SNARES,RHYTHMS};');
  return import(pathToFileURL(file).href);
 }
 export const current=await fixture(worklet,'current');

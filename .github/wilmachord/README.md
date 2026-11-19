@@ -1,4 +1,4 @@
-# WILMACHORD LIE013 — V0.4.0 Batch 1
+# WILMACHORD LIE013 — V0.4.1 Batch 2
 
 The application is the existing self-contained build in `lie013-preview-7x9/`.
 `index.html` contains the editable interface/controller source and all 38 bundled
@@ -6,8 +6,8 @@ PCM sample zones. `worklet.js` contains the audio engine. Its identical embedded
 fallback remains in the HTML. No npm packages, external sample servers or build
 process are required by the deployed instrument. Serve the directory over HTTPS.
 
-The working V0.3.1 baseline is `f633d54f0a721881bc3c5c2b70a8996749700cae`.
-The branch `recovery/before-v04-batch1-20261119` preserves that release.
+The working V0.4.0 baseline is `b74a6b95542d4d533b366a234aff4d8375f7f4a7`.
+The branch `recovery/before-v041-batch2-20261119` preserves that release.
 The user confirmed audible iPhone 13 mini output with the physical Silent Mode
 switch OFF. Software tests do not replace listening on the phone.
 
@@ -24,15 +24,25 @@ switch OFF. Software tests do not replace listening on the phone.
   is unchanged; the scope is a read-only side connection.
 - Drum bank follows playback, deferring during drawing until the next loop.
 
-Synthesis, sample data, effect algorithms, factory rhythms and preset identities
-are preserved. Normal playback is tested sample-for-sample against the baseline.
-The only engine changes are transport state, pause/resume and stop-position reset.
+## Batch 2 changes
+
+- Warm compensated DRIVE, exact bypass at zero, oversampling and antialiasing.
+- CRUSH LEVEL scales the existing processed contribution independently.
+- KOSMISCHE pulse speed/depth control its existing ring stage; warmer filter voicing.
+- HAUNTED retains resonator energy for longer natural and RELEASE-controlled tails.
+- All Batch 1 interface and transport improvements above remain intact.
+
+See [BATCH2-DSP.md](BATCH2-DSP.md) for parameter definitions, migration, signal
+order, algorithms and native-port notes. Twelve presets and all 38 samples remain.
+The ten unmodified voices match Batch 1 sample-for-sample with new effects at their
+defaults. HAUNTED and KOSMISCHE are intentional changes, verified separately.
 
 ## Automated checks
 
 From the repository root, with Node 22 or newer:
 
 ```sh
+node .github/wilmachord/sound-batch2.test.mjs
 node .github/wilmachord/transport.test.mjs
 node .github/wilmachord/controller.test.mjs
 node .github/wilmachord/audio-regression.test.mjs
@@ -54,7 +64,7 @@ real-world multi-finger performance and battery usage.
 
 The existing Render Static Site is `christy-taylor-static`, service
 `srv-dap8q48ae00c739four0`, publishing repository root `.` with no build required.
-Use **Manual Deploy → Deploy a specific commit** with the tested Batch 1 commit.
+Use **Manual Deploy → Deploy a specific commit** with the tested Batch 2 commit.
 Keep the established public website and its separate checkout service unchanged.
 Do not change the configured branch or enable automatic deployments as a shortcut.
 

@@ -1,17 +1,17 @@
 {
   "application": "WILMACHORD",
   "catalogue": "LIE013",
-  "version": "0.4.0",
-  "edition": "Batch 1 — interface, navigation and performance controls",
+  "version": "0.4.1",
+  "edition": "Batch 2 \u2014 sound design and instrument refinement",
   "website_base_commit": "e0b00c92f938e53375322d544f108b2d113a0e36",
   "source_zip_sha256": "4f25bdcf9ed405278cfa03a1f9ff08bb790c1ef4063ac5337fd61f5798805110",
-  "deployment_change": "Scrollable first two pages, explicit chord editing and mode controls, shared pause/resume, rhythm access, output scope and drum bank auto-follow. Existing synthesis, samples, effects and direct audio destination connection preserved.",
+  "deployment_change": "Warm DRIVE, independent CRUSH LEVEL, KOSMISCHE pulse speed/depth and warmer filter, longer HAUNTED resonances. Complete Batch 1 interface, samples, clock and audio routing preserved.",
   "files": {
-    "index.html": "66f27f25aeb0d602a2de0b976ccead825a701742f2977552e9cf09d5fb74e127",
-    "worklet.js": "1e05566295ec5eea203396ef4b1ce1004c1ecf86a206e9ecf078bb6fdc80f363",
+    "index.html": "5fa3a8fd234bcce6a0c31064056331861b2f502222a1ed2bc96741bcf85f2858",
+    "worklet.js": "f1cd2e5f7835ffc03c88beaacfc7b6831589023328722256328fbd59ddf0283a",
     "SOUND-CREDITS.txt": "0c6d9cb39f81babb57b5fb1ef6118676f5c59d815a42915dc227e3447aa4c5d1"
   },
   "diagnostic_build": "audio-diag-1",
-  "recovery_commit": "f633d54f0a721881bc3c5c2b70a8996749700cae",
-  "batch": 1
+  "recovery_commit": "b74a6b95542d4d533b366a234aff4d8375f7f4a7",
+  "batch": 2
 }
