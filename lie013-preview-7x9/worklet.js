@@ -1,5 +1,5 @@
 // WILMACHORD musical schema 1. Pure data/logic shared by UI, renderer and tests.
-const VERSION = '0.4.1';
+const VERSION = '0.4.2';
 const ROOTS = ['C','C♯','D','E♭','E','F','F♯','G','A♭','A','B♭','B'];
 const QUALITIES = {
   '': [0,4,7], m:[0,3,7], '7':[0,4,7,10], maj7:[0,4,7,11], m7:[0,3,7,10],
@@ -46,8 +46,8 @@ const PRESETS=[
  voice('motorik','MOTORIK','tonewheel','Pulsing drawbar organ · tempo-locked tremolo',.008,.85,.18,.1,.04,{drawbars:[.66,.15,.06,.02],pulse:.22}),
  voice('kosmische','KOSMISCHE','subtractive','Band-limited saw / pulse · moving resonant filter and ring modulation',.09,1.5,.3,.38,.1),
  voice('hypnosis','HYPNOSIS','ensemble','Three ranks of drawbars · sub-octave drone and slow ensemble beating',.32,2.5,.4,.17,0),
- voice('haunted','HAUNTED','modal','Imperfect struck reeds · independently decaying inharmonic resonances',.005,1.5,.4,.23,.05),
- voice('rocksteady','ROCKSTEADY','tonewheel','Percussive 1960s organ · hollow drawbars, key click and third percussion',.004,.32,.13,.045,.03,{drawbars:[.35,.37,.04,.18],pulse:0}),
+ voice('haunted','HAUNTED','modal','Cinematic electric reeds · warm twin ranks, slow bloom and lingering wood-toned resonances',.005,1.5,.4,.23,.05),
+ voice('rocksteady','ROCKSTEADY','tonewheel','Percussive 1960s organ · hollow drawbars, key click and third percussion',.05,.32,.13,.045,.03,{drawbars:[.35,.37,.04,.18],pulse:0}),
  voice('cassette','CASSETTE','fm','Four-operator electric tine · decaying modulation, tremolo and tape wear',.006,1.3,.23,.2,.15),
  voice('tape-strings','TAPE STRINGS','sample','Recorded violin ensemble · bandwidth-limited tape treatment',.12,1.7,.3,.22,.045,{bank:'strings'}),
  voice('tape-choir','TAPE CHOIR','sample','Licensed multisampled synthetic choir · warm tape treatment',.16,1.9,.34,.24,.035,{bank:'choir'}),
@@ -81,7 +81,7 @@ function arpIndex(step,length,order,random=.5){
  if(order===3)return Math.min(length-1,Math.floor(random*length));
  return step%length;
 }
-function defaultState(){return {schema:1,paletteId:'golden',custom:[],key:0,octave:0,latch:true,selected:0,preset:'motorik',fx:{attack:.012,release:.85,reverb:.18,wooze:.1,crush:.04},drive:0,crushLevel:1,kosmische:{pulseSpeed:17.3,pulseDepth:.44},tone:0,glitch:0,glitchTarget:'all',balance:.5,swing:0,drumEdits:{},drumCustom:false,tempo:110,rhythm:0,drumVolume:.6,snare:'dry',strings:9,strumMode:'pluck',progression:[c(0),c(9,'m'),c(5),c(7)],arp:{speed:1,glide:0,order:0,octaves:1,length:.65,mode:'arp'},page:0};}
+function defaultState(){return {schema:1,paletteId:'golden',custom:[],key:0,octave:0,latch:true,selected:0,preset:'motorik',fx:{attack:.012,release:.85,reverb:.18,wooze:.1,crush:.04},drive:0,kosmische:{pulseSpeed:17.3,pulseDepth:.44},tone:0,glitch:0,glitchTarget:'all',balance:.5,swing:0,drumEdits:{},drumCustom:false,tempo:110,rhythm:0,drumVolume:.6,snare:'dry',strings:9,strumMode:'pluck',progression:[c(0),c(9,'m'),c(5),c(7)],arp:{speed:1,glide:0,order:0,octaves:1,length:.65,mode:'arp'},page:0};}
 
 const DRUM_TRACKS=['KICK','SNARE','CLAP','CLOSED HAT','OPEN HAT','PERCUSSION'];
 const DRUM_LANES=[[0],[1],[6],[2],[3],[4,5]];
@@ -178,11 +178,11 @@ function sine(p){p=(p-Math.floor(p))*4096;const i=p|0;return TABLE[i]+(TABLE[i+1
 function blep(p,dt){if(p<dt){p/=dt;return p+p-p*p-1;}if(p>1-dt){p=(p-1)/dt;return p*p+p+p+1;}return 0;}
 function saw(p,dt){return p*2-1-blep(p,dt);}
 function pulse(p,dt,width=.5){return (p<width?1:-1)+blep(p,dt)-blep((p-width+1)%1,dt);}
-const MODAL_RATIOS=[1,2.013,5.067,8.11],MODAL_WEIGHTS=[.6,.28,.16,.07],MODAL_DECAYS=[.28,.75,1.6,3.8],MODAL_FLOORS=[.24,.09,.025,.008];
+const MODAL_RATIOS=[1,2.013,5.067,8.11],MODAL_WEIGHTS=[.06,.055,.018,.006],MODAL_DECAYS=[.28,.75,1.6,3.8],MODAL_FLOORS=[.24,.09,.025,.008];
 const noteHz=n=>440*2**((n-69)/12);
 function prepareVoice(v,engine){
  v.p=0;v.q=0;v.r=0;v.low=0;v.low2=0;v.band=0;v.dc=0;v.filter=0;v.samples=[];v.sampleEnded=false;v.modes=new Float64Array(4);const p=v.preset;const cutoff=p.method==='fm'?5200:p.bank==='strings'||p.bank==='choir'?4300:p.id==='school-piano'?7600:11000;v.filterK=1-Math.exp(-VTAU*Math.min(cutoff,engine.sr*.4)/engine.sr);
- if(p.method==='modal'){v.modeAmp=new Float64Array([v.gate===-1&&!v.pluck?1:.82,.82,.82,.82]);v.modeDecay=MODAL_DECAYS.map(d=>Math.exp(-d/engine.sr));v.modeRelease=MODAL_DECAYS.map(d=>Math.exp(-d*.12/engine.sr));v.bodyAmp=1;v.bodyDecay=Math.exp(-.28/engine.sr);v.bodyRelease=Math.exp(-.04/engine.sr);}
+ if(p.method==='modal'){v.reedPhase=0;v.reedAmp=1;v.bloom=0;v.bloomK=1-Math.exp(-1/(engine.sr*.18));v.reedDecay=Math.exp(-.32/engine.sr);v.reedRelease=Math.exp(-.045/engine.sr);v.modeAmp=new Float64Array([v.gate===-1&&!v.pluck?1:.82,.82,.82,.82]);v.modeDecay=MODAL_DECAYS.map(d=>Math.exp(-d/engine.sr));v.modeRelease=MODAL_DECAYS.map(d=>Math.exp(-d*.12/engine.sr));v.bodyAmp=1;v.bodyDecay=Math.exp(-.28/engine.sr);v.bodyRelease=Math.exp(-.04/engine.sr);}
  if(v.preset.method==='sample'){
   const bank=engine.samples.filter(z=>z.bank===v.preset.bank);if(!bank.length){engine.missingSamples++;v.gate=0;return;}
   const root=bank.reduce((a,b)=>Math.abs(b.root-v.n)<Math.abs(a.root-v.n)?b:a).root;
@@ -192,10 +192,18 @@ function prepareVoice(v,engine){
  }
 }
 function sampleAt(s,step,loop){
- const z=s.z,a=z.data;let p=s.pos;
- if(p>=z.loopEnd){if(loop)p=z.loopStart+(p-z.loopStart)%(z.loopEnd-z.loopStart);else return 0;}
- const i=p|0,f=p-i,b=i+1<z.loopEnd?a[i+1]:(loop?a[z.loopStart]:a[i]);
- s.pos=p+step*s.ratio;return (a[i]+(b-a[i])*f)*s.weight*(loop?1:Math.min(1,(z.loopEnd-p)/128));
+ const z=s.z,a=z.data,end=z.loopEnd,start=z.loopStart;
+ const fade=loop?Math.min(Math.round(z.rate*.012),Math.floor((end-start)/8)):0;
+ let p=s.pos;
+ if(p>=end){if(loop)p=start+fade+(p-end)%(end-start-fade);else return 0;}
+ const i=p|0,f=p-i,next=i+1<end?a[i+1]:(loop?a[start]:a[i]);
+ let y=a[i]+(next-a[i])*f;
+ if(loop&&p>=end-fade){
+  const q=start+p-(end-fade),j=q|0,head=a[j]+(a[j+1]-a[j])*(q-j);
+  const blend=.5-.5*Math.cos(Math.PI*(p-(end-fade))/fade);
+  y+=(head-y)*blend;
+ }
+ s.pos=p+step*s.ratio;return y*s.weight*(loop?1:Math.min(1,(end-p)/128));
 }
 function voiceTone(v,e,f,age){
  const p=v.preset,dt=Math.min(.44,f/e.sr),t=e.frame/e.sr;let y=0;
@@ -223,6 +231,20 @@ function voiceTone(v,e,f,age){
   v.band=2*band-v.band;v.low=2*low-v.low;y=low*(1-.5*e.pulseDepthNow+.5*e.pulseDepthNow*sine(e.pulsePhase));
  }else if(p.method==='modal'){
   const hold=v.gate===-1&&!v.pluck;
+  const movement=.5+.5*sine(t*.17+v.n*.113),brightness=clamp(1-(v.n-60)*.009,.55,1.12)*(.65+.45*v.velocity);
+  const bloom=.2+.8*v.bloom;
+  // Harmonic reed body plus a gently wandering, detuned rank. Explicit partials
+  // remain band-limited at high registers; no pad, delay or reverb is required.
+  y=.48*sine(v.p)+.19*bloom*sine(v.reedPhase);
+  if(f*2<e.sr*.43)y+=brightness*((.12+.085*v.bloom*movement)*sine(v.p*2)+.045*bloom*sine(v.reedPhase*2));
+  if(f*3<e.sr*.43)y+=brightness*(.07*sine(v.p*3)+.018*bloom*sine(v.reedPhase*3));
+  if(f*4<e.sr*.43)y+=brightness*(.025+.015*v.bloom*(1-movement))*sine(v.p*4);
+  y+=clamp((v.n-45)/30,0,1)*.065*bloom*sine(v.p*.5);
+  y*=v.reedAmp;
+  const reedFloor=hold?.38:0;v.reedAmp=reedFloor+(v.reedAmp-reedFloor)*(v.gate===0?v.reedRelease:v.reedDecay);
+  v.bloom+=(1-v.bloom)*v.bloomK;
+  const wander=-3.2+1.3*sine(t*.113+v.n*.071)+.65*sine(t*.37+v.n*.19);
+  v.reedPhase=(v.reedPhase+dt*(1+wander*.00057762265))%2;
   const ratios=MODAL_RATIOS,weights=MODAL_WEIGHTS;
   // Preserve resonator energy at note-off. The existing RELEASE envelope controls
   // the tail; slow internal damping lets its upper partials ring naturally.
@@ -231,7 +253,7 @@ function voiceTone(v,e,f,age){
    const floor=hold?MODAL_FLOORS[i]:0,decay=v.gate===0?v.modeRelease[i]:v.modeDecay[i];
    v.modeAmp[i]=floor+(v.modeAmp[i]-floor)*decay;v.modes[i]=(v.modes[i]+dt*ratios[i])%1;
   }
-  y+=.08*sine(v.q)*v.bodyAmp;
+  y+=.025*sine(v.q)*v.bodyAmp;
   const floor=hold?.2:0;v.bodyAmp=floor+(v.bodyAmp-floor)*(v.gate===0?v.bodyRelease:v.bodyDecay);
  }else if(p.method==='fm'){
   const tine=sine(v.p*7)*(.08*Math.exp(-age*12)),mod=sine(v.p*2+tine)*(.35+1.6*Math.exp(-age*4));
@@ -253,15 +275,16 @@ class WarmDrive {
  constructor(sr){
   this.sr=sr;this.amount=0;this.out=new Float64Array(2);this.previous=new Float64Array(2);
   this.state=Array.from({length:2},()=>new Float64Array(8));this.coefficients=[];
-  const w=2*Math.PI*Math.min(15000,sr*.31)/(sr*2),cs=Math.cos(w),sn=Math.sin(w);
+  const w=2*Math.PI*Math.min(19000,sr*.4)/(sr*2),cs=Math.cos(w),sn=Math.sin(w);
   for(const q of [.541196100146197,1.306562964876377]){
    const a=sn/(2*q),d=1+a;
    this.coefficients.push([(1-cs)/2/d,(1-cs)/d,(1-cs)/2/d,-2*cs/d,(1-a)/d]);
   }
   this.smooth=1-Math.exp(-1/(sr*.025));this.rmsK=1-Math.exp(-1/(sr*.018));
   this.gainDown=1-Math.exp(-1/(sr*.005));this.gainUp=1-Math.exp(-1/(sr*.09));
-  this.dryEnergy=0;this.wetEnergy=0;this.gain=1;this.phase=0;
+  this.dryEnergy=0;this.wetEnergy=0;this.gain=1;this.phase=0;this.seed=0x44525645;this.supply=1;this.supplyTarget=1;this.biasWander=0;this.biasTarget=0;this.wait=0;this.breakupK=1-Math.exp(-1/(sr*.004));this.presenceLow=new Float64Array(2);this.presenceK=1-Math.exp(-2*Math.PI*1800/sr);
  }
+ random(){this.seed=(Math.imul(this.seed,1664525)+1013904223)>>>0;return this.seed/4294967296;}
  primitive(x){const a=Math.abs(x);return a+Math.log1p(Math.exp(-2*a))-Math.LN2;}
  segment(x0,x1,k,bias,offset){
   const d=x1-x0;
@@ -281,13 +304,20 @@ class WarmDrive {
   }
   const a=this.amount,k=1+18*a*a,broken=Math.max(0,(a-.65)/.35);
   // Bounded, deterministic bias drift creates uneven breakup, never a hard gate.
-  const bias=.02+.16*a+broken*.16*(sine(this.phase)*sine(this.phase*.413));
+  if(--this.wait<=0){
+   const starve=this.random()<.6;this.supplyTarget=starve?.5+.35*this.random():1;
+   this.biasTarget=(this.random()*2-1)*(starve?1:.3);this.wait=Math.round(this.sr*(.018+.105*this.random()));
+  }
+  this.supply+=(this.supplyTarget-this.supply)*this.breakupK;this.biasWander+=(this.biasTarget-this.biasWander)*this.breakupK;
+  const supply=1-broken*(1-this.supply),bias=.02+.4*a+broken*.75*this.biasWander;
   this.phase=(this.phase+3.7/this.sr)%1000;
   const offset=Math.tanh(bias),mix=Math.min(1,a*3);
   for(let ch=0;ch<2;ch++){
    const x=ch===0?l:r,old=this.previous[ch],mid=(old+x)*.5;
    this.filter(this.segment(old,mid,k,bias,offset)/k,ch);
    this.out[ch]=this.filter(this.segment(mid,x,k,bias,offset)/k,ch);this.previous[ch]=x;
+   this.presenceLow[ch]+=this.presenceK*(x-this.presenceLow[ch]);
+   this.out[ch]+=(x-this.presenceLow[ch])*.14*a/Math.max(1,this.gain);
   }
   this.dryEnergy+=this.rmsK*((l*l+r*r)*.5-this.dryEnergy);
   this.wetEnergy+=this.rmsK*((this.out[0]**2+this.out[1]**2)*.5-this.wetEnergy);
@@ -295,7 +325,7 @@ class WarmDrive {
   const desired=this.dryEnergy>1e-12?clamp(Math.sqrt(this.dryEnergy/(this.wetEnergy+1e-12)),.5,Math.min(k,1+3.5*a)):1;
   this.gain+=(desired-this.gain)*(desired<this.gain?this.gainDown:this.gainUp);
   // Clamp the applied gain too when a downward amount sweep lowers its ceiling.
-  const gain=Math.min(this.gain,k,1+3.5*a);
+  const gain=Math.min(this.gain,k,1+3.5*a)*supply;
   this.out[0]=l+mix*(this.out[0]*gain-l);this.out[1]=r+mix*(this.out[1]*gain-r);return this.out;
  }
 }
@@ -307,12 +337,12 @@ class Engine {
  constructor(sr=48000){
   this.sr=sr;this.frame=0;this.voices=[];this.seed=0x534d4348;this.preset=PRESETS[0];
   this.target={attack:.012,release:.85,reverb:.18,wooze:.1,crush:.04};this.fx={...this.target};
-  this.warmDrive=new WarmDrive(sr);this.drive=0;this.crushLevel=1;this.crushLevelNow=1;this.paramSmooth=1-Math.exp(-1/(sr*.025));
+  this.warmDrive=new WarmDrive(sr);this.drive=0;this.paramSmooth=1-Math.exp(-1/(sr*.025));
   this.pulseSpeed=17.3;this.pulseSpeedNow=17.3;this.pulseDepth=.44;this.pulseDepthNow=.44;this.pulsePhase=0;
-  this.performance=new PerformanceFX(sr);this.tone=0;this.glitch=0;this.glitchTarget='all';this.glitchHold=false;this.balance=.5;this.silentCleared=false;this.balanceNow=.5;this.chordGain=1;this.arpGain=1;this.crushDry=0;this.crushWet=0;this.crushGain=1;this.swing=0;this.drumCustom=false;this.editGrid=null;this.grid=factoryGrid(0);this.timeline=drumTimeline(0,false);this.gridPlayhead=-1;
+  this.performance=new PerformanceFX(sr);this.tone=0;this.glitch=0;this.glitchTarget='all';this.glitchHold=false;this.balance=.5;this.silentCleared=false;this.balanceNow=.5;this.chordGain=1;this.arpGain=1;this.crushDry=0;this.crushWet=0;this.crushGain=1;this.crushComfort=1;this.crushHPDry=0;this.crushHPWet=0;this.crushLowDry=new Float64Array(2);this.crushLowWet=new Float64Array(2);this.crushEarK=1-Math.exp(-TAU*2200/sr);this.swing=0;this.drumCustom=false;this.editGrid=null;this.grid=factoryGrid(0);this.timeline=drumTimeline(0,false);this.gridPlayhead=-1;
   this.chord={root:0,quality:''};this.key=0;this.octave=0;this.held=false;
   this.tempo=110;this.clock=new MusicalClock(sr);this.beat=0;this.samples=[];this.missingSamples=0;this.strings=9;this.strumMode='pluck';this.strumPointers=new Map();this.snare='dry';this.activeSnare='dry';this.trace=null;this.drums=false;this.sequence=false;this.paused=false;this.pattern=0;this.pendingPattern=0;
-  this.drumStep=0;this.drumStart=0;this.nextDrum=0;this.drumVolume=.6;this.drumEnv=new Float64Array(7);this.drumAge=new Float64Array(7);this.drumPhase=new Float64Array(7);this.drumPitch=new Float64Array(7);
+  this.drumStep=0;this.drumStart=0;this.nextDrum=0;this.drumVolume=.6;this.drumEnv=new Float64Array(7);this.drumAge=new Float64Array(7);this.drumPhase=new Float64Array(7);this.drumPitch=new Float64Array(7);this.drumLast=new Float64Array(7);this.drumBridge=new Float64Array(7);this.drumBridgeAge=new Float64Array(7);this.drumBridgeFrames=Math.round(sr*.004);this.drumBridgeAge.fill(this.drumBridgeFrames);
   this.drumDecay=[.19,.105,.027,.17,.038,.14,.085].map(t=>Math.exp(-1/(sr*t)));this.noiseLow=0;this.speaker=0;this.openChoke=false;
   this.progression=[this.chord];this.pendingProgression=null;this.arp={speed:1,order:0,octaves:1,length:.65,glide:0,mode:'arp'};
   this.seqOrigin=0;this.nextArp=0;this.arpStep=0;this.currentBar=-1;this.absoluteBar=-1;this.currentChord=null;this.previousNotes=[];this.lastArp=null;
@@ -323,7 +353,7 @@ class Engine {
  random(){this.seed=(Math.imul(this.seed,1664525)+1013904223)>>>0;return this.seed/4294967296;}
  configure(s){
   if(s.fx)for(const k of Object.keys(this.target))if(Number.isFinite(s.fx[k]))this.target[k]=clamp(s.fx[k],k==='attack'?.002:k==='release'?.03:0,k==='release'?4:k==='attack'?.8:1);
-  for(const k of ['tone','glitch','balance','swing','drive','crushLevel'])if(Number.isFinite(s[k]))this[k]=clamp(s[k],k==='tone'?-1:0,1);
+  for(const k of ['tone','glitch','balance','swing','drive'])if(Number.isFinite(s[k]))this[k]=clamp(s[k],k==='tone'?-1:0,1);
   if(Number.isFinite(s.kosmische?.pulseSpeed))this.pulseSpeed=clamp(s.kosmische.pulseSpeed,.12,24);
   if(Number.isFinite(s.kosmische?.pulseDepth))this.pulseDepth=clamp(s.kosmische.pulseDepth,0,1);
   if(['chord','arp','drums','all'].includes(s.glitchTarget))this.glitchTarget=s.glitchTarget;
@@ -435,7 +465,7 @@ class Engine {
   if(this.drumStep===0){this.pattern=this.pendingPattern;this.grid=this.drumCustom&&this.editGrid?this.editGrid:factoryGrid(this.pattern);this.timeline=drumTimeline(this.pattern,this.drumCustom,this.swing);}
   const event=this.timeline.events[this.drumStep],hits=this.grid.map(row=>row[event.slot]);this.gridPlayhead=event.slot;
   if(this.drums){
-   for(let i=0;i<7;i++)if(hits[i]){this.drumEnv[i]=hits[i]*(.97+.06*this.random());this.drumAge[i]=0;this.drumPhase[i]=0;this.drumPitch[i]=.992+.016*this.random();if(i===1){this.activeSnare=this.snare;this.snareLow=0;this.snareBand=0;}}
+   for(let i=0;i<7;i++)if(hits[i]){this.drumBridge[i]=this.drumLast[i];this.drumBridgeAge[i]=0;this.drumEnv[i]=hits[i]*(.97+.06*this.random());this.drumAge[i]=0;this.drumPhase[i]=0;this.drumPitch[i]=.992+.016*this.random();if(i===1){this.activeSnare=this.snare;this.snareLow=0;this.snareBand=0;}}
    if(hits[2])this.openChoke=true;if(hits[3])this.openChoke=false;this.events.drums++;this.trace?.({kind:'drum',tick:this.nextDrum,frame:this.frame,pattern:this.pattern,step:event.step,slot:event.slot,hits});
   }
   if(++this.drumStep>=this.timeline.events.length){this.drumStep=0;this.drumStart+=this.timeline.length;this.nextDrum=this.drumStart;}
@@ -444,14 +474,16 @@ class Engine {
  drumSample(){
   const noise=this.random()*2-1;this.noiseLow+=(1-Math.exp(-TAU*1800/this.sr))*(noise-this.noiseLow);const high=noise-this.noiseLow;let sum=0;
   for(let i=0;i<7;i++){
-   if(this.drumEnv[i]<.000001)continue;const t=this.drumAge[i]++/this.sr;let sound=0,f=0;
+   if(this.drumEnv[i]<.000001&&this.drumBridgeAge[i]>=this.drumBridgeFrames){this.drumLast[i]=0;continue;}const t=this.drumAge[i]++/this.sr;let sound=0,f=0;
    if(i===0)f=48+48*Math.exp(-t*48);if(i===1)f=177;if(i===2||i===3)f=3371;if(i===4)f=796;if(i===5)f=91+27*Math.exp(-t*24);
    this.drumPhase[i]+=TAU*f*this.drumPitch[i]/this.sr;const p=this.drumPhase[i];
    if(i===0)sound=Math.sin(p)*1.15;if(i===1)sound=this.snareSample(noise,t,p);
    if(i===2||i===3)sound=high*.36+(Math.sin(p)+Math.sin(p*1.427))*.045;
    if(i===4)sound=(Math.sin(p)+.4*Math.sin(p*1.61))*.45;if(i===5)sound=Math.sin(p)*.7;
    if(i===6)sound=high*.9*(t<.03?(.25+.75*Math.max(0,Math.sin(t*TAU*85))):Math.exp(-(t-.03)*18));
-   sum+=sound*this.drumEnv[i]*Math.min(1,t/.0007);this.drumEnv[i]*=i===1?Math.exp(-1/(this.sr*.32)):this.drumDecay[i];if(i===3&&this.openChoke)this.drumEnv[i]*=Math.exp(-1/(this.sr*.006));
+   let value=sound*this.drumEnv[i]*Math.min(1,t/.0007);
+   if(this.drumBridgeAge[i]<this.drumBridgeFrames){value+=this.drumBridge[i]*(.5+.5*Math.cos(Math.PI*this.drumBridgeAge[i]/this.drumBridgeFrames));this.drumBridgeAge[i]++;}
+   this.drumLast[i]=value;sum+=value;this.drumEnv[i]*=i===1?Math.exp(-1/(this.sr*.32)):this.drumDecay[i];if(i===3&&this.openChoke)this.drumEnv[i]*=Math.exp(-1/(this.sr*.006));
   }
   this.speaker+=(1-Math.exp(-TAU*3700/this.sr))*(Math.tanh(sum*1.4)*.55-this.speaker);return this.speaker*this.drumVolume;
  }
@@ -469,7 +501,6 @@ class Engine {
   this.peak=0;
   for(let i=0;i<left.length;i++){
    this.schedule();const t=this.frame/this.sr;
-   this.crushLevelNow+=(this.crushLevel-this.crushLevelNow)*this.paramSmooth;
    this.pulseSpeedNow+=(this.pulseSpeed-this.pulseSpeedNow)*this.paramSmooth;this.pulseDepthNow+=(this.pulseDepth-this.pulseDepthNow)*this.paramSmooth;
    for(const k in this.fx)this.fx[k]+=(this.target[k]-this.fx[k])*.002;
    const woozeAmount=2*this.fx.wooze+70*this.fx.wooze*this.fx.wooze,flutter=.1*Math.sin(t*TAU*7.1);for(let k=0;k<5;k++)this.lfo[k]=woozeAmount*(.75*Math.sin(t*TAU*(.27+k*.031))+flutter);
@@ -502,7 +533,20 @@ class Engine {
    this.crushDry+=.0005*((l*l+r*r)*.5-this.crushDry);this.crushWet+=.0005*((wl*wl+wr*wr)*.5-this.crushWet);
    const compensation=this.crushDry>1e-10?clamp(Math.sqrt(this.crushDry/(this.crushWet+1e-12)),.16,1.5):1/Math.sqrt(drive);
    this.crushGain+=(compensation-this.crushGain)*(compensation<this.crushGain?.004:.0004);
-   l+=crush*(wl*this.crushGain*this.crushLevelNow-l);r+=crush*(wr*this.crushGain*this.crushLevelNow-r);
+   // Keep the original quantizer/hold/saturator. Weight excess upper-band energy
+   // in compensation, not a filter: the wet stem retains its harmonic ratios.
+   this.crushLowDry[0]+=this.crushEarK*(l-this.crushLowDry[0]);this.crushLowDry[1]+=this.crushEarK*(r-this.crushLowDry[1]);
+   this.crushLowWet[0]+=this.crushEarK*(wl-this.crushLowWet[0]);this.crushLowWet[1]+=this.crushEarK*(wr-this.crushLowWet[1]);
+   this.crushHPDry+=.0005*(((l-this.crushLowDry[0])**2+(r-this.crushLowDry[1])**2)*.5-this.crushHPDry);
+   this.crushHPWet+=.0005*(((wl-this.crushLowWet[0])**2+(wr-this.crushLowWet[1])**2)*.5-this.crushHPWet);
+   const raw=clamp((crush-.6)/.4,0,1),high=raw*raw*(3-2*raw);
+   const ear=this.crushDry>1e-10&&this.crushWet>1e-10?clamp(Math.sqrt((1+12*this.crushHPDry/this.crushDry)/(1+12*this.crushHPWet/this.crushWet)),.45,1):1;
+   const comfort=1-high*(1-ear);this.crushComfort+=(comfort-this.crushComfort)*this.paramSmooth;
+   // A small clean anchor at the extreme prevents quantizer dead zones from
+   // swallowing quiet notes, and retains chord definition at 100% CRUSH.
+   const available=clamp(this.crushWet/(this.crushDry*.04+1e-12),0,1);
+   const mix=crush*(1-.16*high)*(1-high*(1-available)),wetGain=this.crushGain*this.crushComfort;
+   l+=mix*(wl*wetGain-l);r+=mix*(wr*wetGain-r);
    fxOut=this.performance.colour(l,r,this.tone);l=fxOut[0];r=fxOut[1];
    const cutoff=this.outputFilterK;this.lowL+=cutoff*(l-this.lowL);this.lowR+=cutoff*(r-this.lowR);l=this.lowL;r=this.lowR;
    let wetL=0,wetR=0;

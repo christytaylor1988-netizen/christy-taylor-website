@@ -1,4 +1,4 @@
-# WILMACHORD LIE013 — V0.4.1 Batch 2
+# WILMACHORD LIE013 — V0.4.2
 
 The application is the existing self-contained build in `lie013-preview-7x9/`.
 `index.html` contains the editable interface/controller source and all 38 bundled
@@ -6,8 +6,8 @@ PCM sample zones. `worklet.js` contains the audio engine. Its identical embedded
 fallback remains in the HTML. No npm packages, external sample servers or build
 process are required by the deployed instrument. Serve the directory over HTTPS.
 
-The working V0.4.0 baseline is `b74a6b95542d4d533b366a234aff4d8375f7f4a7`.
-The branch `recovery/before-v041-batch2-20261119` preserves that release.
+The working V0.4.1 baseline is `10df54224eebb79e28063b1cd34fbe82b9449218`.
+The branch `recovery/before-v042-20261119` preserves that release.
 The user confirmed audible iPhone 13 mini output with the physical Silent Mode
 switch OFF. Software tests do not replace listening on the phone.
 
@@ -27,25 +27,40 @@ switch OFF. Software tests do not replace listening on the phone.
 ## Batch 2 changes
 
 - Warm compensated DRIVE, exact bypass at zero, oversampling and antialiasing.
-- CRUSH LEVEL scales the existing processed contribution independently.
+- CRUSH LEVEL was introduced in Batch 2 and is superseded by V0.4.2 below.
 - KOSMISCHE pulse speed/depth control its existing ring stage; warmer filter voicing.
 - HAUNTED retains resonator energy for longer natural and RELEASE-controlled tails.
 - All Batch 1 interface and transport improvements above remain intact.
 
-See [BATCH2-DSP.md](BATCH2-DSP.md) for parameter definitions, migration, signal
-order, algorithms and native-port notes. Twelve presets and all 38 samples remain.
-The ten unmodified voices match Batch 1 sample-for-sample with new effects at their
-defaults. HAUNTED and KOSMISCHE are intentional changes, verified separately.
+## V0.4.2 refinements
+
+- One CRUSH slider: original quantizer and high-setting harmonics, automatic
+  upper-band-aware compensation and a small clean anchor for quiet notes.
+  Legacy CRUSH LEVEL fields are ignored safely on load/import.
+- HAUNTED has a new warm harmonic reed body, detuned rank, bloom and restrained
+  old modal resonances. Its dry voice, not its reverb, supplies the new character.
+- ROCKSTEADY selection defaults to 50 ms ATTACK; explicit saved attacks survive.
+- DRIVE retains antialiasing and level compensation, with bounded asymmetric
+  transistor breakup, smooth high-setting supply sag and more upper-band presence.
+- Existing drum tails bridge retriggers for 4 ms; held sample loops crossfade
+  their seams for 12 ms. The shared clock, BPM setter and output routing are intact.
+
+See [V042-DSP.md](V042-DSP.md) for current parameter definitions and native-port
+notes; [BATCH2-DSP.md](BATCH2-DSP.md) is historical. All twelve presets and 38 sample
+zones remain. Eleven unchanged voices match V0.4.1 with DRIVE off and moderate
+CRUSH, excluding intentional loop-seam repairs. HAUNTED is tested separately.
 
 ## Automated checks
 
 From the repository root, with Node 22 or newer:
 
 ```sh
-node .github/wilmachord/sound-batch2.test.mjs
+node .github/wilmachord/sound-refinement.test.mjs
 node .github/wilmachord/transport.test.mjs
 node .github/wilmachord/controller.test.mjs
 node .github/wilmachord/audio-regression.test.mjs
+node .github/wilmachord/diagnostic-worklet.test.mjs
+node .github/wilmachord/diagnostic-controller.test.mjs
 ```
 
 For Chromium and WebKit tests, install the pinned test-only dependency in
@@ -64,7 +79,7 @@ real-world multi-finger performance and battery usage.
 
 The existing Render Static Site is `christy-taylor-static`, service
 `srv-dap8q48ae00c739four0`, publishing repository root `.` with no build required.
-Use **Manual Deploy → Deploy a specific commit** with the tested Batch 2 commit.
+Use **Manual Deploy → Deploy a specific commit** with the tested V0.4.2 commit.
 Keep the established public website and its separate checkout service unchanged.
 Do not change the configured branch or enable automatic deployments as a shortcut.
 

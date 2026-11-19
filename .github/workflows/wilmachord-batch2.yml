@@ -26,7 +26,7 @@ jobs:
           node-version: '22'
       - name: Preserved sound engine and shared transport
         run: |
-          node .github/wilmachord/sound-batch2.test.mjs
+          node .github/wilmachord/sound-refinement.test.mjs
           node .github/wilmachord/transport.test.mjs
           node .github/wilmachord/controller.test.mjs
           node .github/wilmachord/audio-regression.test.mjs

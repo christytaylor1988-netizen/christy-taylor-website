@@ -1,17 +1,16 @@
 {
   "application": "WILMACHORD",
   "catalogue": "LIE013",
-  "version": "0.4.1",
-  "edition": "Batch 2 \u2014 sound design and instrument refinement",
+  "version": "0.4.2",
+  "edition": "Sound refinement and tempo repair",
   "website_base_commit": "e0b00c92f938e53375322d544f108b2d113a0e36",
   "source_zip_sha256": "4f25bdcf9ed405278cfa03a1f9ff08bb790c1ef4063ac5337fd61f5798805110",
-  "deployment_change": "Warm DRIVE, independent CRUSH LEVEL, KOSMISCHE pulse speed/depth and warmer filter, longer HAUNTED resonances. Complete Batch 1 interface, samples, clock and audio routing preserved.",
+  "deployment_change": "Single compensated CRUSH, cinematic HAUNTED reeds, ROCKSTEADY 50 ms default attack, clearer sputtering DRIVE, continuous drum retriggers and sample loop seams. Existing UI, samples, output connection and shared clock preserved.",
   "files": {
-    "index.html": "5fa3a8fd234bcce6a0c31064056331861b2f502222a1ed2bc96741bcf85f2858",
-    "worklet.js": "f1cd2e5f7835ffc03c88beaacfc7b6831589023328722256328fbd59ddf0283a",
+    "index.html": "c4bbe0e498e264d4cfabfd0448109302d0e1c2aa99b437bacbdfa7475893bc05",
+    "worklet.js": "a983dbcd373efe589474ed3b9225d9a851754e25d7aa1e1954b34816928ecc73",
     "SOUND-CREDITS.txt": "0c6d9cb39f81babb57b5fb1ef6118676f5c59d815a42915dc227e3447aa4c5d1"
   },
   "diagnostic_build": "audio-diag-1",
-  "recovery_commit": "b74a6b95542d4d533b366a234aff4d8375f7f4a7",
-  "batch": 2
+  "recovery_commit": "10df54224eebb79e28063b1cd34fbe82b9449218"
 }

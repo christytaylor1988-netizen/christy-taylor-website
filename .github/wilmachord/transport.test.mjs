@@ -7,15 +7,15 @@ const test=(name,f)=>{f();tests.push(name);console.log('PASS',name);};
 function make(C=Engine,rate=48000,extra={}){const e=new C(rate);e.message({type:'samples',zones});e.configure({...defaultState(),tempo:120,arp:{...defaultState().arp,mode:'both'},...extra});return e;}
 function render(e,frames){const l=new Float32Array(128),r=new Float32Array(128);let peak=0,delta=0,prev=0;for(let n=0;n<frames;n+=128){const a=l.subarray(0,Math.min(128,frames-n)),b=r.subarray(0,a.length);e.process(a,b);for(const x of a){assert.ok(Number.isFinite(x));peak=Math.max(peak,Math.abs(x));delta=Math.max(delta,Math.abs(x-prev));prev=x;}}return {peak,delta};}
 function pos(e){return [e.clock.tick,e.clock.phase,e.clock.beat,e.currentBar,e.absoluteBar,e.nextArp,e.nextDrum,e.arpStep,e.drumStep];}
-test('All 12 preset definitions and all 38 sample waveforms remain byte-for-byte unchanged',()=>{
- assert.deepEqual(PRESETS,previous.PRESETS);assert.equal(PRESETS.length,12);assert.equal(zones.length,38);
+test('All twelve preset identities and 38 samples are preserved; only requested preset metadata changes',()=>{
+ assert.deepEqual(PRESETS.map(p=>({...p,desc:'',attack:p.id==='rocksteady'?.004:p.attack})),previous.PRESETS.map(p=>({...p,desc:''})));assert.equal(PRESETS.find(p=>p.id==='rocksteady').attack,.05);assert.equal(PRESETS.length,12);assert.equal(zones.length,38);
  const old=oldFile('index.html'),start=old.indexOf('const SAMPLE_ZONES='),end=old.indexOf('const EMBEDDED_WORKLET_SOURCE=');
  assert.equal(samples,old.slice(start,end));
  const inline=JSON.parse(html.match(/const EMBEDDED_WORKLET_SOURCE=(.*);\n/)[1]);assert.equal(inline,worklet);
 });
 const parity={};
-test('Normal audio is sample-for-sample identical to the Batch 1 for the ten unmodified instruments, combined mode and effects',()=>{
- for(const p of PRESETS.filter(p=>!['kosmische','haunted'].includes(p.id))){const config={preset:p.id,glitch:.44,tone:.3,swing:.42,fx:{attack:.03,release:.8,crush:.7,wooze:.4,reverb:.3}};
+test('Normal audio is sample-for-sample identical to the V0.4.1 for the eleven unmodified instruments, combined mode and effects',()=>{
+ for(const p of PRESETS.filter(p=>p.id!=='haunted')){const config={preset:p.id,drumVolume:0,glitch:.44,tone:.3,swing:.42,fx:{attack:.03,release:.8,crush:.4,wooze:.4,reverb:.3}};
   const a=make(Engine,48000,config),b=make(previous.Engine,48000,config);a.message({type:'sequence',on:true});b.message({type:'sequence',on:true});
   const al=new Float32Array(128),ar=new Float32Array(128),bl=new Float32Array(128),br=new Float32Array(128),hash=crypto.createHash('sha256');
   for(let n=0;n<96000;n+=128){a.process(al,ar);b.process(bl,br);assert.deepEqual(al,bl,p.id);assert.deepEqual(ar,br,p.id);hash.update(Buffer.from(al.buffer));}
