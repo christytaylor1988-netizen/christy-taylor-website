@@ -80,6 +80,7 @@ async function suite(type,name){
   await page.setViewportSize({width:375,height:812});await show(0);const cdp=await context.newCDPSession(page);
   const drag=async(x,y,dx,dy)=>{await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y,id:1}]});for(let i=1;i<=12;i++){await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x+dx*i/12,y:y+dy*i/12,id:1}]});await page.waitForTimeout(18);}await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await page.waitForTimeout(150);};
   await page.locator('#main-page').evaluate(e=>e.scrollTop=0);await drag(25,680,0,-220);assert.equal(await page.evaluate(()=>wilmaTest.state().page),0);assert.ok(await page.locator('#main-page').evaluate(e=>e.scrollTop)>0);
+  await page.locator('#preset-strip').scrollIntoViewIfNeeded();await page.locator('#preset-strip').evaluate(e=>e.scrollLeft=0);const strip=await page.locator('#preset-strip').boundingBox();await drag(strip.x+strip.width-12,strip.y+strip.height/2,-180,0);assert.ok(await page.locator('#preset-strip').evaluate(e=>e.scrollLeft)>20,'Native horizontal preset scrolling');
   await drag(320,42,-250,1);assert.equal(await page.evaluate(()=>wilmaTest.state().page),1);await drag(320,42,-250,1);assert.equal(await page.evaluate(()=>wilmaTest.state().page),2);await drag(40,42,250,1);assert.equal(await page.evaluate(()=>wilmaTest.state().page),1);
  });
  await test('Reduced-motion preference starts the scope disabled unless explicitly enabled',async()=>{
