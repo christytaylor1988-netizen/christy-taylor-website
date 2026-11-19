@@ -42,7 +42,7 @@ async function suite(type,name){
  });
  await test('Both pages scroll without horizontal overflow; effect hit targets are at least 44 px',async()=>{
   for(const n of [0,1]){await show(n);const el=page.locator(n?'#seq-page':'#main-page');const box=await el.evaluate(e=>({height:e.clientHeight,content:e.scrollHeight,width:e.clientWidth,sw:e.scrollWidth}));assert.ok(box.content>box.height+100);assert.ok(box.sw<=box.width+1);await el.evaluate(e=>e.scrollTop=e.scrollHeight);assert.ok(await el.evaluate(e=>e.scrollTop)>0);await page.screenshot({path:path.join(out,name+'-page'+(n+1)+'-bottom.png')});await el.evaluate(e=>e.scrollTop=0);await page.screenshot({path:path.join(out,name+'-page'+(n+1)+'-top.png')});}
-  await show(0);const sizes=await page.locator('#effects input').evaluateAll(xs=>xs.map(x=>x.getBoundingClientRect().height));assert.equal(sizes.length,6);assert.ok(sizes.every(x=>x>=44));
+  await show(0);const sizes=await page.locator('#effects input').evaluateAll(xs=>xs.map(x=>x.getBoundingClientRect().height));assert.equal(sizes.length,10);assert.ok(sizes.every(x=>x>=44));
   assert.equal(await page.locator('#main-page').evaluate(e=>getComputedStyle(e).touchAction),'auto');assert.equal(await page.locator('#preset-strip').evaluate(e=>getComputedStyle(e).touchAction),'pan-x');
  });
  await test('Long chord holds stay in PLAY; explicit EDIT opens existing editor and DONE restores playing',async()=>{
