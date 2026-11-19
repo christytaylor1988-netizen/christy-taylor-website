@@ -173,4 +173,15 @@ test('Old TONE imports preserve their color until Presence is deliberately adjus
 test('Performance diagnostics are optional and never rewire or stop the audio graph',()=>{
  const before=messages.filter(x=>['stop','sequence'].includes(x.type)).length;assert.equal($('monitor-toggle').textContent,'');$('monitor-toggle').onclick();assert.deepEqual(messages.at(-1),{type:'monitor',on:true});assert.equal($('performance-monitor').hidden,false);$('monitor-toggle').onclick();assert.deepEqual(messages.at(-1),{type:'monitor',on:false});assert.equal($('performance-monitor').hidden,true);assert.ok(connections.has(context.probe.context().destination));assert.equal(messages.filter(x=>['stop','sequence'].includes(x.type)).length,before);
 });
+test('Seven independent drum editors retain pitch and sends across voice/page changes and save',()=>{
+ for(let i=0;i<7;i++){$('drum-voice-buttons').children[i].onclick();$('drum-pitch').value=i-3;$('drum-pitch').oninput();$('drum-spring').value=i/10;$('drum-spring').oninput();$('drum-delay').value=(6-i)/10;$('drum-delay').oninput();}
+ $('page-main').onclick();$('page-drums').onclick();const d=context.probe.validate(JSON.parse(JSON.stringify(state())));for(let i=0;i<7;i++){assert.equal(d.drumFx[i].pitch,i-3);assert.equal(d.drumFx[i].spring,i/10);assert.equal(d.drumFx[i].delay,(6-i)/10);}
+ const old=music.defaultState();delete old.drumFx;assert.ok(context.probe.validate(old).drumFx.every(p=>p.pitch===0&&p.spring===0&&p.delay===0));
+});
+test('LOCK persists a note snapshot, FOLLOW clears it, and separate strum sound preserves the chord sound',()=>{
+ context.probe.stop();$('strum-lock').onclick();assert.equal(state().strumLock,true);assert.equal(state().lockedNotes.length,12);const notes=JSON.stringify(state().lockedNotes);const main=state().preset;
+ const sound=$('strum-sound-buttons').children.find(b=>b.textContent==='TAPE STRINGS');sound.onclick();assert.equal(state().preset,main);assert.equal(state().strumPreset,'tape-strings');assert.equal(JSON.stringify(state().lockedNotes),notes);
+ const restored=context.probe.validate(JSON.parse(JSON.stringify(state())));assert.equal(restored.strumLock,true);assert.equal(JSON.stringify(restored.lockedNotes),notes);assert.equal(restored.strumPreset,'tape-strings');
+ $('strum-follow').onclick();assert.equal(state().strumLock,false);$('strum-sound-buttons').children[0].onclick();assert.equal(state().strumPreset,'same');
+});
 fs.mkdirSync(out,{recursive:true});fs.writeFileSync(out+'/'+(bundled?'bundled-controller-results.json':'controller-results.json'),JSON.stringify({testType:'Controller event simulation; not real browser or touch hardware',bundled,tests,pass:true},null,2));

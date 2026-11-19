@@ -81,7 +81,7 @@ function arpIndex(step,length,order,random=.5){
  if(order===3)return Math.min(length-1,Math.floor(random*length));
  return step%length;
 }
-function defaultState(){return {schema:1,paletteId:'golden',custom:[],key:0,octave:0,latch:true,selected:0,preset:'motorik',fx:{attack:.012,release:.85,reverb:.18,wooze:.1,crush:.04},drive:0,kosmische:{pulseSpeed:17.3,pulseDepth:.44},tone:0,presence:0,eqByPreset:{},legacyTone:null,glitch:0,glitchTarget:'all',balance:.5,swing:0,drumEdits:{},drumCustom:false,drumFx:Array.from({length:7},()=>({pitch:0,spring:0,delay:0})),tempo:110,rhythm:0,drumVolume:.6,snare:'dry',strings:9,strumMode:'pluck',progression:[c(0),c(9,'m'),c(5),c(7)],arp:{speed:1,glide:0,order:0,octaves:1,length:.65,mode:'arp'},page:0};}
+function defaultState(){return {schema:1,paletteId:'golden',custom:[],key:0,octave:0,latch:true,selected:0,preset:'motorik',fx:{attack:.012,release:.85,reverb:.18,wooze:.1,crush:.04},drive:0,kosmische:{pulseSpeed:17.3,pulseDepth:.44},tone:0,presence:0,eqByPreset:{},legacyTone:null,glitch:0,glitchTarget:'all',balance:.5,swing:0,drumEdits:{},drumCustom:false,drumFx:Array.from({length:7},()=>({pitch:0,spring:0,delay:0})),tempo:110,rhythm:0,drumVolume:.6,snare:'dry',strings:9,strumMode:'pluck',strumLock:false,lockedNotes:null,strumPreset:'same',progression:[c(0),c(9,'m'),c(5),c(7)],arp:{speed:1,glide:0,order:0,octaves:1,length:.65,mode:'arp'},page:0};}
 
 const DRUM_VOICES=['KICK','SNARE','CLOSED HAT','OPEN HAT','WOOD','TOM','CLAP'];
 const DRUM_TRACKS=['KICK','SNARE','CLAP','CLOSED HAT','OPEN HAT','PERCUSSION'];
@@ -240,7 +240,7 @@ const noteHz=n=>440*2**((n-69)/12);
 class VoiceSlot {
  constructor(){
   this.id=0;this.n=60;this.f=0.1;this.target=0.1;this.glide=0.1;this.cachedGlide=0.1;this.glideCoef=0.1;this.cachedRelease=null;this.releaseCoef=0.1;
-  this.env=0.1;this.age=0;this.gate=0;this.pluck=false;this.velocity=0.1;this.origin='strum';this.preset=PRESETS[0];this.release=null;this.pan=0.1;this.drift=0.1;this.driftTarget=0.1;this.driftWait=0;this.offTick=undefined;this.tailFrames=undefined;this.lastL=0.1;this.lastR=0.1;
+  this.strumOverride=false;this.strumAttackStep=0.1;this.strumReleaseCoef=0.1;this.strumPluckCoef=0.1;this.env=0.1;this.age=0;this.gate=0;this.pluck=false;this.velocity=0.1;this.origin='strum';this.preset=PRESETS[0];this.release=null;this.pan=0.1;this.drift=0.1;this.driftTarget=0.1;this.driftWait=0;this.offTick=undefined;this.tailFrames=undefined;this.lastL=0.1;this.lastR=0.1;
   this.p=0.1;this.q=0.1;this.r=0.1;this.low=0.1;this.low2=0.1;this.band=0.1;this.dc=0.1;this.filter=0.1;this.filterK=0.1;this.sampleEnded=false;
   this.samples=[];this.sampleSlots=Array.from({length:6},()=>({z:null,pos:0.1,ratio:0.1,weight:0.1}));this.modes=new Float64Array(4);this.modeAmp=new Float64Array(4);this.modeDecay=new Float64Array(4);this.modeRelease=new Float64Array(4);
   this.reedPhase=0.1;this.reedAmp=0.1;this.bloom=0.1;this.bloomK=0.1;this.reedDecay=0.1;this.reedRelease=0.1;this.bodyAmp=0.1;this.bodyDecay=0.1;this.bodyRelease=0.1;
@@ -441,7 +441,7 @@ class Engine {
   this.pulseSpeed=17.3;this.pulseSpeedNow=17.3;this.pulseDepth=.44;this.pulseDepthNow=.44;this.pulsePhase=0;
   this.equalizer=new InstrumentEQ(sr);this.eqLow=0;this.eqMid=0;this.eqHigh=0;this.presence=0;this.performance=new PerformanceFX(sr);this.tone=0;this.glitch=0;this.glitchTarget='all';this.glitchHold=false;this.balance=.5;this.silentCleared=false;this.balanceNow=.5;this.chordGain=1;this.arpGain=1;this.crushDry=0;this.crushWet=0;this.crushGain=1;this.crushComfort=1;this.crushHPDry=0;this.crushHPWet=0;this.crushLowDry=new Float64Array(2);this.crushLowWet=new Float64Array(2);this.crushEarK=1-Math.exp(-TAU*2200/sr);this.swing=0;this.drumCustom=false;this.editGrid=null;this.grid=factoryGrid(0);this.timeline=drumTimeline(0,false);this.gridPlayhead=-1;
   this.chord={root:0,quality:''};this.key=0;this.octave=0;this.held=false;
-  this.tempo=110;this.clock=new MusicalClock(sr);this.beat=0;this.samples=[];this.missingSamples=0;this.strings=9;this.strumMode='pluck';this.strumPointers=new Map();this.snare='dry';this.activeSnare='dry';this.trace=null;this.drums=false;this.sequence=false;this.paused=false;this.pattern=0;this.pendingPattern=0;
+  this.tempo=110;this.clock=new MusicalClock(sr);this.beat=0;this.samples=[];this.missingSamples=0;this.strings=9;this.strumMode='pluck';this.strumLock=false;this.lockedNotes=null;this.strumPreset=null;this.strumPointers=new Map();this.snare='dry';this.activeSnare='dry';this.trace=null;this.drums=false;this.sequence=false;this.paused=false;this.pattern=0;this.pendingPattern=0;
   this.drumEffects=new DrumEffects(sr);this.drumWetL=0;this.drumWetR=0;
   this.drumTune=new Float64Array(7).fill(1);this.drumTuneTarget=new Float64Array(7).fill(1);this.drumSemitones=new Float64Array(7);this.drumNoise=new Float64Array(7);this.drumNoiseK=new Float64Array(7).fill(1-Math.exp(-TAU*1800/sr));this.drumSends=new Float64Array(14);this.drumSendTargets=new Float64Array(14);this.drumFxSmooth=1-Math.exp(-1/(sr*.02));this.tunedSnareK=null;
   this.drumStep=0;this.drumStart=0;this.nextDrum=0;this.drumVolume=.6;this.drumEnv=new Float64Array(7);this.drumAge=new Float64Array(7);this.drumPhase=new Float64Array(7);this.drumPitch=new Float64Array(7);this.drumLast=new Float64Array(7);this.drumBridge=new Float64Array(7);this.drumBridgeAge=new Float64Array(7);this.drumBridgeFrames=Math.round(sr*.004);this.drumBridgeAge.fill(this.drumBridgeFrames);
@@ -481,9 +481,15 @@ class Engine {
   if(['dry','vintage','sixties','dub','lofi','noise'].includes(s.snare))this.snare=s.snare;
   if([6,9,12].includes(s.strings)&&s.strings!==this.strings){this.releaseStrums();this.strings=s.strings;}
   if(['pluck','hold'].includes(s.strumMode)&&s.strumMode!==this.strumMode){this.releaseStrums();this.strumMode=s.strumMode;}
+  if(s.strumPreset!==undefined){const preset=s.strumPreset==='same'?null:PRESETS.find(p=>p.id===s.strumPreset);if(preset!==undefined&&preset!==this.strumPreset){this.releaseStrums();for(const v of this.voices)if(v.origin==='strum'){v.gate=0;v.release=.025;}this.strumPreset=preset;}}
+  if(s.strumLock!==undefined){
+   if(s.strumLock&&!this.strumLock)this.lockedNotes=Array.isArray(s.lockedNotes)&&s.lockedNotes.length===12&&s.lockedNotes.every(n=>Number.isInteger(n)&&n>=24&&n<=120)?s.lockedNotes.slice():this.liveStrumNotes(12);
+   const was=this.strumLock;this.strumLock=!!s.strumLock;if(was&&!this.strumLock)this.retuneStrums();
+  }
   if(s.progression?.length){if(this.sequence)this.pendingProgression=structuredCopy(s.progression);else this.progression=structuredCopy(s.progression);}
  }
  message(m){
+  if(m.type==='strum-lock'){if(m.on)this.lockedNotes=this.liveStrumNotes(12);this.strumLock=!!m.on;if(!m.on)this.retuneStrums();}
   if(m.type==='glitch-hold')this.glitchHold=!!m.on;
   if(m.type==='config')this.configure(m.state);
   if(m.type==='samples'){
@@ -533,10 +539,11 @@ class Engine {
   this.seqOrigin=0;this.nextArp=0;this.arpStep=0;this.currentBar=-1;this.absoluteBar=-1;this.previousNotes=[];this.lastArp=null;
   if(this.pendingProgression){this.progression=this.pendingProgression;this.pendingProgression=null;}
  }
- strumNotes(){return laneNotes(this.sequence&&this.currentChord?this.currentChord:this.chord,this.sequence?0:this.key,this.octave,this.strings);}
+ liveStrumNotes(count=this.strings){return laneNotes(this.sequence?(this.currentChord||this.progression[0]):this.chord,this.sequence?0:this.key,this.octave,count);}
+ strumNotes(){return this.strumLock&&this.lockedNotes?this.lockedNotes.slice(0,this.strings):this.liveStrumNotes();}
  releaseStrum(token){const held=this.strumPointers.get(token);if(held){held.voice.gate=0;this.strumPointers.delete(token);}}
  releaseStrums(){for(const token of this.strumPointers.keys())this.releaseStrum(token);}
- retuneStrums(){const notes=this.strumNotes();for(const held of this.strumPointers.values()){const old=held.voice;old.gate=0;old.release=.045;held.voice=null;held.voice=this.note(notes[held.lane],old.velocity,-1,'strum');}}
+ retuneStrums(){if(this.strumLock)return;const notes=this.strumNotes();for(const held of this.strumPointers.values()){const old=held.voice;old.gate=0;old.release=.045;held.voice=null;held.voice=this.note(notes[held.lane],old.velocity,-1,'strum');}}
  release(origin){for(const v of this.voices)if(v.origin===origin)v.gate=0;}
  note(n,velocity=.7,seconds=.2,origin='strum',from=null){
   if(this.voices.length>=this.maxVoices){
@@ -559,7 +566,7 @@ class Engine {
    }else this.freeVoices.push(old);
   }
   const f=hz(n),start=from===null?f:hz(from),glide=from===null?0:this.arp.glide*.5,v=this.freeVoices.pop();
-  v.id=++this.voiceId;v.n=n;v.f=start;v.target=f;v.glide=glide;v.cachedGlide=glide;v.glideCoef=glide>0?1-Math.exp(-1/(this.sr*glide*.2)):1;v.cachedRelease=null;v.releaseCoef=0;v.env=0;v.age=0;v.gate=seconds<0?-1:Math.round(seconds*this.sr);v.pluck=seconds===-2;v.velocity=velocity;v.origin=origin;v.preset=this.preset;v.release=null;v.pan=(n%7-3)*.04;v.drift=0;v.driftTarget=this.random()*2-1;v.driftWait=0;v.offTick=undefined;v.tailFrames=undefined;v.lastL=0;v.lastR=0;
+  v.id=++this.voiceId;v.n=n;v.f=start;v.target=f;v.glide=glide;v.cachedGlide=glide;v.glideCoef=glide>0?1-Math.exp(-1/(this.sr*glide*.2)):1;v.cachedRelease=null;v.releaseCoef=0;v.env=0;v.age=0;v.gate=seconds<0?-1:Math.round(seconds*this.sr);v.pluck=seconds===-2;v.velocity=velocity;v.origin=origin;v.preset=origin==='strum'&&this.strumPreset?this.strumPreset:this.preset;v.strumOverride=origin==='strum'&&!!this.strumPreset;v.strumAttackStep=v.strumOverride?1/(this.sr*v.preset.attack):0;v.strumReleaseCoef=v.strumOverride?Math.exp(-6.9/(this.sr*v.preset.release)):0;v.strumPluckCoef=v.strumOverride?Math.exp(-5/(this.sr*(.45+v.preset.release*2))):0;v.release=null;v.pan=(n%7-3)*.04;v.drift=0;v.driftTarget=this.random()*2-1;v.driftWait=0;v.offTick=undefined;v.tailFrames=undefined;v.lastL=0;v.lastR=0;
   prepareVoice(v,this);this.voices.push(v);this.events.notes++;this.lastNote=n;return v;
  }
  playChord(c,seconds,origin,previous=[]){
@@ -648,9 +655,10 @@ class Engine {
     if(v.gate>0)v.gate--;if(v.tailFrames!==undefined&&--v.tailFrames<=0){v.env=0;continue;}
     const down=v.gate!==0,age=v.age++/this.sr,p=v.preset;
     const naturalPiano=v.pluck&&p.method==='sample'&&(p.bank==='grand'||p.bank==='upright');
-    if(down){if(v.pluck&&!naturalPiano&&age>this.fx.attack)v.env*=pluckCoef;else v.env=Math.min(1,v.env+attackStep);}
-    else{if(v.release!==v.cachedRelease){v.cachedRelease=v.release;v.releaseCoef=v.release?Math.exp(-6.9/(this.sr*v.release)):0;}v.env*=v.release?v.releaseCoef:releaseCoef;}
-    if(v.pluck&&v.env<.00001&&age>this.fx.attack)v.gate=0;
+    const voiceAttack=v.strumOverride?p.attack:this.fx.attack;
+    if(down){if(v.pluck&&!naturalPiano&&age>voiceAttack)v.env*=v.strumOverride?v.strumPluckCoef:pluckCoef;else v.env=Math.min(1,v.env+(v.strumOverride?v.strumAttackStep:attackStep));}
+    else{if(v.release!==v.cachedRelease){v.cachedRelease=v.release;v.releaseCoef=v.release?Math.exp(-6.9/(this.sr*v.release)):0;}v.env*=v.release?v.releaseCoef:v.strumOverride?v.strumReleaseCoef:releaseCoef;}
+    if(v.pluck&&v.env<.00001&&age>voiceAttack)v.gate=0;
     if(v.env<.00001&&!down)continue;
     if(--v.driftWait<=0){v.driftTarget=this.random()*2-1;v.driftWait=this.sr*(.6+this.random());}v.drift+=(v.driftTarget-v.drift)/(this.sr*.3);
     if(v.glide!==v.cachedGlide){v.cachedGlide=v.glide;v.glideCoef=v.glide>0?1-Math.exp(-1/(this.sr*v.glide*.2)):1;}v.f+=(v.target-v.f)*v.glideCoef;
@@ -698,7 +706,7 @@ class Engine {
   if(this.masterTarget>0)this.silentCleared=false;
   if(this.master<.00001&&this.masterTarget===0&&!this.silentCleared){this.silentCleared=true;this.performance.reset();this.drumEffects.reset();for(const v of this.voices)this.freeVoices.push(v);for(const v of this.tails)this.freeVoices.push(v);this.voices.length=0;this.tails.length=0;this.tailCarry.fill(0);for(const c of this.combs)c.data.fill(0);}
  }
- status(){return {frame:this.frame,peak:this.peak,voices:this.voices.length,tails:this.tails.length,heldStrings:this.strumPointers.size,missingSamples:this.missingSamples,tick:this.clock.tick,events:{...this.events},bar:this.currentBar,beat:Math.floor((this.beat-this.seqOrigin)%4),drumStep:this.drumStep,gridStep:this.gridPlayhead,glitchHold:this.glitchHold,mode:this.arp.mode,lastNote:this.lastNote,drums:this.drums,sequence:this.sequence,paused:this.paused};}
+ status(){return {strumLock:this.strumLock,strumNotes:this.strumNotes(),lockedNotes:this.strumLock?this.lockedNotes:null,frame:this.frame,peak:this.peak,voices:this.voices.length,tails:this.tails.length,heldStrings:this.strumPointers.size,missingSamples:this.missingSamples,tick:this.clock.tick,events:{...this.events},bar:this.currentBar,beat:Math.floor((this.beat-this.seqOrigin)%4),drumStep:this.drumStep,gridStep:this.gridPlayhead,glitchHold:this.glitchHold,mode:this.arp.mode,lastNote:this.lastNote,drums:this.drums,sequence:this.sequence,paused:this.paused};}
 }
 function structuredCopy(x){return JSON.parse(JSON.stringify(x));}
 
