@@ -19,6 +19,8 @@ jobs:
           sparse-checkout: |
             lie013-preview-7x9
             .github/wilmachord
+      - name: Align disposable checkout ownership with the container user
+        run: chown -R "$(id -u):$(id -g)" "$GITHUB_WORKSPACE"
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
