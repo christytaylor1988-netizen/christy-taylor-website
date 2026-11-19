@@ -81,8 +81,9 @@ function arpIndex(step,length,order,random=.5){
  if(order===3)return Math.min(length-1,Math.floor(random*length));
  return step%length;
 }
-function defaultState(){return {schema:1,paletteId:'golden',custom:[],key:0,octave:0,latch:true,selected:0,preset:'motorik',fx:{attack:.012,release:.85,reverb:.18,wooze:.1,crush:.04},drive:0,kosmische:{pulseSpeed:17.3,pulseDepth:.44},tone:0,presence:0,eqByPreset:{},legacyTone:null,glitch:0,glitchTarget:'all',balance:.5,swing:0,drumEdits:{},drumCustom:false,tempo:110,rhythm:0,drumVolume:.6,snare:'dry',strings:9,strumMode:'pluck',progression:[c(0),c(9,'m'),c(5),c(7)],arp:{speed:1,glide:0,order:0,octaves:1,length:.65,mode:'arp'},page:0};}
+function defaultState(){return {schema:1,paletteId:'golden',custom:[],key:0,octave:0,latch:true,selected:0,preset:'motorik',fx:{attack:.012,release:.85,reverb:.18,wooze:.1,crush:.04},drive:0,kosmische:{pulseSpeed:17.3,pulseDepth:.44},tone:0,presence:0,eqByPreset:{},legacyTone:null,glitch:0,glitchTarget:'all',balance:.5,swing:0,drumEdits:{},drumCustom:false,drumFx:Array.from({length:7},()=>({pitch:0,spring:0,delay:0})),tempo:110,rhythm:0,drumVolume:.6,snare:'dry',strings:9,strumMode:'pluck',progression:[c(0),c(9,'m'),c(5),c(7)],arp:{speed:1,glide:0,order:0,octaves:1,length:.65,mode:'arp'},page:0};}
 
+const DRUM_VOICES=['KICK','SNARE','CLOSED HAT','OPEN HAT','WOOD','TOM','CLAP'];
 const DRUM_TRACKS=['KICK','SNARE','CLAP','CLOSED HAT','OPEN HAT','PERCUSSION'];
 const DRUM_LANES=[[0],[1],[6],[2],[3],[4,5]];
 function factoryGrid(pattern){
@@ -403,6 +404,35 @@ class WarmDrive {
 const TAU=Math.PI*2, hz=n=>440*Math.pow(2,(n-69)/12);
 // No DOM, Web Audio nodes or timers here. The same renderer runs in the worklet
 // and offline verification. A native port can consume the versioned music schema.
+// One spring model and one tempo-following analogue delay, shared by seven sends.
+// Short allpass dispersion into two damped feedback strings gives a metallic
+// spring response. Delay repeats are filtered and softly saturated, feedback .43.
+class DrumEffects {
+ constructor(sr){
+  this.sr=sr;this.out=new Float64Array(2);this.active=0;this.dc=0;this.low=0;
+  this.spring=[.0371,.0497].map((t,i)=>({data:new Float32Array(Math.round(sr*t)),at:0,low:0,stages:[.0011,.0023,.0047].map((d,j)=>({data:new Float32Array(Math.round(sr*d*(1+i*.13))),at:0,g:.58-j*.06}))}));
+  this.delay=new Float32Array(Math.ceil(sr*1.2));this.at=0;this.delayFrames=sr*60/110*.75;this.targetFrames=this.delayFrames;
+  this.smooth=1-Math.exp(-1/(sr*.04));this.damping=1-Math.exp(-2*Math.PI*2800/sr);this.inputDC=1-Math.exp(-2*Math.PI*90/sr);this.delayK=1-Math.exp(-2*Math.PI*2300/sr);
+ }
+ tempo(bpm){this.targetFrames=Math.min(this.delay.length-2,this.sr*60/bpm*.75);}
+ reset(){this.active=0;this.dc=0;this.low=0;this.delay.fill(0);this.out.fill(0);for(const t of this.spring){t.low=0;t.data.fill(0);for(const a of t.stages)a.data.fill(0);}}
+ process(springSend,delaySend){
+  if(Math.abs(springSend)+Math.abs(delaySend)>1e-9)this.active=Math.ceil(this.sr*5);
+  if(this.active===0){this.out[0]=0;this.out[1]=0;return this.out;}this.active--;
+  this.dc+=this.inputDC*(springSend-this.dc);const input=(springSend-this.dc)*.48;
+  for(let i=0;i<2;i++){
+   const t=this.spring[i],v=t.data[t.at];t.low+=this.damping*(v-t.low);let x=input+t.low*.72;
+   for(let j=0;j<3;j++){const a=t.stages[j],read=a.data[a.at],y=read-a.g*x;a.data[a.at]=x+a.g*y;if(++a.at===a.data.length)a.at=0;x=y;}
+   t.data[t.at]=Math.tanh(x);if(++t.at===t.data.length)t.at=0;this.out[i]=v*.6;
+  }
+  this.delayFrames+=(this.targetFrames-this.delayFrames)*this.smooth;
+  const position=(this.at-this.delayFrames+this.delay.length)%this.delay.length,i=position|0,f=position-i,j=(i+1)%this.delay.length;
+  const echo=this.delay[i]+(this.delay[j]-this.delay[i])*f;this.low+=this.delayK*(echo-this.low);
+  this.delay[this.at]=Math.tanh(delaySend*.55+this.low*.43);if(++this.at===this.delay.length)this.at=0;
+  this.out[0]+=this.low*.65;this.out[1]+=this.low*.65;return this.out;
+ }
+}
+
 class Engine {
  constructor(sr=48000){
   this.sr=sr;this.frame=0;this.voices=[];this.maxTails=8;this.freeVoices=Array.from({length:40},()=>new VoiceSlot());this.tailCarry=new Float64Array(4);this.tailCarryDecay=Math.exp(-6.9/(sr*.004));this.sampleBanks=Object.create(null);this.steals=0;this.heldSteals=0;this.tailRecycles=0;this.seed=0x534d4348;this.preset=PRESETS[0];
@@ -412,6 +442,8 @@ class Engine {
   this.equalizer=new InstrumentEQ(sr);this.eqLow=0;this.eqMid=0;this.eqHigh=0;this.presence=0;this.performance=new PerformanceFX(sr);this.tone=0;this.glitch=0;this.glitchTarget='all';this.glitchHold=false;this.balance=.5;this.silentCleared=false;this.balanceNow=.5;this.chordGain=1;this.arpGain=1;this.crushDry=0;this.crushWet=0;this.crushGain=1;this.crushComfort=1;this.crushHPDry=0;this.crushHPWet=0;this.crushLowDry=new Float64Array(2);this.crushLowWet=new Float64Array(2);this.crushEarK=1-Math.exp(-TAU*2200/sr);this.swing=0;this.drumCustom=false;this.editGrid=null;this.grid=factoryGrid(0);this.timeline=drumTimeline(0,false);this.gridPlayhead=-1;
   this.chord={root:0,quality:''};this.key=0;this.octave=0;this.held=false;
   this.tempo=110;this.clock=new MusicalClock(sr);this.beat=0;this.samples=[];this.missingSamples=0;this.strings=9;this.strumMode='pluck';this.strumPointers=new Map();this.snare='dry';this.activeSnare='dry';this.trace=null;this.drums=false;this.sequence=false;this.paused=false;this.pattern=0;this.pendingPattern=0;
+  this.drumEffects=new DrumEffects(sr);this.drumWetL=0;this.drumWetR=0;
+  this.drumTune=new Float64Array(7).fill(1);this.drumTuneTarget=new Float64Array(7).fill(1);this.drumSemitones=new Float64Array(7);this.drumNoise=new Float64Array(7);this.drumNoiseK=new Float64Array(7).fill(1-Math.exp(-TAU*1800/sr));this.drumSends=new Float64Array(14);this.drumSendTargets=new Float64Array(14);this.drumFxSmooth=1-Math.exp(-1/(sr*.02));this.tunedSnareK=null;
   this.drumStep=0;this.drumStart=0;this.nextDrum=0;this.drumVolume=.6;this.drumEnv=new Float64Array(7);this.drumAge=new Float64Array(7);this.drumPhase=new Float64Array(7);this.drumPitch=new Float64Array(7);this.drumLast=new Float64Array(7);this.drumBridge=new Float64Array(7);this.drumBridgeAge=new Float64Array(7);this.drumBridgeFrames=Math.round(sr*.004);this.drumBridgeAge.fill(this.drumBridgeFrames);
   this.drumDecay=[.19,.105,.027,.17,.038,.14,.085].map(t=>Math.exp(-1/(sr*t)));this.noiseLow=0;this.speaker=0;this.openChoke=false;this.noiseK=1-Math.exp(-TAU*1800/sr);this.speakerK=1-Math.exp(-TAU*3700/sr);this.snareDecay=Math.exp(-1/(sr*.32));this.chokeDecay=Math.exp(-1/(sr*.006));this.snareK={dry:1-Math.exp(-TAU*6500/sr),vintage:1-Math.exp(-TAU*6500/sr),sixties:1-Math.exp(-TAU*4500/sr),dub:1-Math.exp(-TAU*1900/sr),lofi:1-Math.exp(-TAU*6500/sr),noise:1-Math.exp(-TAU*6500/sr)};this.cachedAttack=NaN;this.cachedRelease=NaN;this.cachedCrush=NaN;
   this.progression=[this.chord];this.pendingProgression=null;this.arp={speed:1,order:0,octaves:1,length:.65,glide:0,mode:'arp'};
@@ -434,10 +466,16 @@ class Engine {
   // Saved pre-0.4.3 TONE remains exact until the user first adjusts PRESENCE.
   const legacy=Number.isFinite(s.legacyTone);if(legacy)this.tone=clamp(s.legacyTone,-1,1);
   this.equalizer.set(this.eqLow,this.eqMid,this.eqHigh,legacy?0:this.presence);
-  if(Number.isFinite(s.tempo))this.tempo=clamp(s.tempo,40,220);
+  if(Number.isFinite(s.tempo)){this.tempo=clamp(s.tempo,40,220);this.drumEffects.tempo(this.tempo);}
   if(Number.isFinite(s.key))this.key=s.key;if(Number.isFinite(s.octave))this.octave=clamp(s.octave,-1,2);
   if(Number.isFinite(s.rhythm))this.pendingPattern=clamp(s.rhythm,0,5);
   if(s.drumCustom!==undefined){const grid=s.drumEdits?.[this.pendingPattern];this.drumCustom=!!s.drumCustom&&validDrumGrid(grid);this.editGrid=this.drumCustom?grid.map(r=>r.slice()):null;}
+  if(Array.isArray(s.drumFx))for(let i=0;i<7;i++){
+   const p=s.drumFx[i];if(!p)continue;
+   const pitch=Number.isFinite(p.pitch)?clamp(p.pitch,-12,12):0;
+   if(pitch!==this.drumSemitones[i]){this.drumSemitones[i]=pitch;const ratio=2**(pitch/12);this.drumTuneTarget[i]=ratio;this.drumNoiseK[i]=1-Math.exp(-TAU*1800*ratio/this.sr);if(i===1){this.tunedSnareK={};for(const kind of SNARES){const f=kind.id==='sixties'?4500:kind.id==='dub'?1900:6500;this.tunedSnareK[kind.id]=1-Math.exp(-TAU*Math.min(this.sr*.4,f*ratio)/this.sr);}}}
+   this.drumSendTargets[i*2]=Number.isFinite(p.spring)?clamp(p.spring,0,1):0;this.drumSendTargets[i*2+1]=Number.isFinite(p.delay)?clamp(p.delay,0,1):0;
+  }
   if(Number.isFinite(s.drumVolume))this.drumVolume=clamp(s.drumVolume,0,1);
   if(s.arp){const old=this.arp;this.arp={...this.arp,...s.arp};if(this.sequence&&old.mode!==this.arp.mode){this.pendingMode=this.arp.mode;this.arp.mode=old.mode;}else if(this.sequence&&s.arp.mode===old.mode)this.pendingMode=null;if(old.speed!==this.arp.speed)this.nextArp=Math.ceil(this.clock.tick/(DIVISIONS[this.arp.speed]*24))*(DIVISIONS[this.arp.speed]*24);}
   if(['dry','vintage','sixties','dub','lofi','noise'].includes(s.snare))this.snare=s.snare;
@@ -565,23 +603,27 @@ class Engine {
   else this.nextDrum=this.drumStart+this.timeline.events[this.drumStep].tick;
  }
  drumSample(){
-  const noise=this.random()*2-1;this.noiseLow+=this.noiseK*(noise-this.noiseLow);const high=noise-this.noiseLow;let sum=0;
+  const noise=this.random()*2-1;this.noiseLow+=this.noiseK*(noise-this.noiseLow);const high=noise-this.noiseLow;let sum=0,springSend=0,delaySend=0;
   for(let i=0;i<7;i++){
+   let tune=this.drumTune[i];if(tune!==this.drumTuneTarget[i]){tune+=(this.drumTuneTarget[i]-tune)*this.drumFxSmooth;if(Math.abs(tune-this.drumTuneTarget[i])<1e-8)tune=this.drumTuneTarget[i];this.drumTune[i]=tune;}
+   const k=i*2;for(let j=k;j<k+2;j++){let v=this.drumSends[j];if(v!==this.drumSendTargets[j]){v+=(this.drumSendTargets[j]-v)*this.drumFxSmooth;if(Math.abs(v-this.drumSendTargets[j])<1e-8)v=this.drumSendTargets[j];this.drumSends[j]=v;}}
+   this.drumNoise[i]+=this.drumNoiseK[i]*(noise-this.drumNoise[i]);const tunedHigh=tune===1?high:noise-this.drumNoise[i];
    if(this.drumEnv[i]<.000001&&this.drumBridgeAge[i]>=this.drumBridgeFrames){this.drumLast[i]=0;continue;}const t=this.drumAge[i]++/this.sr;let sound=0,f=0;
    if(i===0)f=48+48*Math.exp(-t*48);if(i===1)f=177;if(i===2||i===3)f=3371;if(i===4)f=796;if(i===5)f=91+27*Math.exp(-t*24);
-   this.drumPhase[i]+=TAU*f*this.drumPitch[i]/this.sr;const p=this.drumPhase[i];
+   this.drumPhase[i]+=TAU*f*this.drumPitch[i]*tune/this.sr;const p=this.drumPhase[i];
    if(i===0)sound=Math.sin(p)*1.15;if(i===1)sound=this.snareSample(noise,t,p);
-   if(i===2||i===3)sound=high*.36+(Math.sin(p)+Math.sin(p*1.427))*.045;
+   if(i===2||i===3)sound=tunedHigh*.36+(Math.sin(p)+Math.sin(p*1.427))*.045;
    if(i===4)sound=(Math.sin(p)+.4*Math.sin(p*1.61))*.45;if(i===5)sound=Math.sin(p)*.7;
-   if(i===6)sound=high*.9*(t<.03?(.25+.75*Math.max(0,Math.sin(t*TAU*85))):Math.exp(-(t-.03)*18));
+   if(i===6)sound=tunedHigh*.9*(t<.03?(.25+.75*Math.max(0,Math.sin(t*TAU*85*tune))):Math.exp(-(t-.03)*18));
    let value=sound*this.drumEnv[i]*Math.min(1,t/.0007);
    if(this.drumBridgeAge[i]<this.drumBridgeFrames){value+=this.drumBridge[i]*(.5+.5*Math.cos(Math.PI*this.drumBridgeAge[i]/this.drumBridgeFrames));this.drumBridgeAge[i]++;}
-   this.drumLast[i]=value;sum+=value;this.drumEnv[i]*=i===1?this.snareDecay:this.drumDecay[i];if(i===3&&this.openChoke)this.drumEnv[i]*=this.chokeDecay;
+   this.drumLast[i]=value;sum+=value;springSend+=value*this.drumSends[i*2];delaySend+=value*this.drumSends[i*2+1];this.drumEnv[i]*=i===1?this.snareDecay:this.drumDecay[i];if(i===3&&this.openChoke)this.drumEnv[i]*=this.chokeDecay;
   }
+  const wet=this.drumEffects.process(springSend*this.drumVolume,delaySend*this.drumVolume);this.drumWetL=wet[0];this.drumWetR=wet[1];
   this.speaker+=this.speakerK*(Math.tanh(sum*1.4)*.55-this.speaker);return this.speaker*this.drumVolume;
  }
  snareSample(noise,t,p){
-  const kind=this.activeSnare,lowK=this.snareK[kind];
+  const kind=this.activeSnare,lowK=this.drumSemitones[1]===0?this.snareK[kind]:this.tunedSnareK[kind];
   this.snareLow+=lowK*(noise-this.snareLow);this.snareBand+=.06*(this.snareLow-this.snareBand);const wire=this.snareLow-this.snareBand;
   if(kind==='dry')return wire*.95*Math.exp(-t*13)+(Math.sin(p)+.45*Math.sin(p*1.57))*.44*Math.exp(-t*24);
   if(kind==='vintage')return noise*.62*Math.exp(-t*18)+(.55*Math.sin(p*1.02)+.34*Math.sin(p*1.86))*Math.exp(-t*23);
@@ -646,7 +688,7 @@ class Engine {
    const cutoff=this.outputFilterK;this.lowL+=cutoff*(l-this.lowL);this.lowR+=cutoff*(r-this.lowR);l=this.lowL;r=this.lowR;
    let wetL=0,wetR=0;
    for(let j=0;j<8;j++){const c=this.combs[j],v=c.data[c.i];c.low+=(v-c.low)*.3;c.data[c.i]=(j<4?l:r)*.22+c.low*.76;c.i=(c.i+1)%c.data.length;if(j<4)wetL+=v;else wetR+=v;}
-   const rv=this.fx.reverb,d=this.drumSample();fxOut=this.performance.bus(2,d,d);l=l*(1-rv*.25)+wetL*rv*.65+fxOut[0];r=r*(1-rv*.25)+wetR*rv*.65+fxOut[1];this.performance.end();
+   const rv=this.fx.reverb,d=this.drumSample();fxOut=this.performance.bus(2,d+this.drumWetL,d+this.drumWetR);l=l*(1-rv*.25)+wetL*rv*.65+fxOut[0];r=r*(1-rv*.25)+wetR*rv*.65+fxOut[1];this.performance.end();
    this.master+=(this.masterTarget-this.master)*.004;
    const dl=l-this.dcX[0]+.9984*this.dcY[0],dr=r-this.dcX[1]+.9984*this.dcY[1];this.dcX[0]=l;this.dcX[1]=r;this.dcY[0]=dl;this.dcY[1]=dr;
    left[i]=Math.tanh(dl*.9)*.88*this.master;right[i]=Math.tanh(dr*.9)*.88*this.master;this.peak=Math.max(this.peak,Math.abs(left[i]),Math.abs(right[i]));
@@ -654,7 +696,7 @@ class Engine {
   }
   let kept=0;for(let j=0;j<this.tails.length;j++){const v=this.tails[j];if(v.tailFrames>0&&v.env>=.00001)this.tails[kept++]=v;else this.freeVoices.push(v);}this.tails.length=kept;kept=0;for(let j=0;j<this.voices.length;j++){const v=this.voices[j];if(v.gate!==0||v.env>=.00001)this.voices[kept++]=v;else this.freeVoices.push(v);}this.voices.length=kept;
   if(this.masterTarget>0)this.silentCleared=false;
-  if(this.master<.00001&&this.masterTarget===0&&!this.silentCleared){this.silentCleared=true;this.performance.reset();for(const v of this.voices)this.freeVoices.push(v);for(const v of this.tails)this.freeVoices.push(v);this.voices.length=0;this.tails.length=0;this.tailCarry.fill(0);for(const c of this.combs)c.data.fill(0);}
+  if(this.master<.00001&&this.masterTarget===0&&!this.silentCleared){this.silentCleared=true;this.performance.reset();this.drumEffects.reset();for(const v of this.voices)this.freeVoices.push(v);for(const v of this.tails)this.freeVoices.push(v);this.voices.length=0;this.tails.length=0;this.tailCarry.fill(0);for(const c of this.combs)c.data.fill(0);}
  }
  status(){return {frame:this.frame,peak:this.peak,voices:this.voices.length,tails:this.tails.length,heldStrings:this.strumPointers.size,missingSamples:this.missingSamples,tick:this.clock.tick,events:{...this.events},bar:this.currentBar,beat:Math.floor((this.beat-this.seqOrigin)%4),drumStep:this.drumStep,gridStep:this.gridPlayhead,glitchHold:this.glitchHold,mode:this.arp.mode,lastNote:this.lastNote,drums:this.drums,sequence:this.sequence,paused:this.paused};}
 }
