@@ -63,9 +63,9 @@ test('Six snare choices are independent; V0.1 imports preserve original settings
 });
 test('Three pages and performance controls preserve original five effects',()=>{
  $('page-drums').onclick();assert.equal(state().page,2);assert.equal($('drum-page').hidden,false);assert.equal($('seq-page').hidden,true);
- $('fx-performance').onclick();assert.equal($('effects').hidden,true);assert.equal($('performance-controls').hidden,false);assert.equal($('effects').children.length,6);
- $('tone').value=-.5;$('tone').oninput();$('glitch').value=.7;$('glitch').oninput();$('glitch-target').onchange({target:{value:'drums'}});
- $('preset-strip').children[4].onclick();assert.equal(state().tone,-.5);assert.equal(state().glitch,.7);assert.equal(state().glitchTarget,'drums');
+ $('fx-performance').onclick();assert.equal($('effects').hidden,true);assert.equal($('performance-controls').hidden,false);assert.equal($('effects').children.length,12);
+ $('presence').value=-.5;$('presence').oninput();$('glitch').value=.7;$('glitch').oninput();$('glitch-target').onchange({target:{value:'drums'}});
+ $('preset-strip').children[4].onclick();assert.equal(state().presence,-.5);assert.equal(state().glitch,.7);assert.equal(state().glitchTarget,'drums');
 });
 test('Momentary glitch HOLD releases on every cancellation path and blur',()=>{
  for(const event of ['onpointerup','onpointercancel','onlostpointercapture']){$('glitch-hold').onpointerdown(pointer(30));assert.equal(messages.at(-1).on,true);$('glitch-hold')[event](pointer(30));assert.equal(messages.at(-1).on,false);}
@@ -101,7 +101,7 @@ for(const [start,end,expected] of [[300,20,1],[300,20,2],[20,300,1],[20,300,0]])
 }
 test('V0.3.1 touch swipes traverse all three pages in both directions',()=>assert.equal(state().page,0));
 for(const id of ['strum','drum-grid','progression'])$(id).className=id;
-for(const excluded of ['strum','drum-grid','progression','tone']){
+for(const excluded of ['strum','drum-grid','progression','presence']){
  instrument.listeners.touchstart({touches:[gesture(300,25)],target:$(excluded)});
  instrument.listeners.touchend({changedTouches:[gesture(20,30)],preventDefault(){}});
  assert.equal(state().page,0);
@@ -118,8 +118,8 @@ test('Next touch resumes suspended AudioContext',()=>assert.equal(audioCtx.state
 audioCtx.state='suspended';doc.pointerdown();await Promise.resolve();
 test('Mouse or pen resumes suspended AudioContext',()=>assert.equal(audioCtx.state,'running'));
 const moduleURLs=[];await context.probe.loadWorklet({audioWorklet:{addModule:async u=>moduleURLs.push(u)}});
-test('AudioWorklet loads the same-origin relative worklet path',()=>assert.deepEqual(moduleURLs,['./worklet.js?v=0.4.2']));
-const fallbackURLs=[];await context.probe.loadWorklet({audioWorklet:{addModule:async u=>{fallbackURLs.push(u);if(u==='./worklet.js?v=0.4.2')throw Error('test failure');}}});
+test('AudioWorklet loads the same-origin relative worklet path',()=>assert.deepEqual(moduleURLs,['./worklet.js?v=0.4.3']));
+const fallbackURLs=[];await context.probe.loadWorklet({audioWorklet:{addModule:async u=>{fallbackURLs.push(u);if(u==='./worklet.js?v=0.4.3')throw Error('test failure');}}});
 test('External module failure invokes identical embedded fallback',()=>{assert.equal(fallbackURLs.length,2);assert.ok(fallbackURLs[1].startsWith('blob:'));});
 await assert.rejects(context.probe.loadWorklet({audioWorklet:{addModule:async()=>{throw Error('both unavailable');}}}),/Audio engine could not load/);
 test('Failure of both module routes reports an explicit error',()=>{});
@@ -152,12 +152,25 @@ test('Live bank changes preserve the Swing control and defer while painting',()=
 test('Legacy CRUSH LEVEL cannot mute imported sets; pulse and DRIVE still save independently',()=>{
  const old=context.probe.validate({schema:1,preset:'garage',fx:{crush:1},crushLevel:0,latch:true});assert.equal(old.drive,0);assert.equal(old.crushLevel,undefined);assert.equal(old.fx.crush,1);
  const set=(id,value)=>{$(id).value=value;$(id).oninput();};$('fx-sound').onclick();set('drive',.63);
- const before=JSON.stringify([state().paletteId,state().progression,state().rhythm,state().drumEdits]);$('preset-strip').children[1].onclick();assert.equal($('effects').children.length,8);set('pulse-speed',.5);set('pulse-depth',.81);
+ const before=JSON.stringify([state().paletteId,state().progression,state().rhythm,state().drumEdits]);$('preset-strip').children[1].onclick();assert.equal($('effects').children.length,14);set('pulse-speed',.5);set('pulse-depth',.81);
  const restored=context.probe.validate(JSON.parse(JSON.stringify(state())));assert.equal(restored.kosmische.pulseDepth,.81);assert.ok(Math.abs(restored.kosmische.pulseSpeed-.12*Math.sqrt(200))<1e-10);assert.equal(restored.drive,.63);assert.equal(restored.crushLevel,undefined);
- $('preset-strip').children[11].onclick();assert.equal($('effects').children.length,6);assert.equal(state().kosmische.pulseDepth,.81);assert.equal(JSON.stringify([state().paletteId,state().progression,state().rhythm,state().drumEdits]),before);assert.ok(!$('effects').children.some(x=>x.children.some(c=>c.id==='crush-level')));
+ $('preset-strip').children[11].onclick();assert.equal($('effects').children.length,12);assert.equal(state().kosmische.pulseDepth,.81);assert.equal(JSON.stringify([state().paletteId,state().progression,state().rhythm,state().drumEdits]),before);assert.ok(!$('effects').children.some(x=>x.children.some(c=>c.id==='crush-level')));
 });
 test('ROCKSTEADY selection defaults to 50 ms, manual and deliberately saved attacks survive validation',()=>{
  $('preset-strip').children[4].onclick();assert.equal(state().fx.attack,.05);$('fx-attack').value=.137;$('fx-attack').oninput();assert.equal(state().fx.attack,.137);const saved=context.probe.validate(JSON.parse(JSON.stringify(state())));assert.equal(saved.fx.attack,.137);assert.equal(context.probe.validate({schema:1,preset:'rocksteady',fx:{attack:.004}}).fx.attack,.004);assert.equal(context.probe.validate({schema:1,preset:'rocksteady'}).fx.attack,.05);
  $('preset-strip').children[0].onclick();assert.equal(state().fx.attack,.008);$('preset-strip').children[4].onclick();assert.equal(state().fx.attack,.05);
+});
+test('Per-instrument EQ roundtrips, RESET is neutral and other presets keep their bands',()=>{
+ $('preset-strip').children[6].onclick();$('eq-low').value=6;$('eq-low').oninput();$('eq-mid').value=-3;$('eq-mid').oninput();$('eq-high').value=4;$('eq-high').oninput();
+ $('preset-strip').children[0].onclick();assert.equal(+$('eq-low').value,0);$('eq-low').value=-4;$('eq-low').oninput();$('preset-strip').children[6].onclick();assert.equal(+$('eq-low').value,6);assert.equal(+$('eq-mid').value,-3);
+ const saved=context.probe.validate(JSON.parse(JSON.stringify(state())));assert.equal(saved.eqByPreset['tape-strings'].high,4);$('eq-reset').onclick();for(const k of ['low','mid','high'])assert.equal(+$('eq-'+k).value,0);assert.equal(state().eqByPreset.motorik.low,-4);
+});
+test('Old TONE imports preserve their color until Presence is deliberately adjusted',()=>{
+ const migrated=context.probe.validate({schema:1,tone:-.8});assert.equal(migrated.legacyTone,-.8);assert.equal(migrated.presence,-.4);assert.equal(migrated.tone,-.8);
+ const again=context.probe.validate(JSON.parse(JSON.stringify(migrated)));assert.equal(again.legacyTone,-.8);
+ state().legacyTone=-.8;state().tone=-.8;$('presence').value=.4;$('presence').oninput();assert.equal(state().legacyTone,null);assert.equal(state().tone,0);assert.equal(state().presence,.4);
+});
+test('Performance diagnostics are optional and never rewire or stop the audio graph',()=>{
+ const before=messages.filter(x=>['stop','sequence'].includes(x.type)).length;assert.equal($('monitor-toggle').textContent,'');$('monitor-toggle').onclick();assert.deepEqual(messages.at(-1),{type:'monitor',on:true});assert.equal($('performance-monitor').hidden,false);$('monitor-toggle').onclick();assert.deepEqual(messages.at(-1),{type:'monitor',on:false});assert.equal($('performance-monitor').hidden,true);assert.ok(connections.has(context.probe.context().destination));assert.equal(messages.filter(x=>['stop','sequence'].includes(x.type)).length,before);
 });
 fs.mkdirSync(out,{recursive:true});fs.writeFileSync(out+'/'+(bundled?'bundled-controller-results.json':'controller-results.json'),JSON.stringify({testType:'Controller event simulation; not real browser or touch hardware',bundled,tests,pass:true},null,2));

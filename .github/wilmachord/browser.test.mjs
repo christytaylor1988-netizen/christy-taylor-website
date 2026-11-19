@@ -27,7 +27,7 @@ async function suite(type,name){
  await page.goto(url);await page.locator('#start-audio').tap();await wait(()=>document.getElementById('start-overlay').hidden);
  await test('12 instruments, 38 decoded samples, external worklet and running AudioContext',async()=>{
   assert.equal(await page.locator('#preset-strip button').count(),12);assert.equal(await page.locator('#chords button').count(),12);
-  assert.equal(await page.evaluate(()=>wilmaTest.context().state),'running');assert.match(await page.locator('#status').textContent(),/0.4.2/);
+  assert.equal(await page.evaluate(()=>wilmaTest.context().state),'running');assert.match(await page.locator('#status').textContent(),/0.4.3/);
   await page.locator('#main-play').tap();await wait(()=>wilmaTest.status().events?.drums>2);assert.equal(await page.evaluate(()=>wilmaTest.status().missingSamples),0);assert.ok(await page.evaluate(()=>wilmaTest.status().peak)>0);
  });
  await test('Progression transport is shared, repeated PLAY does not restart, PAUSE freezes and PLAY resumes',async()=>{
@@ -73,22 +73,33 @@ async function suite(type,name){
  await test('Saved scope, sounds and musical settings survive reload; PLAY is the default editing mode',async()=>{
   const before=await page.evaluate(()=>JSON.stringify([wilmaTest.state().preset,wilmaTest.state().progression,wilmaTest.state().strings,wilmaTest.state().balance]));await page.waitForTimeout(400);await page.reload();await page.locator('#start-audio').tap();await wait(()=>document.getElementById('start-overlay').hidden);assert.equal((await snap()).scopeEnabled,false);assert.equal((await snap()).chordEdit,false);assert.equal(await page.evaluate(()=>JSON.stringify([wilmaTest.state().preset,wilmaTest.state().progression,wilmaTest.state().strings,wilmaTest.state().balance])),before);
  });
- await test('V0.4.2 controls have comfortable targets, show pulse only for Kosmische and preserve saved values',async()=>{
+ await test('V0.4.3 controls have comfortable targets, show pulse only for Kosmische and preserve saved values',async()=>{
   await show(0);await page.locator('#fx-sound').tap();
   const set=async(id,value)=>{await page.locator('#'+id).evaluate((e,v)=>{e.value=v;e.dispatchEvent(new Event('input',{bubbles:true}));},value);};
   await set('drive',.65);assert.equal(await page.locator('#crush-level').count(),0);
   await page.getByRole('button',{name:'KOSMISCHE instrument',exact:true}).tap();assert.equal(await page.locator('#pulse-speed').count(),1);await set('pulse-speed',.4);await set('pulse-depth',.8);
-  const bounds=await page.locator('#effects input').evaluateAll(xs=>xs.map(e=>{const r=e.getBoundingClientRect();return {height:r.height,width:r.width};}));assert.equal(bounds.length,8);assert.ok(bounds.every(b=>b.height>=44&&b.width>100));
-  await page.locator('#pulse-depth').scrollIntoViewIfNeeded();await page.screenshot({path:path.join(out,name+'-v042-kosmische.png')});
+  const bounds=await page.locator('#effects input').evaluateAll(xs=>xs.map(e=>{const r=e.getBoundingClientRect();return {height:r.height,width:r.width};}));assert.equal(bounds.length,12);assert.ok(bounds.every(b=>b.height>=44&&b.width>100));
+  await page.locator('#pulse-depth').scrollIntoViewIfNeeded();await page.screenshot({path:path.join(out,name+'-v043-kosmische.png')});
   const before=await page.evaluate(()=>JSON.stringify([wilmaTest.state().drive,wilmaTest.state().kosmische]));await page.waitForTimeout(300);await page.reload();await page.locator('#start-audio').tap();await wait(()=>document.getElementById('start-overlay').hidden);assert.equal(await page.evaluate(()=>JSON.stringify([wilmaTest.state().drive,wilmaTest.state().kosmische])),before);
   await page.getByRole('button',{name:'GARAGE instrument',exact:true}).tap();assert.equal(await page.locator('#pulse-speed').count(),0);assert.equal(await page.locator('#drive').inputValue(),'0.65');
+ });
+ await test('EQ and Presence save per instrument, reset cleanly and keep drums sounding',async()=>{
+  await show(0);await page.getByRole('button',{name:'TAPE STRINGS instrument',exact:true}).tap();await page.locator('#fx-sound').tap();
+  const set=async(id,v)=>page.locator('#'+id).evaluate((e,v)=>{e.value=v;e.dispatchEvent(new Event('input',{bubbles:true}));},v);
+  await set('eq-low',6);await set('eq-mid',-4);await set('eq-high',3);await set('presence',.5);
+  await page.getByRole('button',{name:'GRAND instrument',exact:true}).tap();assert.equal(await page.locator('#eq-low').inputValue(),'0');await page.getByRole('button',{name:'TAPE STRINGS instrument',exact:true}).tap();assert.equal(await page.locator('#eq-low').inputValue(),'6');
+  await page.waitForTimeout(200);await page.reload();await page.locator('#start-audio').tap();await wait(()=>document.getElementById('start-overlay').hidden);assert.equal(await page.locator('#eq-mid').inputValue(),'-4');assert.equal(await page.locator('#presence').inputValue(),'0.5');await page.locator('#eq-reset').tap();assert.equal(await page.locator('#eq-low').inputValue(),'0');
+  await page.locator('#presence').scrollIntoViewIfNeeded();await page.screenshot({path:path.join(out,name+'-v043-eq.png')});
+ });
+ await test('Optional performance diagnostics report counters, preserve audio and turn fully off',async()=>{
+  await show(0);await page.locator('#main-play').tap();await page.locator('#about').tap();await page.locator('#monitor-toggle').tap();await page.waitForTimeout(700);assert.match(await page.locator('#performance-monitor').textContent(),/Voices/);assert.ok(await page.evaluate(()=>wilmaTest.status().peak)>0);await page.locator('#monitor-toggle').tap();assert.equal(await page.locator('#performance-monitor').isVisible(),false);await page.locator('#info [data-close]').tap();await page.evaluate(()=>wilmaTest.stop());
  });
  await test('All twelve presets produce finite live worklet output with DRIVE and the single extreme CRUSH control',async()=>{
   await show(0);await page.evaluate(()=>wilmaTest.stop());
   for(const preset of ['MOTORIK','KOSMISCHE','HYPNOSIS','HAUNTED','ROCKSTEADY','CASSETTE','TAPE STRINGS','TAPE CHOIR','GRAND','SCHOOL PIANO','HONKY TONK','GARAGE']){
    await page.getByRole('button',{name:preset+' instrument',exact:true}).tap();await page.locator('#fx-crush').evaluate(e=>{e.value=.9;e.dispatchEvent(new Event('input',{bubbles:true}));});await page.locator('#chords button').first().tap();await page.waitForTimeout(250);const status=await page.evaluate(()=>wilmaTest.status());assert.equal(status.missingSamples,0,preset);assert.ok(status.peak>0&&status.peak<.881,preset);
   }
-  await page.evaluate(()=>wilmaTest.stop());await page.locator('#drive').scrollIntoViewIfNeeded();await page.screenshot({path:path.join(out,name+'-v042-effects.png')});
+  await page.evaluate(()=>wilmaTest.stop());await page.locator('#drive').scrollIntoViewIfNeeded();await page.screenshot({path:path.join(out,name+'-v043-effects.png')});
  });
  await test('Legacy saved CRUSH LEVEL zero migrates without muting maximum CRUSH',async()=>{
   await page.evaluate(()=>{const saved={...wilmaTest.state(),crushLevel:0,fx:{...wilmaTest.state().fx,crush:1}};localStorage.setItem('wilmachord.lie013.v1',JSON.stringify(saved));});await page.reload();await page.locator('#start-audio').tap();await wait(()=>document.getElementById('start-overlay').hidden);assert.equal(await page.locator('#crush-level').count(),0);assert.equal(await page.evaluate(()=>wilmaTest.state().crushLevel),undefined);assert.equal(await page.locator('#fx-crush').inputValue(),'1');await page.locator('#chords button').first().tap();await page.waitForTimeout(250);const status=await page.evaluate(()=>wilmaTest.status());assert.ok(status.peak>0&&status.peak<.881);await page.evaluate(()=>wilmaTest.stop());
