@@ -9,6 +9,7 @@ permissions:
 jobs:
   instrument-checks:
     runs-on: ubuntu-24.04
+    container: mcr.microsoft.com/playwright:v1.57.0-noble
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
@@ -28,11 +29,11 @@ jobs:
           node .github/wilmachord/audio-regression.test.mjs
           node .github/wilmachord/diagnostic-worklet.test.mjs
           node .github/wilmachord/diagnostic-controller.test.mjs
-      - name: Install isolated browser test dependencies
+      - name: Install pinned test API (browsers are preinstalled)
+        timeout-minutes: 3
         working-directory: .github/wilmachord
         run: |
           npm install --ignore-scripts --no-audit --no-fund
-          npx playwright install --with-deps chromium webkit
       - name: Chromium and WebKit at iPhone 13 mini dimensions
         run: node .github/wilmachord/browser.test.mjs
       - uses: actions/upload-artifact@v4
