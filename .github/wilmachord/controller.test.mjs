@@ -118,8 +118,8 @@ test('Next touch resumes suspended AudioContext',()=>assert.equal(audioCtx.state
 audioCtx.state='suspended';doc.pointerdown();await Promise.resolve();
 test('Mouse or pen resumes suspended AudioContext',()=>assert.equal(audioCtx.state,'running'));
 const moduleURLs=[];await context.probe.loadWorklet({audioWorklet:{addModule:async u=>moduleURLs.push(u)}});
-test('AudioWorklet loads the same-origin relative worklet path',()=>assert.deepEqual(moduleURLs,['./worklet.js?v=0.4.4']));
-const fallbackURLs=[];await context.probe.loadWorklet({audioWorklet:{addModule:async u=>{fallbackURLs.push(u);if(u==='./worklet.js?v=0.4.4')throw Error('test failure');}}});
+test('AudioWorklet loads the same-origin relative worklet path',()=>assert.deepEqual(moduleURLs,['./worklet.js?v=0.4.5']));
+const fallbackURLs=[];await context.probe.loadWorklet({audioWorklet:{addModule:async u=>{fallbackURLs.push(u);if(u==='./worklet.js?v=0.4.5')throw Error('test failure');}}});
 test('External module failure invokes identical embedded fallback',()=>{assert.equal(fallbackURLs.length,2);assert.ok(fallbackURLs[1].startsWith('blob:'));});
 await assert.rejects(context.probe.loadWorklet({audioWorklet:{addModule:async()=>{throw Error('both unavailable');}}}),/Audio engine could not load/);
 test('Failure of both module routes reports an explicit error',()=>{});

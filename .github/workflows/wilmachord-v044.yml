@@ -1,7 +1,7 @@
-name: WILMACHORD V0.4.4 checks
+name: WILMACHORD V0.4.5 checks
 on:
   push:
-    branches: [wilmachord-v044-20261119]
+    branches: [wilmachord-v044-20261119, wilmachord-v045-20261120]
     paths: ['lie013-preview-7x9/**', '.github/wilmachord/**', '.github/workflows/wilmachord-v044.yml']
   workflow_dispatch:
 permissions:
@@ -29,6 +29,8 @@ jobs:
           node .github/wilmachord/stability-eq.test.mjs
           node .github/wilmachord/fragmentation.test.mjs
           node .github/wilmachord/drum-fx.test.mjs
+          node .github/wilmachord/track-mutes.test.mjs
+          node .github/wilmachord/sound-expansion.test.mjs
           node .github/wilmachord/strum-flexibility.test.mjs
           node .github/wilmachord/progression-length.test.mjs
           node .github/wilmachord/sound-refinement.test.mjs
@@ -47,6 +49,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: wilmachord-v044-test-results
+          name: wilmachord-v045-test-results
           path: .github/wilmachord/output/
           retention-days: 30

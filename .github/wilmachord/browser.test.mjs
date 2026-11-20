@@ -27,7 +27,7 @@ async function suite(type,name){
  await page.goto(url);await page.locator('#start-audio').tap();await wait(()=>document.getElementById('start-overlay').hidden);
  await test('11 selectable instruments, 38 decoded samples, external worklet and running AudioContext',async()=>{
   assert.equal(await page.locator('#preset-strip button').count(),11);assert.equal(await page.locator('#chords button').count(),12);
-  assert.equal(await page.evaluate(()=>wilmaTest.context().state),'running');assert.match(await page.locator('#status').textContent(),/0.4.4/);
+  assert.equal(await page.evaluate(()=>wilmaTest.context().state),'running');assert.match(await page.locator('#status').textContent(),/0.4.5/);
   await page.locator('#main-play').tap();await wait(()=>wilmaTest.status().events?.drums>2);assert.equal(await page.evaluate(()=>wilmaTest.status().missingSamples),0);assert.ok(await page.evaluate(()=>wilmaTest.status().peak)>0);
  });
  await test('Progression transport is shared, repeated PLAY does not restart, PAUSE freezes and PLAY resumes',async()=>{

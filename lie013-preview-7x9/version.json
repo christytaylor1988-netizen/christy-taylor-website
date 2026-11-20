@@ -1,17 +1,17 @@
 {
   "application": "WILMACHORD",
   "catalogue": "LIE013",
-  "version": "0.4.4",
-  "edition": "Batch 3B \u2014 rhythmic fragmentation, drum effects and flexible strumming",
+  "version": "0.4.5",
+  "edition": "Manual sequencing, spring and global FX, phrase fragments and colour themes",
   "website_base_commit": "e0b00c92f938e53375322d544f108b2d113a0e36",
-  "deployment_change": "Clocked audio fragments and HOLD; per-voice drum pitch and shared spring/delay; melody LOCK; independent strum sound; separate chord and arp lengths; shared BPM slider. CASSETTE retained for old saved sets only. Physical iPhone testing remains required.",
+  "deployment_change": "Visible instrument buttons; unified EFFECTS; manual ALL 16 or 8 + 8; seven track mutes; dispersive spring and wet tone; separate global drum FX; fragment length; saved colour themes. Physical iPhone listening remains required.",
   "files": {
-    "index.html": "fbf122fb85e75c3e6e7b68196afa904765e6b757b78d3b5b93107ac72efe46df",
-    "worklet.js": "cc740c2d02f58eaeb35239af99d0e45a3b10ed991ef24a44444dd1687082b5d7",
+    "index.html": "938b3a9b17e7162ebded8eb07a37f9e784bd141070d249c9ce75f07d5e5c9ed0",
+    "worklet.js": "feb82e6be6fa34dcd78312cc6287764579f9799f7477eac17184b8e4135d6ca3",
     "SOUND-CREDITS.txt": "0c6d9cb39f81babb57b5fb1ef6118676f5c59d815a42915dc227e3447aa4c5d1"
   },
   "diagnostic_build": "audio-diag-1",
-  "recovery_commit": "95dd29d2e699b145df669551e8675a041846bc3f",
+  "recovery_commit": "c62ad3ab2c45e9d9be920f5aaab894a8f84b1cc4",
   "selectable_instruments": 11,
   "legacy_instruments": 1,
   "drum_voices": 7

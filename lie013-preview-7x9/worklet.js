@@ -1,5 +1,5 @@
 // WILMACHORD musical schema 1. Pure data/logic shared by UI, renderer and tests.
-const VERSION = '0.4.4';
+const VERSION = '0.4.5';
 const ROOTS = ['C','C♯','D','E♭','E','F','F♯','G','A♭','A','B♭','B'];
 const QUALITIES = {
   '': [0,4,7], m:[0,3,7], '7':[0,4,7,10], maj7:[0,4,7,11], m7:[0,3,7,10],

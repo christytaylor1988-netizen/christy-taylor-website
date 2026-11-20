@@ -3,7 +3,7 @@ import fs from 'node:fs';import {performance} from 'node:perf_hooks';
 import vm from 'node:vm';
 import {worklet,html,samples,current,out} from './fixtures.mjs';
 const {Engine,PerformanceFX,factoryGrid,drumTimeline,paintDrumCell,decodeSamples,PRESETS,percussionStep,patternSteps,patternStepTime,defaultState,VERSION}=current;
-assert.equal(VERSION,'0.4.4');assert.equal(PRESETS.length,12);assert.equal(decodeSamples().length,38);
+assert.equal(VERSION,'0.4.5');assert.equal(PRESETS.length,12);assert.equal(decodeSamples().length,38);
 const zones=decodeSamples(),results=[],metrics={},rate=48000;
 function test(name,fn){const start=performance.now();fn();results.push({name,pass:true,ms:Math.round(performance.now()-start)});console.log('PASS',name);}
 function engine(config={}){const e=new Engine(rate);e.message({type:'samples',zones});e.configure({...defaultState(),...config});return e;}
@@ -61,4 +61,4 @@ test('One-minute full V0.4 DSP soak survives all presets, targeted glitch, swing
  for(let n=0;n<12;n++){const pattern=n%6;e.configure({preset:PRESETS[n].id,tempo:[43,220,137,80][n%4],rhythm:pattern,swing:n/11,drumCustom:true,drumEdits:{[pattern]:factoryGrid(pattern)},tone:(n%3)-1,glitch:(n+1)/12,glitchTarget:['all','chord','arp','drums'][n%4],balance:n/11,arp:{mode:['chord','arp','both'][n%3],speed:n%6},fx:{crush:n/11,reverb:.4,wooze:.2,release:1}});e.message({type:'glitch-hold',on:n%2===0});const out=render(e,5);peak=Math.max(peak,out.peak);assert.ok(e.voices.length<=32);assert.equal(e.missingSamples,0);}
  metrics.fullDSP={seconds:60,realtimeFactor:60000/(performance.now()-start),peak,notes:e.events.notes,drumSteps:e.events.drums};e.message({type:'stop'});render(e,.4);assert.equal(e.voices.length,0);assert.ok(e.performance.buses.every(b=>b.mix===0));
 });
-fs.mkdirSync(out,{recursive:true});fs.writeFileSync(out+'/audio-regression.json',JSON.stringify({version:'0.4.4',testType:'Offline numerical DSP and sample-clock simulation; not listening or physical iPhone testing.',results,metrics},null,2));console.log('V0.4 checks:',results.length);
+fs.mkdirSync(out,{recursive:true});fs.writeFileSync(out+'/audio-regression.json',JSON.stringify({version:'0.4.5',testType:'Offline numerical DSP and sample-clock simulation; not listening or physical iPhone testing.',results,metrics},null,2));console.log('V0.4 checks:',results.length);
