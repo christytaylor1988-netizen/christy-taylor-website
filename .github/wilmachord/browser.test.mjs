@@ -120,6 +120,12 @@ async function suite(type,name){
   const sizes=await page.locator('#drum-fx-controls input').evaluateAll(xs=>xs.map(x=>x.getBoundingClientRect().height));assert.ok(sizes.every(x=>x>=44));
   await page.screenshot({path:path.join(out,name+'-v044-drums.png')});await show(0);await show(2);assert.equal(await page.locator('#drum-spring').inputValue(),'0.7');
  });
+ await test('Global drum FX and long fragments save separately and remain accessible during playback',async()=>{
+  await show(2);const individual=await page.evaluate(()=>JSON.stringify(wilmaTest.state().drumFx));await page.locator('#drum-fx-global').tap();assert.equal(await page.locator('#drum-voice-buttons').isVisible(),false);
+  for(const[id,v]of[['drum-pitch',7],['drum-spring',.8],['drum-delay',.6],['spring-tone',-.7]])await page.locator('#'+id).evaluate((e,v)=>{e.value=v;e.dispatchEvent(new Event('input',{bubbles:true}));},v);
+  assert.equal(await page.evaluate(()=>JSON.stringify(wilmaTest.state().drumFx)),individual);await page.locator('#drum-fx-individual').tap();assert.equal(await page.locator('#drum-pitch').inputValue(),'5');await page.locator('#drum-fx-global').tap();assert.equal(await page.locator('#spring-tone').inputValue(),'-0.7');
+  await show(0);await page.locator('#fragment-length').evaluate(e=>{e.value=1;e.dispatchEvent(new Event('input',{bubbles:true}));});await page.waitForTimeout(300);await page.reload();await page.locator('#start-audio').tap();await wait(()=>document.getElementById('start-overlay').hidden);assert.equal(await page.evaluate(()=>wilmaTest.state().fragmentLength),1);assert.equal(await page.evaluate(()=>wilmaTest.state().drumFxMode),'global');await show(2);await page.screenshot({path:path.join(out,name+'-v045-global-fx.png')});await page.locator('#drum-fx-individual').tap();
+ });
  await test('Melody LOCK remains fixed over changing chords; FOLLOW restores live notes',async()=>{
   await page.evaluate(()=>wilmaTest.stop());await show(0);await page.locator('#main-page').evaluate(e=>e.scrollTop=0);await page.locator('#chords button').first().tap();
   await page.locator('#strum-lock').tap();await wait(()=>wilmaTest.status().strumLock===true);const notes=await page.evaluate(()=>wilmaTest.state().lockedNotes);

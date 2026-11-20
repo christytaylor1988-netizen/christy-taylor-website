@@ -82,7 +82,7 @@ function arpIndex(step,length,order,random=.5){
  if(order===3)return Math.min(length-1,Math.floor(random*length));
  return step%length;
 }
-function defaultState(){return {schema:1,paletteId:'golden',custom:[],key:0,octave:0,latch:true,selected:0,preset:'motorik',fx:{attack:.012,release:.85,reverb:.18,wooze:.1,crush:.04},drive:0,kosmische:{pulseSpeed:17.3,pulseDepth:.44},tone:0,presence:0,eqByPreset:{},legacyTone:null,glitch:0,glitchTarget:'all',balance:.5,swing:0,drumEdits:{},drumCustom:false,drumView:'split',drumBank:0,drumMutes:Array(7).fill(false),drumFx:Array.from({length:7},()=>({pitch:0,spring:0,delay:0})),tempo:110,rhythm:0,drumVolume:.6,snare:'dry',strings:9,strumMode:'pluck',strumLock:false,lockedNotes:null,strumPreset:'same',chordLength:1,progression:[c(0),c(9,'m'),c(5),c(7)],arp:{speed:1,glide:0,order:0,octaves:1,length:.65,mode:'arp'},page:0};}
+function defaultState(){return {schema:1,paletteId:'golden',custom:[],key:0,octave:0,latch:true,selected:0,preset:'motorik',fx:{attack:.012,release:.85,reverb:.18,wooze:.1,crush:.04},drive:0,kosmische:{pulseSpeed:17.3,pulseDepth:.44},tone:0,presence:0,eqByPreset:{},legacyTone:null,glitch:0,glitchTarget:'all',balance:.5,swing:0,drumEdits:{},drumCustom:false,drumFxMode:'individual',drumSpringTone:0,globalDrumFx:{pitch:0,spring:0,delay:0,tone:0},fragmentLength:.25,drumView:'split',drumBank:0,drumMutes:Array(7).fill(false),drumFx:Array.from({length:7},()=>({pitch:0,spring:0,delay:0})),tempo:110,rhythm:0,drumVolume:.6,snare:'dry',strings:9,strumMode:'pluck',strumLock:false,lockedNotes:null,strumPreset:'same',chordLength:1,progression:[c(0),c(9,'m'),c(5),c(7)],arp:{speed:1,glide:0,order:0,octaves:1,length:.65,mode:'arp'},page:0};}
 
 const DRUM_VOICES=['KICK','SNARE','CLOSED HAT','OPEN HAT','WOOD','TOM','CLAP'];
 const DRUM_TRACKS=['KICK','SNARE','CLAP','CLOSED HAT','OPEN HAT','WOOD','TOM'];
@@ -119,34 +119,36 @@ class PerformanceFX {
  constructor(sr){
   this.sr=sr;this.amount=0;this.tone=0;this.balance=.5;this.hold=false;this.target='all';
   this.seed=0x4c494530;this.quantum=-1;this.lastTick=-1;this.write=0;this.filled=0;
-  this.size=Math.ceil(sr*.9);this.low=[0,0];this.toneK=1-Math.exp(-2*Math.PI*1200/sr);
-  this.buses=Array.from({length:3},()=>({l:new Float32Array(this.size),r:new Float32Array(this.size),mix:0,action:0,anchor:0,length:1,read:0,lastL:0,lastR:0,fromL:0,fromR:0,transition:1,enabled:false,frozen:false,fade:1,cycle:1,gap:false}));
+  this.size=Math.ceil(sr*2.4);this.legacySize=Math.ceil(sr*.9);this.legacyWrite=0;this.fragmentLength=.25;this.lengthScale=1;this.lengthGrid=1;this.low=[0,0];this.toneK=1-Math.exp(-2*Math.PI*1200/sr);
+  this.buses=Array.from({length:3},()=>({l:new Float32Array(this.size),r:new Float32Array(this.size),legacyL:new Float32Array(this.legacySize),legacyR:new Float32Array(this.legacySize),legacy:true,ringSize:this.legacySize,history:0,silent:sr,mix:0,action:0,anchor:0,length:1,read:0,lastL:0,lastR:0,fromL:0,fromR:0,transition:1,enabled:false,frozen:false,fade:1,cycle:1,gap:false}));
   this.out=new Float64Array(2);this.smooth=1-Math.exp(-1/(sr*.003));this.transitionStep=1/(sr*.003);
  }
  random(){this.seed=(Math.imul(this.seed,1664525)+1013904223)>>>0;return this.seed/4294967296;}
- reset(){this.hold=false;this.quantum=-1;this.lastTick=-1;this.filled=0;for(const b of this.buses){b.mix=0;b.action=0;b.lastL=0;b.lastR=0;b.fromL=0;b.fromR=0;b.frozen=false;b.l.fill(0);b.r.fill(0);}}
+ reset(){this.hold=false;this.quantum=-1;this.lastTick=-1;this.filled=0;for(const b of this.buses){b.mix=0;b.action=0;b.lastL=0;b.lastR=0;b.fromL=0;b.fromR=0;b.frozen=false;b.l.fill(0);b.r.fill(0);b.legacyL.fill(0);b.legacyR.fill(0);b.history=0;b.silent=this.sr;}}
+ setLength(value){const v=clamp(value,0,1);if(v===this.fragmentLength)return;this.fragmentLength=v;this.lengthScale=2**((v-.25)*8);this.lengthGrid=v<=.25?1:2**Math.floor((v-.25)*8);this.quantum=-1;}
  begin(tick,tempo,amount,target,hold){
   const changed=hold!==this.hold||target!==this.target,rewound=tick<this.lastTick;
   this.amount=amount;this.target=target;this.hold=hold;this.lastTick=tick;
-  const strength=hold?Math.max(.8,amount):amount,grid=strength>.7?1.5:3,q=Math.floor((tick+1e-8)/grid);
+  const strength=hold?Math.max(.8,amount):amount,grid=(strength>.7?1.5:3)*this.lengthGrid,q=Math.floor((tick+1e-8)/grid);
   if(q===this.quantum&&!changed&&!rewound)return;this.quantum=q;
   for(let i=0;i<3;i++){
    const b=this.buses[i];b.enabled=target==='all'||i===0&&target==='chord'||i===1&&target==='arp'||i===2&&target==='drums';
    if(hold&&b.frozen&&b.enabled&&!rewound)continue;
    b.frozen=false;b.fromL=b.lastL;b.fromR=b.lastR;b.transition=0;
-   if(!b.enabled||strength===0||this.filled<Math.ceil(this.sr*.008)||(!hold&&this.random()>strength*.94)){b.action=0;continue;}
+   if(!b.enabled||strength===0||(this.lengthScale>1&&(b.silent>this.sr*.12||b.history<96))||this.filled<Math.ceil(this.sr*.008)||(!hold&&this.random()>strength*.94)){b.action=0;continue;}
    // Every edit replays recorded audio. Intensity changes density, fragment size,
    // look-back and reverse probability; it is not an amplitude-LFO substitute.
    const pick=this.random(),ticks=strength<.3?(pick<.5?6:3):strength<.7?(pick<.34?3:pick<.7?1.5:.75):(pick<.2?1.5:pick<.55?.75:pick<.85?.375:.25);
-   b.length=Math.max(96,Math.min(this.filled,Math.floor(this.size/3),Math.round(this.sr*60/tempo*ticks/24)));
+   b.legacy=this.lengthScale<=1;b.ringSize=b.legacy?this.legacySize:this.size;const history=Math.min(this.filled,b.ringSize,this.lengthScale>1?b.history:this.filled);
+   b.length=Math.max(96,Math.min(history,Math.floor(this.legacySize/3*this.lengthScale),Math.floor(this.size*.82),Math.round(this.sr*60/tempo*ticks/24*this.lengthScale)));
    b.fade=Math.max(8,Math.min(Math.round(this.sr*.0015),Math.floor(b.length/4)));b.cycle=b.length-b.fade;
-   const available=Math.min(this.filled-b.length,Math.round(this.sr*60/tempo*(strength>.7?.5:.25)));
-   const back=Math.max(0,Math.floor(this.random()*available));b.anchor=(this.write-b.length-back+this.size)%this.size;
-   b.action=strength>.35&&this.random()<strength*.24?3:2;b.gap=strength>.8&&this.random()<.2;b.read=0;b.frozen=hold;
+   const available=Math.min(history-b.length,Math.round(this.sr*60/tempo*(strength>.7?.5:.25)));
+   const back=Math.max(0,Math.floor(this.random()*available));b.anchor=((b.legacy?this.legacyWrite:this.write)-b.length-back+b.ringSize)%b.ringSize;
+   b.action=strength>.35&&this.random()<strength*.24?3:2;b.gap=strength>.8&&this.random()<.2&&(this.lengthScale<=1||b.length<this.sr*.08);b.read=0;b.frozen=hold;
   }
  }
  bus(i,l,r){
-  const b=this.buses[i];if(!b.frozen){b.l[this.write]=l;b.r[this.write]=r;}
+  const b=this.buses[i];if(!b.frozen){if(Math.abs(l)+Math.abs(r)>1e-6){if(b.silent>this.sr*.12)b.history=0;b.silent=0;}else b.silent++;b.history=Math.min(this.size,b.history+1);b.l[this.write]=l;b.r[this.write]=r;b.legacyL[this.legacyWrite]=l;b.legacyR[this.legacyWrite]=r;}
   const selected=this.target==='all'||i===0&&this.target==='chord'||i===1&&this.target==='arp'||i===2&&this.target==='drums';
   const target=(this.amount>0||this.hold)&&selected&&b.action?1:0;b.mix+=(target-b.mix)*this.smooth;
   if(!target&&b.mix<.00001)b.mix=0;
@@ -154,16 +156,16 @@ class PerformanceFX {
   if(b.mix===0){b.lastL=l;b.lastR=r;this.out[0]=l;this.out[1]=r;return this.out;}
   let wl=l,wr=r;
   if(b.action>1){
-   const pos=b.read%b.cycle+b.fade,rev=b.action===3;
-   let p=(b.anchor+(rev?b.length-1-pos:pos)+this.size)%this.size;wl=b.l[p];wr=b.r[p];
-   if(pos>=b.cycle){const f=(pos-b.cycle)/b.fade,head=pos-b.cycle,p2=(b.anchor+(rev?b.length-1-head:head)+this.size)%this.size;wl+=(b.l[p2]-wl)*f;wr+=(b.r[p2]-wr)*f;}
+   const pos=b.read%b.cycle+b.fade,rev=b.action===3,ring=b.ringSize,bl=b.legacy?b.legacyL:b.l,br=b.legacy?b.legacyR:b.r;
+   let p=(b.anchor+(rev?b.length-1-pos:pos)+ring)%ring;wl=bl[p];wr=br[p];
+   if(pos>=b.cycle){const f=(pos-b.cycle)/b.fade,head=pos-b.cycle,p2=(b.anchor+(rev?b.length-1-head:head)+ring)%ring;wl+=(bl[p2]-wl)*f;wr+=(br[p2]-wr)*f;}
    if(b.gap){const phase=b.read%(b.cycle*4),edge=Math.min(b.fade,Math.max(0,b.cycle*3-phase),Math.max(0,phase));const gain=Math.min(1,edge/b.fade);wl*=gain;wr*=gain;}
    b.read++;
   }
   b.transition=Math.min(1,b.transition+this.transitionStep);wl=b.fromL+(wl-b.fromL)*b.transition;wr=b.fromR+(wr-b.fromR)*b.transition;
   b.lastL=wl;b.lastR=wr;this.out[0]=l+(wl-l)*b.mix;this.out[1]=r+(wr-r)*b.mix;return this.out;
  }
- end(){this.write=(this.write+1)%this.size;if(this.filled<this.size)this.filled++;}
+ end(){this.legacyWrite=(this.legacyWrite+1)%this.legacySize;this.write=(this.write+1)%this.size;if(this.filled<this.size)this.filled++;}
  colour(l,r,value){
   this.tone+=(value-this.tone)*this.smooth;if(Math.abs(this.tone-value)<1e-8)this.tone=value;
   this.low[0]+=this.toneK*(l-this.low[0]);this.low[1]+=this.toneK*(r-this.low[1]);
@@ -406,31 +408,41 @@ const TAU=Math.PI*2, hz=n=>440*Math.pow(2,(n-69)/12);
 // No DOM, Web Audio nodes or timers here. The same renderer runs in the worklet
 // and offline verification. A native port can consume the versioned music schema.
 // One spring model and one tempo-following analogue delay, shared by seven sends.
-// Short allpass dispersion into two damped feedback strings gives a metallic
-// spring response. Delay repeats are filtered and softly saturated, feedback .43.
+// Two dispersive waveguides: stretched allpass cascades accumulate frequency-
+// dependent travel time on each reflection. This produces chirped spring echoes.
+// Inspired by the allpass-waveguide literature (Parker/Bilbao, DAFx 2009), not an
+// exact measurement of a commercial tank. Wet tone is outside the feedback loop.
 class DrumEffects {
  constructor(sr){
   this.sr=sr;this.out=new Float64Array(2);this.active=0;this.dc=0;this.low=0;
-  this.spring=[.0371,.0497].map((t,i)=>({data:new Float32Array(Math.round(sr*t)),at:0,low:0,stages:[.0011,.0023,.0047].map((d,j)=>({data:new Float32Array(Math.round(sr*d*(1+i*.13))),at:0,g:.58-j*.06}))}));
+  this.spring=[.0287,.0379].map((t,i)=>({data:new Float32Array(Math.round(sr*t)),at:0,low:0,tone:0,stages:Array.from({length:16},(_,j)=>({data:new Float32Array(Math.max(1,Math.round(sr*(.00031+i*.000043+j*.000004)))),at:0,g:.76-j*.002-i*.015}))}));
   this.delay=new Float32Array(Math.ceil(sr*1.2));this.at=0;this.delayFrames=sr*60/110*.75;this.targetFrames=this.delayFrames;
-  this.smooth=1-Math.exp(-1/(sr*.04));this.damping=1-Math.exp(-2*Math.PI*2800/sr);this.inputDC=1-Math.exp(-2*Math.PI*90/sr);this.delayK=1-Math.exp(-2*Math.PI*2300/sr);
+  this.smooth=1-Math.exp(-1/(sr*.04));this.damping=1-Math.exp(-2*Math.PI*5200/sr);this.inputDC=1-Math.exp(-2*Math.PI*160/sr);this.delayK=1-Math.exp(-2*Math.PI*2300/sr);
+  this.tone=0;this.toneTarget=0;this.toneK=1-Math.exp(-2*Math.PI*1700/sr);this.springActive=0;this.delayActive=0;
  }
+ setTone(value){this.toneTarget=clamp(value,-1,1);}
  tempo(bpm){this.targetFrames=Math.min(this.delay.length-2,this.sr*60/bpm*.75);}
- reset(){this.active=0;this.dc=0;this.low=0;this.delay.fill(0);this.out.fill(0);for(const t of this.spring){t.low=0;t.data.fill(0);for(const a of t.stages)a.data.fill(0);}}
+ reset(){this.active=0;this.springActive=0;this.delayActive=0;this.dc=0;this.low=0;this.delay.fill(0);this.out.fill(0);for(const t of this.spring){t.low=0;t.tone=0;t.data.fill(0);for(const a of t.stages)a.data.fill(0);}}
  process(springSend,delaySend){
-  if(Math.abs(springSend)+Math.abs(delaySend)>1e-9)this.active=Math.ceil(this.sr*5);
-  if(this.active===0){this.out[0]=0;this.out[1]=0;return this.out;}this.active--;
-  this.dc+=this.inputDC*(springSend-this.dc);const input=(springSend-this.dc)*.48;
-  for(let i=0;i<2;i++){
-   const t=this.spring[i],v=t.data[t.at];t.low+=this.damping*(v-t.low);let x=input+t.low*.72;
-   for(let j=0;j<3;j++){const a=t.stages[j],read=a.data[a.at],y=read-a.g*x;a.data[a.at]=x+a.g*y;if(++a.at===a.data.length)a.at=0;x=y;}
-   t.data[t.at]=Math.tanh(x);if(++t.at===t.data.length)t.at=0;this.out[i]=v*.6;
+  if(Math.abs(springSend)>1e-9)this.springActive=Math.ceil(this.sr*5);if(Math.abs(delaySend)>1e-9)this.delayActive=Math.ceil(this.sr*5);
+  if(this.springActive===0&&this.delayActive===0){this.active=0;this.out[0]=0;this.out[1]=0;return this.out;}
+  this.out[0]=0;this.out[1]=0;
+  if(this.springActive){this.springActive--;this.dc+=this.inputDC*(springSend-this.dc);const input=(springSend-this.dc)*.56;
+   this.tone+=(this.toneTarget-this.tone)*this.smooth;if(Math.abs(this.toneTarget-this.tone)<1e-8)this.tone=this.toneTarget;
+   const high=this.tone<0?1+.95*this.tone:1+.8*this.tone,comp=this.tone>0?1-.15*this.tone:1;
+   for(let i=0;i<2;i++){
+    const t=this.spring[i],v=t.data[t.at];t.low+=this.damping*(v-t.low);let x=input+t.low*.82;
+    for(let j=0;j<t.stages.length;j++){const a=t.stages[j],read=a.data[a.at],y=read-a.g*x;a.data[a.at]=x+a.g*y;if(++a.at===a.data.length)a.at=0;x=y;}
+    t.data[t.at]=Math.tanh(x);if(++t.at===t.data.length)t.at=0;t.tone+=this.toneK*(v-t.tone);this.out[i]=(this.tone===0?v:(t.tone+(v-t.tone)*high)*comp)*.76;
+   }
   }
-  this.delayFrames+=(this.targetFrames-this.delayFrames)*this.smooth;
-  const position=(this.at-this.delayFrames+this.delay.length)%this.delay.length,i=position|0,f=position-i,j=(i+1)%this.delay.length;
-  const echo=this.delay[i]+(this.delay[j]-this.delay[i])*f;this.low+=this.delayK*(echo-this.low);
-  this.delay[this.at]=Math.tanh(delaySend*.55+this.low*.43);if(++this.at===this.delay.length)this.at=0;
-  this.out[0]+=this.low*.65;this.out[1]+=this.low*.65;return this.out;
+  if(this.delayActive){this.delayActive--;this.delayFrames+=(this.targetFrames-this.delayFrames)*this.smooth;
+   const position=(this.at-this.delayFrames+this.delay.length)%this.delay.length,i=position|0,f=position-i,j=(i+1)%this.delay.length;
+   const echo=this.delay[i]+(this.delay[j]-this.delay[i])*f;this.low+=this.delayK*(echo-this.low);
+   this.delay[this.at]=Math.tanh(delaySend*.55+this.low*.43);if(++this.at===this.delay.length)this.at=0;
+   this.out[0]+=this.low*.65;this.out[1]+=this.low*.65;
+  }
+  this.active=Math.max(this.springActive,this.delayActive);return this.out;
  }
 }
 
@@ -444,6 +456,7 @@ class Engine {
   this.chord={root:0,quality:''};this.key=0;this.octave=0;this.held=false;
   this.tempo=110;this.clock=new MusicalClock(sr);this.beat=0;this.samples=[];this.missingSamples=0;this.strings=9;this.strumMode='pluck';this.strumLock=false;this.lockedNotes=null;this.strumPreset=null;this.strumPointers=new Map();this.snare='dry';this.activeSnare='dry';this.trace=null;this.drums=false;this.sequence=false;this.paused=false;this.pattern=0;this.pendingPattern=0;
   this.drumMute=new Float64Array(7).fill(1);this.drumMuteTarget=new Float64Array(7).fill(1);this.drumMuteActive=false;this.drumMuteSmooth=1-Math.exp(-1/(sr*.004));this.drumEffects=new DrumEffects(sr);this.drumWetL=0;this.drumWetR=0;this.drumControlsActive=false;
+  this.drumFxMode='individual';this.drumFxSettings=Array.from({length:7},()=>({pitch:0,spring:0,delay:0}));this.globalDrumFx={pitch:0,spring:0,delay:0,tone:0};this.drumSpringTone=0;this.globalSends=new Float64Array(2);this.globalSendTargets=new Float64Array(2);
   this.drumTune=new Float64Array(7).fill(1);this.drumTuneTarget=new Float64Array(7).fill(1);this.drumSemitones=new Float64Array(7);this.drumNoise=new Float64Array(7);this.drumNoiseK=new Float64Array(7).fill(1-Math.exp(-TAU*1800/sr));this.drumSends=new Float64Array(14);this.drumSendTargets=new Float64Array(14);this.drumFxSmooth=1-Math.exp(-1/(sr*.02));this.tunedSnareK=null;
   this.drumStep=0;this.drumStart=0;this.nextDrum=0;this.drumVolume=.6;this.drumEnv=new Float64Array(7);this.drumAge=new Float64Array(7);this.drumPhase=new Float64Array(7);this.drumPitch=new Float64Array(7);this.drumLast=new Float64Array(7);this.drumBridge=new Float64Array(7);this.drumBridgeAge=new Float64Array(7);this.drumBridgeFrames=Math.round(sr*.004);this.drumBridgeAge.fill(this.drumBridgeFrames);
   this.drumDecay=[.19,.105,.027,.17,.038,.14,.085].map(t=>Math.exp(-1/(sr*t)));this.noiseLow=0;this.speaker=0;this.openChoke=false;this.noiseK=1-Math.exp(-TAU*1800/sr);this.speakerK=1-Math.exp(-TAU*3700/sr);this.snareDecay=Math.exp(-1/(sr*.32));this.chokeDecay=Math.exp(-1/(sr*.006));this.snareK={dry:1-Math.exp(-TAU*6500/sr),vintage:1-Math.exp(-TAU*6500/sr),sixties:1-Math.exp(-TAU*4500/sr),dub:1-Math.exp(-TAU*1900/sr),lofi:1-Math.exp(-TAU*6500/sr),noise:1-Math.exp(-TAU*6500/sr)};this.cachedAttack=NaN;this.cachedRelease=NaN;this.cachedCrush=NaN;
@@ -459,6 +472,7 @@ class Engine {
   for(const k of ['tone','glitch','balance','swing','drive'])if(Number.isFinite(s[k]))this[k]=clamp(s[k],k==='tone'?-1:0,1);
   if(Number.isFinite(s.kosmische?.pulseSpeed))this.pulseSpeed=clamp(s.kosmische.pulseSpeed,.12,24);
   if(Number.isFinite(s.kosmische?.pulseDepth))this.pulseDepth=clamp(s.kosmische.pulseDepth,0,1);
+  if(Number.isFinite(s.fragmentLength))this.performance.setLength(s.fragmentLength);
   if(['chord','arp','drums','all'].includes(s.glitchTarget))this.glitchTarget=s.glitchTarget;
   if(s.preset)this.preset=PRESETS.find(p=>p.id===s.preset)||this.preset;
   const eq=s.eq||s.eqByPreset?.[this.preset.id];
@@ -472,12 +486,18 @@ class Engine {
   if(Number.isFinite(s.rhythm))this.pendingPattern=clamp(s.rhythm,0,5);
   if(s.drumCustom!==undefined){const grid=s.drumEdits?.[this.pendingPattern];this.drumCustom=!!s.drumCustom&&validDrumGrid(grid);this.editGrid=this.drumCustom?grid.map(r=>r.slice()):null;}
   if(Array.isArray(s.drumMutes)){this.drumMuteActive=false;for(let i=0;i<7;i++){this.drumMuteTarget[i]=s.drumMutes[i]===true?0:1;if(this.drumMuteTarget[i]!==1||this.drumMute[i]!==1)this.drumMuteActive=true;}}
-  if(Array.isArray(s.drumFx)){for(let i=0;i<7;i++){
-   const p=s.drumFx[i];if(!p)continue;
-   const pitch=Number.isFinite(p.pitch)?clamp(p.pitch,-12,12):0;
+  if(['individual','global'].includes(s.drumFxMode))this.drumFxMode=s.drumFxMode;
+  if(Array.isArray(s.drumFx))for(let i=0;i<7;i++)for(const key of ['pitch','spring','delay'])if(Number.isFinite(s.drumFx[i]?.[key]))this.drumFxSettings[i][key]=clamp(s.drumFx[i][key],key==='pitch'?-12:0,key==='pitch'?12:1);
+  if(s.globalDrumFx)for(const key of ['pitch','spring','delay','tone'])if(Number.isFinite(s.globalDrumFx[key]))this.globalDrumFx[key]=clamp(s.globalDrumFx[key],key==='pitch'?-12:key==='tone'?-1:0,key==='pitch'?12:1);
+  if(Number.isFinite(s.drumSpringTone))this.drumSpringTone=clamp(s.drumSpringTone,-1,1);
+  const global=this.drumFxMode==='global';this.drumEffects.setTone(global?this.globalDrumFx.tone:this.drumSpringTone);
+  this.globalSendTargets[0]=global?this.globalDrumFx.spring:0;this.globalSendTargets[1]=global?this.globalDrumFx.delay:0;
+  for(let i=0;i<7;i++){
+   const p=global?this.globalDrumFx:this.drumFxSettings[i],pitch=p.pitch;
    if(pitch!==this.drumSemitones[i]){this.drumSemitones[i]=pitch;const ratio=2**(pitch/12);this.drumTuneTarget[i]=ratio;this.drumNoiseK[i]=1-Math.exp(-TAU*1800*ratio/this.sr);if(i===1){this.tunedSnareK={};for(const kind of SNARES){const f=kind.id==='sixties'?4500:kind.id==='dub'?1900:6500;this.tunedSnareK[kind.id]=1-Math.exp(-TAU*Math.min(this.sr*.4,f*ratio)/this.sr);}}}
-   this.drumSendTargets[i*2]=Number.isFinite(p.spring)?clamp(p.spring,0,1):0;this.drumSendTargets[i*2+1]=Number.isFinite(p.delay)?clamp(p.delay,0,1):0;
-  }for(let i=0;i<7;i++)if(this.drumTuneTarget[i]!==1||this.drumSendTargets[i*2]!==0||this.drumSendTargets[i*2+1]!==0){if(!this.drumControlsActive)this.drumNoise.fill(this.noiseLow);this.drumControlsActive=true;break;}}
+   this.drumSendTargets[i*2]=global?0:p.spring;this.drumSendTargets[i*2+1]=global?0:p.delay;
+   if(this.drumTuneTarget[i]!==1||this.drumSendTargets[i*2]!==0||this.drumSendTargets[i*2+1]!==0){if(!this.drumControlsActive)this.drumNoise.fill(this.noiseLow);this.drumControlsActive=true;}
+  }
   if(Number.isFinite(s.drumVolume))this.drumVolume=clamp(s.drumVolume,0,1);
   if(Number.isFinite(s.chordLength)){this.chordLength=clamp(s.chordLength,.1,1.25);for(const v of this.voices)if(v.origin==='seq'&&v.gate!==0)v.offTick=v.chordTick+96*this.chordLength;}
   if(s.arp){const old=this.arp;this.arp={...this.arp,...s.arp};if(this.sequence&&old.mode!==this.arp.mode){this.pendingMode=this.arp.mode;this.arp.mode=old.mode;}else if(this.sequence&&s.arp.mode===old.mode)this.pendingMode=null;if(old.speed!==this.arp.speed)this.nextArp=Math.ceil(this.clock.tick/(DIVISIONS[this.arp.speed]*24))*(DIVISIONS[this.arp.speed]*24);}
@@ -632,8 +652,10 @@ class Engine {
    if(this.drumBridgeAge[i]<this.drumBridgeFrames){value+=this.drumBridge[i]*(.5+.5*Math.cos(Math.PI*this.drumBridgeAge[i]/this.drumBridgeFrames));this.drumBridgeAge[i]++;}
    this.drumLast[i]=value;const audible=value*muteGain;sum+=audible;springSend+=audible*this.drumSends[i*2];delaySend+=audible*this.drumSends[i*2+1];this.drumEnv[i]*=i===1?this.snareDecay:this.drumDecay[i];if(i===3&&this.openChoke)this.drumEnv[i]*=this.chokeDecay;
   }
-  if(springSend!==0||delaySend!==0||this.drumEffects.active){const wet=this.drumEffects.process(springSend*this.drumVolume,delaySend*this.drumVolume);this.drumWetL=wet[0];this.drumWetR=wet[1];}else{this.drumWetL=0;this.drumWetR=0;}
-  this.speaker+=this.speakerK*(Math.tanh(sum*1.4)*.55-this.speaker);return this.speaker*this.drumVolume;
+  this.speaker+=this.speakerK*(Math.tanh(sum*1.4)*.55-this.speaker);const dry=this.speaker*this.drumVolume;
+  for(let i=0;i<2;i++)if(this.globalSends[i]!==this.globalSendTargets[i]){this.globalSends[i]+=(this.globalSendTargets[i]-this.globalSends[i])*this.drumFxSmooth;if(Math.abs(this.globalSends[i]-this.globalSendTargets[i])<1e-8)this.globalSends[i]=this.globalSendTargets[i];}
+  springSend=springSend*this.drumVolume+dry*this.globalSends[0];delaySend=delaySend*this.drumVolume+dry*this.globalSends[1];
+  if(springSend!==0||delaySend!==0||this.drumEffects.active){const wet=this.drumEffects.process(springSend,delaySend);this.drumWetL=wet[0];this.drumWetR=wet[1];}else{this.drumWetL=0;this.drumWetR=0;}return dry;
  }
  snareSample(noise,t,p){
   const kind=this.activeSnare,lowK=this.drumSemitones[1]===0?this.snareK[kind]:this.tunedSnareK[kind];
