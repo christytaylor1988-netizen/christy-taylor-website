@@ -2,7 +2,7 @@ import fs from 'node:fs';import {performance,PerformanceObserver} from 'node:per
 import {fixture,worklet,current,out} from './fixtures.mjs';
 import {execFileSync} from 'node:child_process';
 const dir=new URL('file://'+out+'/'),repo=new URL('../../',import.meta.url);
-const baseline=execFileSync('git',['show','c62ad3ab2c45e9d9be920f5aaab894a8f84b1cc4:lie013-preview-7x9/worklet.js'],{cwd:repo,maxBuffer:32e6}).toString();
+const baseline=execFileSync('git',['show','34f37fbbdfaecd2a780c844802fa9d76787729ab:lie013-preview-7x9/worklet.js'],{cwd:repo,maxBuffer:32e6}).toString();
 const label=process.argv[2]||'baseline',lib=await fixture(label==='baseline'?baseline:worklet,'stress-'+label),zones=current.decodeSamples();
 const expanded=process.argv.includes('--expanded');
 const long=process.argv.includes('--long'),profile=process.argv.includes('--profile'),results=[],gc=[];
@@ -24,7 +24,7 @@ function run(sr,scenario,seconds){
   if(scenario!=='sustain'&&si!==lastStrum){lastStrum=si;for(let i=0;i<12;i++){const count=e.voices.length>=e.maxVoices?e.voices.length:0;for(let j=0;j<count;j++){const v=e.voices[j];beforeIds[j]=v.id;beforeHeld[j]=v.gate===-1&&!v.pluck?1:0;}
  e.message({type:'lane',lane:si%2?11-i:i,velocity:.78,pointer:1});if(count){stolen++;for(let j=0;j<count;j++)if(beforeHeld[j]){let found=false;for(let k=0;k<e.voices.length;k++)if(e.voices[k].id===beforeIds[j]){found=true;break;}if(!found)heldStolen++;}}}}
   if(['tempo','both','effects','eq','soak','combined-fx'].includes(scenario)&&ti!==lastTempo){lastTempo=ti;e.configure({tempo:[80,140,220,180,110,200][ti%6]});}
-  if(scenario==='combined-fx'&&expanded&&b%128===0){const section=Math.floor(time/12);e.configure({drumFxMode:section%2?'global':'individual',globalDrumFx:{pitch:section%2?5:-3,spring:.8,delay:.7,tone:section%3-1},drumSpringTone:section%3-1,fragmentLength:[0,.25,1][section%3],drumMutes:Array.from({length:7},(_,i)=>i===section%7)});}
+  if(scenario==='combined-fx'&&expanded&&b%128===0){const section=Math.floor(time/12);e.configure({drumFxMode:section%2?'global':'individual',drumDelay:{time:[.02,.2,.4][section%3],feedback:[0,.43,.94][section%3],legacySync:false},globalDrumFx:{pitch:section%2?5:-3,spring:.8,delay:.7,tone:section%3-1,delayTime:[.4,.02,.2][section%3],delayFeedback:[.94,0,.43][section%3],delayLegacySync:false},drumSpringTone:section%3-1,fragmentLength:[0,.25,1][section%3],drumMutes:Array.from({length:7},(_,i)=>i===section%7)});}
   if(scenario==='combined-fx'){const hold=time%30>=20&&time%30<22,lock=time%30>=12&&time%30<24;if(hold!==lastHold){e.message({type:'glitch-hold',on:hold});lastHold=hold;}if(lock!==lastLock){e.message({type:'strum-lock',on:lock});lastLock=lock;}}
   expectedBeat+=128*e.tempo/(60*sr);e.process(l,r);const ms=performance.now()-begin;timings[b]=ms;if(ms>dead)over++;maxVoices=Math.max(maxVoices,e.voices.length);maxTails=Math.max(maxTails,e.tails.length);
   let blockPeak=0;for(let j=0;j<128;j++){const x=l[j];if(!Number.isFinite(x)||!Number.isFinite(r[j]))nans++;blockPeak=Math.max(blockPeak,Math.abs(x),Math.abs(r[j]));maxJump=Math.max(maxJump,Math.abs(x-last));last=x;}peak=Math.max(peak,blockPeak);if(b<sr/128)firstPeak=Math.max(firstPeak,blockPeak);

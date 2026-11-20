@@ -1,17 +1,17 @@
 {
   "application": "WILMACHORD",
   "catalogue": "LIE013",
-  "version": "0.4.5",
-  "edition": "Manual sequencing, spring and global FX, phrase fragments and colour themes",
+  "version": "0.4.6",
+  "edition": "Named beats and performances, grouped effects, tactile strum and analogue drum delay",
   "website_base_commit": "e0b00c92f938e53375322d544f108b2d113a0e36",
-  "deployment_change": "Visible instrument buttons; unified EFFECTS; manual ALL 16 or 8 + 8; seven track mutes; dispersive spring and wet tone; separate global drum FX; fragment length; saved colour themes. Physical iPhone listening remains required.",
+  "deployment_change": "Three effects tabs; compact all-16 sequencer; 300 ms mutes; chord audition; independent named beat and performance libraries with undo/redo; shared analogue delay; calibrated GARAGE level. Physical iPhone listening remains untested for this build.",
   "files": {
-    "index.html": "027a58e5cb9d9edd34f5592f64741088c55b3e09110745e85a731501161a16f3",
-    "worklet.js": "feb82e6be6fa34dcd78312cc6287764579f9799f7477eac17184b8e4135d6ca3",
+    "index.html": "b632f8f629ff708a9f0cfead0878577f5d2c94e1297cea12c738488cc750b631",
+    "worklet.js": "36efd1d95ad41d83ffd5f8879d0329e2c85daecd714b6cb0c9e5cb1894a348b0",
     "SOUND-CREDITS.txt": "0c6d9cb39f81babb57b5fb1ef6118676f5c59d815a42915dc227e3447aa4c5d1"
   },
   "diagnostic_build": "audio-diag-1",
-  "recovery_commit": "c62ad3ab2c45e9d9be920f5aaab894a8f84b1cc4",
+  "recovery_commit": "34f37fbbdfaecd2a780c844802fa9d76787729ab",
   "selectable_instruments": 11,
   "legacy_instruments": 1,
   "drum_voices": 7

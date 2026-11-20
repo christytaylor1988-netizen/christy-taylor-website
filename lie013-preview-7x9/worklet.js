@@ -1,5 +1,5 @@
 // WILMACHORD musical schema 1. Pure data/logic shared by UI, renderer and tests.
-const VERSION = '0.4.5';
+const VERSION = '0.4.6';
 const ROOTS = ['C','C♯','D','E♭','E','F','F♯','G','A♭','A','B♭','B'];
 const QUALITIES = {
   '': [0,4,7], m:[0,3,7], '7':[0,4,7,10], maj7:[0,4,7,11], m7:[0,3,7,10],
@@ -510,13 +510,13 @@ class Engine {
   if(['pluck','hold'].includes(s.strumMode)&&s.strumMode!==this.strumMode){this.releaseStrums();this.strumMode=s.strumMode;}
   if(s.strumPreset!==undefined){const preset=s.strumPreset==='same'?null:PRESETS.find(p=>p.id===s.strumPreset);if(preset!==undefined&&preset!==this.strumPreset){this.releaseStrums();for(const v of this.voices)if(v.origin==='strum'){v.gate=0;v.release=.025;}this.strumPreset=preset;}}
   if(s.strumLock!==undefined){
-   if(s.strumLock&&!this.strumLock)this.lockedNotes=Array.isArray(s.lockedNotes)&&s.lockedNotes.length===12&&s.lockedNotes.every(n=>Number.isInteger(n)&&n>=24&&n<=120)?s.lockedNotes.slice():this.liveStrumNotes(12);
+   if(s.strumLock){const valid=Array.isArray(s.lockedNotes)&&s.lockedNotes.length===12&&s.lockedNotes.every(n=>Number.isInteger(n)&&n>=24&&n<=120);if(valid&&(!this.strumLock||s.lockedNotes.some((n,i)=>n!==this.lockedNotes[i])))this.lockedNotes=s.lockedNotes.slice();else if(!this.strumLock)this.lockedNotes=this.liveStrumNotes(12);}
    const was=this.strumLock;this.strumLock=!!s.strumLock;if(was&&!this.strumLock)this.retuneStrums();
   }
   if(s.progression?.length){if(this.sequence)this.pendingProgression=structuredCopy(s.progression);else this.progression=structuredCopy(s.progression);}
  }
  message(m){
-  if(m.type==='strum-lock'){if(m.on)this.lockedNotes=this.liveStrumNotes(12);this.strumLock=!!m.on;if(!m.on)this.retuneStrums();}
+  if(m.type==='strum-lock'){if(m.on)this.lockedNotes=Array.isArray(m.notes)&&m.notes.length===12&&m.notes.every(n=>Number.isInteger(n)&&n>=24&&n<=120)?m.notes.slice():this.liveStrumNotes(12);this.strumLock=!!m.on;if(!m.on)this.retuneStrums();}
   if(m.type==='glitch-hold')this.glitchHold=!!m.on;
   if(m.type==='config')this.configure(m.state);
   if(m.type==='samples'){
