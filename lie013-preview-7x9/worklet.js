@@ -82,7 +82,7 @@ function arpIndex(step,length,order,random=.5){
  if(order===3)return Math.min(length-1,Math.floor(random*length));
  return step%length;
 }
-function defaultState(){return {schema:1,paletteId:'golden',custom:[],key:0,octave:0,latch:true,selected:0,preset:'motorik',fx:{attack:.012,release:.85,reverb:.18,wooze:.1,crush:.04},drive:0,kosmische:{pulseSpeed:17.3,pulseDepth:.44},tone:0,presence:0,eqByPreset:{},legacyTone:null,glitch:0,glitchTarget:'all',balance:.5,swing:0,drumEdits:{},drumCustom:false,drumFxMode:'individual',drumSpringTone:0,globalDrumFx:{pitch:0,spring:0,delay:0,tone:0},fragmentLength:.25,drumView:'split',drumBank:0,drumMutes:Array(7).fill(false),drumFx:Array.from({length:7},()=>({pitch:0,spring:0,delay:0})),tempo:110,rhythm:0,drumVolume:.6,snare:'dry',strings:9,strumMode:'pluck',strumLock:false,lockedNotes:null,strumPreset:'same',chordLength:1,progression:[c(0),c(9,'m'),c(5),c(7)],arp:{speed:1,glide:0,order:0,octaves:1,length:.65,mode:'arp'},page:0};}
+function defaultState(){return {schema:1,paletteId:'golden',custom:[],key:0,octave:0,latch:true,selected:0,preset:'motorik',fx:{attack:.012,release:.85,reverb:.18,wooze:.1,crush:.04},drive:0,kosmische:{pulseSpeed:17.3,pulseDepth:.44},tone:0,presence:0,eqByPreset:{},legacyTone:null,glitch:0,glitchTarget:'all',balance:.5,swing:0,drumEdits:{},drumCustom:false,drumFxMode:'individual',drumSpringTone:0,drumDelay:{time:.2,feedback:.43,legacySync:false},globalDrumFx:{pitch:0,spring:0,delay:0,tone:0,delayTime:.2,delayFeedback:.43,delayLegacySync:false},fragmentLength:.25,drumView:'split',drumBank:0,drumMutes:Array(7).fill(false),drumFx:Array.from({length:7},()=>({pitch:0,spring:0,delay:0})),tempo:110,rhythm:0,drumVolume:.6,snare:'dry',strings:9,strumMode:'pluck',strumLock:false,lockedNotes:null,strumPreset:'same',chordLength:1,progression:[c(0),c(9,'m'),c(5),c(7)],arp:{speed:1,glide:0,order:0,octaves:1,length:.65,mode:'arp'},page:0};}
 
 const DRUM_VOICES=['KICK','SNARE','CLOSED HAT','OPEN HAT','WOOD','TOM','CLAP'];
 const DRUM_TRACKS=['KICK','SNARE','CLAP','CLOSED HAT','OPEN HAT','WOOD','TOM'];
@@ -416,13 +416,14 @@ class DrumEffects {
  constructor(sr){
   this.sr=sr;this.out=new Float64Array(2);this.active=0;this.dc=0;this.low=0;
   this.spring=[.0287,.0379].map((t,i)=>({data:new Float32Array(Math.round(sr*t)),at:0,low:0,tone:0,stages:Array.from({length:16},(_,j)=>({data:new Float32Array(Math.max(1,Math.round(sr*(.00031+i*.000043+j*.000004)))),at:0,g:.76-j*.002-i*.015}))}));
-  this.delay=new Float32Array(Math.ceil(sr*1.2));this.at=0;this.delayFrames=sr*60/110*.75;this.targetFrames=this.delayFrames;
+  this.delay=new Float32Array(Math.ceil(sr*1.2));this.at=0;this.delayFrames=sr*60/110*.75;this.targetFrames=this.delayFrames;this.feedback=.43;this.feedbackTarget=.43;this.legacySync=true;this.delayDC=0;this.delayDCK=1-Math.exp(-2*Math.PI*25/sr);
   this.smooth=1-Math.exp(-1/(sr*.04));this.damping=1-Math.exp(-2*Math.PI*5200/sr);this.inputDC=1-Math.exp(-2*Math.PI*160/sr);this.delayK=1-Math.exp(-2*Math.PI*2300/sr);
   this.tone=0;this.toneTarget=0;this.toneK=1-Math.exp(-2*Math.PI*1700/sr);this.springActive=0;this.delayActive=0;
  }
  setTone(value){this.toneTarget=clamp(value,-1,1);}
- tempo(bpm){this.targetFrames=Math.min(this.delay.length-2,this.sr*60/bpm*.75);}
- reset(){this.active=0;this.springActive=0;this.delayActive=0;this.dc=0;this.low=0;this.delay.fill(0);this.out.fill(0);for(const t of this.spring){t.low=0;t.tone=0;t.data.fill(0);for(const a of t.stages)a.data.fill(0);}}
+ tempo(bpm){this.bpm=bpm;if(this.legacySync)this.targetFrames=Math.min(this.delay.length-2,this.sr*60/bpm*.75);}
+ setDelay(time,feedback,legacySync=false){this.legacySync=legacySync;this.targetFrames=legacySync?Math.min(this.delay.length-2,this.sr*60/(this.bpm||110)*.75):this.sr*clamp(time,.02,.4);this.feedbackTarget=clamp(feedback,0,.94);}
+ reset(){this.active=0;this.springActive=0;this.delayActive=0;this.dc=0;this.delayDC=0;this.low=0;this.delay.fill(0);this.out.fill(0);for(const t of this.spring){t.low=0;t.tone=0;t.data.fill(0);for(const a of t.stages)a.data.fill(0);}}
  process(springSend,delaySend){
   if(Math.abs(springSend)>1e-9)this.springActive=Math.ceil(this.sr*5);if(Math.abs(delaySend)>1e-9)this.delayActive=Math.ceil(this.sr*5);
   if(this.springActive===0&&this.delayActive===0){this.active=0;this.out[0]=0;this.out[1]=0;return this.out;}
@@ -439,7 +440,10 @@ class DrumEffects {
   if(this.delayActive){this.delayActive--;this.delayFrames+=(this.targetFrames-this.delayFrames)*this.smooth;
    const position=(this.at-this.delayFrames+this.delay.length)%this.delay.length,i=position|0,f=position-i,j=(i+1)%this.delay.length;
    const echo=this.delay[i]+(this.delay[j]-this.delay[i])*f;this.low+=this.delayK*(echo-this.low);
-   this.delay[this.at]=Math.tanh(delaySend*.55+this.low*.43);if(++this.at===this.delay.length)this.at=0;
+   this.feedback+=(this.feedbackTarget-this.feedback)*this.smooth;
+   if(!this.legacySync&&Math.abs(this.low)>1e-7)this.delayActive=Math.max(this.delayActive,Math.ceil(this.sr*2));
+   this.delayDC+=this.delayDCK*(this.low-this.delayDC);const repeat=this.legacySync?this.low:this.low-this.delayDC;
+   this.delay[this.at]=Math.tanh(delaySend*.55+repeat*this.feedback);if(++this.at===this.delay.length)this.at=0;
    this.out[0]+=this.low*.65;this.out[1]+=this.low*.65;
   }
   this.active=Math.max(this.springActive,this.delayActive);return this.out;
@@ -490,7 +494,7 @@ class Engine {
   if(Array.isArray(s.drumFx))for(let i=0;i<7;i++)for(const key of ['pitch','spring','delay'])if(Number.isFinite(s.drumFx[i]?.[key]))this.drumFxSettings[i][key]=clamp(s.drumFx[i][key],key==='pitch'?-12:0,key==='pitch'?12:1);
   if(s.globalDrumFx)for(const key of ['pitch','spring','delay','tone'])if(Number.isFinite(s.globalDrumFx[key]))this.globalDrumFx[key]=clamp(s.globalDrumFx[key],key==='pitch'?-12:key==='tone'?-1:0,key==='pitch'?12:1);
   if(Number.isFinite(s.drumSpringTone))this.drumSpringTone=clamp(s.drumSpringTone,-1,1);
-  const global=this.drumFxMode==='global';this.drumEffects.setTone(global?this.globalDrumFx.tone:this.drumSpringTone);
+  const global=this.drumFxMode==='global';const delay=global?{time:s.globalDrumFx?.delayTime,feedback:s.globalDrumFx?.delayFeedback,legacySync:s.globalDrumFx?.delayLegacySync}:s.drumDelay;if(delay){this.drumEffects.setDelay(Number.isFinite(delay.time)?delay.time:.2,Number.isFinite(delay.feedback)?delay.feedback:.43,delay.legacySync!==false);}this.drumEffects.setTone(global?this.globalDrumFx.tone:this.drumSpringTone);
   this.globalSendTargets[0]=global?this.globalDrumFx.spring:0;this.globalSendTargets[1]=global?this.globalDrumFx.delay:0;
   for(let i=0;i<7;i++){
    const p=global?this.globalDrumFx:this.drumFxSettings[i],pitch=p.pitch;
@@ -519,6 +523,7 @@ class Engine {
    this.samples=m.zones;this.sampleBanks=Object.create(null);
    for(const z of this.samples){z.loopFade=Math.min(Math.round(z.rate*.012),Math.floor((z.loopEnd-z.loopStart)/8));const bank=this.sampleBanks[z.bank]||(this.sampleBanks[z.bank]=[]);let group=bank.find(g=>g.root===z.root);if(!group){group={root:z.root,zones:[]};bank.push(group);}group.zones.push(z);}
   }
+  if(m.type==='audition'||m.type==='audition-stop'){for(const v of this.voices)if(v.origin==='audition'){v.gate=0;v.release=.025;}if(m.type==='audition'&&m.chord){this.masterTarget=1;this.playChord(m.chord,.65,'audition');}}
   if(m.type==='chord'){this.chord=m.chord;this.held=!!m.hold;this.release('manual');this.masterTarget=1;if(m.sound!==false)this.playChord(this.chord,m.hold?-1:.3,'manual');this.retuneStrums();}
   if(m.type==='release'){this.held=false;this.release('manual');}
   if(m.type==='lane'){
@@ -696,7 +701,7 @@ class Engine {
     if(v.glide!==v.cachedGlide){v.cachedGlide=v.glide;v.glideCoef=v.glide>0?1-Math.exp(-1/(this.sr*v.glide*.2)):1;}v.f+=(v.target-v.f)*v.glideCoef;
     const cents=this.lfo[v.n%5]+woozeAmount*.15*v.drift;
     const freq=v.f*Math.pow(2,cents/1200),tone=p.method==='sample'?sampleVoice(v,freq):voiceTone(v,this,freq,age);
-    const value=tone*v.env*v.velocity*.18;if(v.origin==='arp'){v.lastL=value*(1-v.pan);v.lastR=value*(1+v.pan);al+=v.lastL;ar+=v.lastR;}else{const gain=v.origin==='seq'?this.chordGain:1;v.lastL=value*(1-v.pan)*gain;v.lastR=value*(1+v.pan)*gain;l+=v.lastL;r+=v.lastR;}
+    const value=tone*v.env*v.velocity*.18*(p.id==='garage'?.60:1);if(v.origin==='arp'){v.lastL=value*(1-v.pan);v.lastR=value*(1+v.pan);al+=v.lastL;ar+=v.lastR;}else{const gain=v.origin==='seq'?this.chordGain:1;v.lastL=value*(1-v.pan)*gain;v.lastR=value*(1+v.pan)*gain;l+=v.lastL;r+=v.lastR;}
    }
    l+=this.tailCarry[0];r+=this.tailCarry[1];al+=this.tailCarry[2];ar+=this.tailCarry[3];for(let j=0;j<4;j++)this.tailCarry[j]*=this.tailCarryDecay;
    const arpGain=this.arpGain;al*=arpGain;ar*=arpGain;
