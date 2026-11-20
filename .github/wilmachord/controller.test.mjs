@@ -63,7 +63,7 @@ test('Six snare choices are independent; V0.1 imports preserve original settings
 });
 test('Three pages and performance controls preserve original five effects',()=>{
  $('page-drums').onclick();assert.equal(state().page,2);assert.equal($('drum-page').hidden,false);assert.equal($('seq-page').hidden,true);
- $('fx-performance').onclick();assert.equal($('effects').hidden,true);assert.equal($('performance-controls').hidden,false);assert.equal($('effects').children.length,12);
+ assert.equal($('effects').hidden,false);assert.equal($('performance-controls').hidden,false);assert.equal($('effects').children.length,12);
  $('presence').value=-.5;$('presence').oninput();$('glitch').value=.7;$('glitch').oninput();$('glitch-target').onchange({target:{value:'drums'}});
  $('preset-strip').children[4].onclick();assert.equal(state().presence,-.5);assert.equal(state().glitch,.7);assert.equal(state().glitchTarget,'drums');
 });
@@ -145,13 +145,23 @@ test('Scope OFF removes only its side tap and cancels animation; preference pers
 test('Vertical direction lock cannot turn into horizontal page switching',()=>{
  context.probe.showPage(0);const target=new Element('div');instrument.listeners.touchstart({touches:[gesture(300,200)],target});instrument.listeners.touchmove({touches:[gesture(290,240)],preventDefault(){throw Error('vertical scroll prevented');}});instrument.listeners.touchend({changedTouches:[gesture(30,245)],preventDefault(){}});assert.equal(state().page,0);
 });
-test('Live bank changes preserve the Swing control and defer while painting',()=>{
- context.probe.stop();$('drum-play').onclick();const swing=$('swing');context.probe.update(7);assert.equal(context.probe.bank(),0);context.probe.update(8);assert.equal(context.probe.bank(),1);assert.equal($('swing'),swing);context.probe.update(0);assert.equal(context.probe.bank(),0);
- const start=cell(1,0);$('drum-grid').onpointerdown({...pointer(92),target:start});context.probe.update(9);assert.equal(context.probe.bank(),0);assert.ok($('drum-grid').children.includes(start));$('drum-grid').onpointerup(pointer(92));context.probe.update(10);assert.equal(context.probe.bank(),0);context.probe.update(0);context.probe.update(8);assert.equal(context.probe.bank(),1);context.probe.stop();$('drum-bank-a').onclick();assert.equal(context.probe.bank(),0);$('drum-bank-b').onclick();assert.equal(context.probe.bank(),1);
+test('Manual banks never follow playback or replace cells, including during painting',()=>{
+ context.probe.stop();$('drum-bank-a').onclick();$('drum-play').onclick();const swing=$('swing'),start=cell(1,0);$('drum-grid').onpointerdown({...pointer(92),target:start});
+ for(const step of [7,8,15,0,9,0]){context.probe.update(step);assert.equal(context.probe.bank(),0);assert.ok($('drum-grid').children.includes(start));assert.equal($('swing'),swing);}
+ $('drum-grid').onpointerup(pointer(92));$('drum-bank-b').onclick();context.probe.update(0);assert.equal(context.probe.bank(),1);context.probe.stop();assert.equal(context.probe.bank(),1);
+});
+test('All 16 mode exposes every step in seven independent rows and saves the selected view',()=>{
+ $('drum-view-all').onclick();assert.equal($('drum-grid').children.filter(x=>x.dataset.drumStep!==undefined).length,112);assert.ok(cell(6,15));assert.equal($('drum-banks').hidden,true);
+ const saved=context.probe.validate(JSON.parse(JSON.stringify(state())));assert.equal(saved.drumView,'all');assert.equal(saved.drumBank,1);$('drum-view-split').onclick();$('drum-bank-a').onclick();assert.equal($('drum-grid').children.filter(x=>x.dataset.drumStep!==undefined).length,56);
+});
+test('Name-only long press mutes independently, cancels on scroll and preserves steps and effects',()=>{
+ const snapshot=JSON.stringify([state().drumEdits,state().drumFx]);const labels=$('drum-grid').children.filter(x=>x.dataset.muteLane!==undefined);assert.equal(labels.length,7);
+ for(const label of labels){const lane=+label.dataset.muteLane;label.onpointerdown(pointer(100,5,5));label.onpointermove(pointer(100,5,25));assert.equal(state().drumMutes[lane],false);label.onpointerdown(pointer(101,5,5));[...timers.values()].at(-1)();label.onpointerup(pointer(101));assert.equal(state().drumMutes[lane],true);assert.match(label.textContent,/MUTE/);assert.equal(label.getAttribute('aria-pressed'),true);}
+ assert.equal(JSON.stringify([state().drumEdits,state().drumFx]),snapshot);assert.ok(context.probe.validate(JSON.parse(JSON.stringify(state()))).drumMutes.every(Boolean));for(const label of labels)label.onclick({detail:0});assert.ok(state().drumMutes.every(x=>!x));
 });
 test('Legacy CRUSH LEVEL cannot mute imported sets; pulse and DRIVE still save independently',()=>{
  const old=context.probe.validate({schema:1,preset:'garage',fx:{crush:1},crushLevel:0,latch:true});assert.equal(old.drive,0);assert.equal(old.crushLevel,undefined);assert.equal(old.fx.crush,1);
- const set=(id,value)=>{$(id).value=value;$(id).oninput();};$('fx-sound').onclick();set('drive',.63);
+ const set=(id,value)=>{$(id).value=value;$(id).oninput();};set('drive',.63);
  const before=JSON.stringify([state().paletteId,state().progression,state().rhythm,state().drumEdits]);$('preset-strip').children[1].onclick();assert.equal($('effects').children.length,14);set('pulse-speed',.5);set('pulse-depth',.81);
  const restored=context.probe.validate(JSON.parse(JSON.stringify(state())));assert.equal(restored.kosmische.pulseDepth,.81);assert.ok(Math.abs(restored.kosmische.pulseSpeed-.12*Math.sqrt(200))<1e-10);assert.equal(restored.drive,.63);assert.equal(restored.crushLevel,undefined);
  $('preset-strip').children.find(b=>b.textContent==='GARAGE').onclick();assert.equal($('effects').children.length,12);assert.equal(state().kosmische.pulseDepth,.81);assert.equal(JSON.stringify([state().paletteId,state().progression,state().rhythm,state().drumEdits]),before);assert.ok(!$('effects').children.some(x=>x.children.some(c=>c.id==='crush-level')));

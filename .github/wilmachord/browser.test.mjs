@@ -43,7 +43,7 @@ async function suite(type,name){
  await test('Both pages scroll without horizontal overflow; effect hit targets are at least 44 px',async()=>{
   for(const n of [0,1]){await show(n);const el=page.locator(n?'#seq-page':'#main-page');const box=await el.evaluate(e=>({height:e.clientHeight,content:e.scrollHeight,width:e.clientWidth,sw:e.scrollWidth}));assert.ok(box.content>box.height+100);assert.ok(box.sw<=box.width+1);await el.evaluate(e=>e.scrollTop=e.scrollHeight);assert.ok(await el.evaluate(e=>e.scrollTop)>0);await page.screenshot({path:path.join(out,name+'-page'+(n+1)+'-bottom.png')});await el.evaluate(e=>e.scrollTop=0);await page.screenshot({path:path.join(out,name+'-page'+(n+1)+'-top.png')});}
   await show(0);const sizes=await page.locator('#effects input').evaluateAll(xs=>xs.map(x=>x.getBoundingClientRect().height));assert.equal(sizes.length,10);assert.ok(sizes.every(x=>x>=44));
-  assert.equal(await page.locator('#main-page').evaluate(e=>getComputedStyle(e).touchAction),'auto');assert.equal(await page.locator('#preset-strip').evaluate(e=>getComputedStyle(e).touchAction),'pan-x');
+  assert.equal(await page.locator('#main-page').evaluate(e=>getComputedStyle(e).touchAction),'auto');assert.equal(await page.locator('#preset-strip').evaluate(e=>getComputedStyle(e).touchAction),'pan-y');
  });
  await test('Long chord holds stay in PLAY; explicit EDIT opens existing editor and DONE restores playing',async()=>{
   await page.locator('#main-page').evaluate(e=>e.scrollTop=0);const chord=page.locator('#chords button').first();const box=await chord.boundingBox();await page.mouse.move(box.x+20,box.y+20);await page.mouse.down();await page.waitForTimeout(850);assert.equal(await page.locator('#editor').evaluate(e=>e.open),false);assert.equal((await snap()).held,true);await page.mouse.up();
@@ -60,11 +60,13 @@ async function suite(type,name){
  await test('Rhythm settings are discoverable; all drum toggles share one transport',async()=>{
   await page.locator('#clock').tap();assert.equal(await page.locator('#settings').evaluate(e=>e.open),true);assert.equal(await page.locator('#snare-select option').count(),6);await page.locator('#settings [data-close]').tap();await page.locator('#rhythm-toggle').tap();assert.equal((await snap()).drumsOn,true);await show(1);assert.equal(await page.locator('#seq-drums').getAttribute('aria-pressed'),'true');await page.locator('#seq-drums').tap();assert.equal((await snap()).drumsOn,false);
  });
- await test('Drum bank follows live playback; manual and active-paint overrides do not replace cells',async()=>{
-  await show(2);await page.locator('#drum-play').tap();await wait(()=>wilmaTest.snapshot().drumBank===1);await wait(()=>wilmaTest.snapshot().drumBank===0);await page.locator('#drum-play').tap();
-  await page.locator('#drum-bank-b').tap();assert.equal((await snap()).drumBank,1);await page.locator('#drum-play').tap();
-  await page.evaluate(()=>{const g=document.getElementById('drum-grid');const orig=g.setPointerCapture;g.setPointerCapture=()=>{};g.children[11].dispatchEvent(new PointerEvent('pointerdown',{pointerId:77,button:0,bubbles:true}));g.setPointerCapture=orig;globalThis.savedCell=g.children[11];globalThis.savedSwing=document.getElementById('swing');wilmaTest.update(10);});
-  assert.equal((await snap()).drumBank,0);assert.equal(await page.evaluate(()=>savedCell.isConnected),true);assert.equal(await page.evaluate(()=>savedSwing===document.getElementById('swing')),true);await pointer('#drum-grid','pointerup',77);await page.evaluate(()=>{globalThis.savedSwing=document.getElementById('swing');wilmaTest.update(0);wilmaTest.update(9);});assert.equal(await page.evaluate(()=>savedSwing===document.getElementById('swing')),true);await page.evaluate(()=>wilmaTest.stop());await page.screenshot({path:path.join(out,name+'-drums.png')});
+ await test('Manual drum views stay fixed during playback, preserve painting and mute each track independently',async()=>{
+  await show(2);await page.locator('#drum-bank-b').tap();await page.locator('#drum-play').tap();await page.waitForTimeout(1100);assert.equal((await snap()).drumBank,1);
+  await page.evaluate(()=>{globalThis.savedCell=document.querySelector('.drum-cell');wilmaTest.update(0);wilmaTest.update(9);});assert.equal(await page.evaluate(()=>savedCell.isConnected),true);assert.equal((await snap()).drumBank,1);
+  await page.locator('#drum-view-all').tap();assert.equal(await page.locator('.drum-cell').count(),112);assert.equal(await page.locator('.drum-label').count(),7);assert.equal(await page.locator('#drum-bank-a').isVisible(),false);
+  const old=await page.evaluate(()=>JSON.stringify([wilmaTest.state().drumEdits,wilmaTest.state().drumFx]));
+  const label=page.locator('.drum-label').first();await label.scrollIntoViewIfNeeded();const box=await label.boundingBox();await page.mouse.move(box.x+10,box.y+20);await page.mouse.down();await page.waitForTimeout(650);await page.mouse.up();assert.equal(await label.getAttribute('aria-pressed'),'true');assert.equal(await page.evaluate(()=>JSON.stringify([wilmaTest.state().drumEdits,wilmaTest.state().drumFx])),old);
+  await page.screenshot({path:path.join(out,name+'-v045-drums-all.png')});await page.evaluate(()=>wilmaTest.stop());await page.locator('#drum-view-split').tap();await page.locator('#drum-bank-a').tap();
  });
  await test('Scope follows actual output, OFF removes analysis and animation without stopping audio',async()=>{
   await show(0);await page.locator('#main-play').tap();await wait(()=>wilmaTest.snapshot().scopeActive);await page.waitForTimeout(180);assert.ok(await page.evaluate(()=>wilmaTest.output())>0);
@@ -74,7 +76,7 @@ async function suite(type,name){
   const before=await page.evaluate(()=>JSON.stringify([wilmaTest.state().preset,wilmaTest.state().progression,wilmaTest.state().strings,wilmaTest.state().balance]));await page.waitForTimeout(400);await page.reload();await page.locator('#start-audio').tap();await wait(()=>document.getElementById('start-overlay').hidden);assert.equal((await snap()).scopeEnabled,false);assert.equal((await snap()).chordEdit,false);assert.equal(await page.evaluate(()=>JSON.stringify([wilmaTest.state().preset,wilmaTest.state().progression,wilmaTest.state().strings,wilmaTest.state().balance])),before);
  });
  await test('V0.4.4 controls have comfortable targets, show pulse only for Kosmische and preserve saved values',async()=>{
-  await show(0);await page.locator('#fx-sound').tap();
+  await show(0);
   const set=async(id,value)=>{await page.locator('#'+id).evaluate((e,v)=>{e.value=v;e.dispatchEvent(new Event('input',{bubbles:true}));},value);};
   await set('drive',.65);assert.equal(await page.locator('#crush-level').count(),0);
   await page.getByRole('button',{name:'KOSMISCHE instrument',exact:true}).tap();assert.equal(await page.locator('#pulse-speed').count(),1);await set('pulse-speed',.4);await set('pulse-depth',.8);
@@ -84,7 +86,7 @@ async function suite(type,name){
   await page.getByRole('button',{name:'GARAGE instrument',exact:true}).tap();assert.equal(await page.locator('#pulse-speed').count(),0);assert.equal(await page.locator('#drive').inputValue(),'0.65');
  });
  await test('EQ and Presence save per instrument, reset cleanly and keep drums sounding',async()=>{
-  await show(0);await page.getByRole('button',{name:'TAPE STRINGS instrument',exact:true}).tap();await page.locator('#fx-sound').tap();
+  await show(0);await page.getByRole('button',{name:'TAPE STRINGS instrument',exact:true}).tap();
   const set=async(id,v)=>page.locator('#'+id).evaluate((e,v)=>{e.value=v;e.dispatchEvent(new Event('input',{bubbles:true}));},v);
   await set('eq-low',6);await set('eq-mid',-4);await set('eq-high',3);await set('presence',.5);
   await page.getByRole('button',{name:'GRAND instrument',exact:true}).tap();assert.equal(await page.locator('#eq-low').inputValue(),'0');await page.getByRole('button',{name:'TAPE STRINGS instrument',exact:true}).tap();assert.equal(await page.locator('#eq-low').inputValue(),'6');
@@ -136,7 +138,7 @@ async function suite(type,name){
   await page.locator('#seq-page').evaluate(e=>e.scrollTop=e.scrollHeight);await page.screenshot({path:path.join(out,name+'-v044-progression.png')});
  });
  await test('Combined live worklet keeps producing audio with GLITCH, drum sends and independent strums',async()=>{
-  await show(0);await page.getByRole('button',{name:'TAPE STRINGS instrument',exact:true}).tap();await page.locator('.strum-sound-panel summary').tap();await page.locator('#strum-sound-buttons button').getByText('GARAGE',{exact:true}).tap();await page.locator('.strum-sound-panel summary').tap();await page.locator('#fx-performance').tap();await page.locator('#glitch').evaluate((e,v)=>e.value=v,'0.85');await page.locator('#glitch').dispatchEvent('input');await page.locator('#glitch-target').selectOption('all');
+  await show(0);await page.getByRole('button',{name:'TAPE STRINGS instrument',exact:true}).tap();await page.locator('.strum-sound-panel summary').tap();await page.locator('#strum-sound-buttons button').getByText('GARAGE',{exact:true}).tap();await page.locator('.strum-sound-panel summary').tap();await page.locator('#glitch').evaluate((e,v)=>e.value=v,'0.85');await page.locator('#glitch').dispatchEvent('input');await page.locator('#glitch-target').selectOption('all');
   await show(1);await page.locator('#mode-both').tap();await page.locator('#seq-play').tap();await show(0);let peaks=0;
   for(let i=0;i<24;i++){
    await page.evaluate(i=>{const e=document.getElementById('strum'),r=e.getBoundingClientRect(),old=e.setPointerCapture;e.setPointerCapture=()=>{};e.dispatchEvent(new PointerEvent('pointerdown',{pointerId:991,button:0,clientX:r.left+(i%12+.5)*r.width/12,clientY:r.top+65,bubbles:true}));e.dispatchEvent(new PointerEvent('pointerup',{pointerId:991,bubbles:true}));e.setPointerCapture=old;},i);
@@ -156,7 +158,8 @@ async function suite(type,name){
   await page.setViewportSize({width:375,height:812});await show(0);const cdp=await context.newCDPSession(page);
   const drag=async(x,y,dx,dy)=>{await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y,id:1}]});for(let i=1;i<=12;i++){await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x+dx*i/12,y:y+dy*i/12,id:1}]});await page.waitForTimeout(18);}await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await page.waitForTimeout(150);};
   await page.locator('#main-page').evaluate(e=>e.scrollTop=0);await drag(25,680,0,-220);assert.equal(await page.evaluate(()=>wilmaTest.state().page),0);assert.ok(await page.locator('#main-page').evaluate(e=>e.scrollTop)>0);
-  await page.locator('#preset-strip').scrollIntoViewIfNeeded();await page.locator('#preset-strip').evaluate(e=>e.scrollLeft=0);const strip=await page.locator('#preset-strip').boundingBox();await drag(strip.x+strip.width-12,strip.y+strip.height/2,-180,0);assert.ok(await page.locator('#preset-strip').evaluate(e=>e.scrollLeft)>20,'Native horizontal preset scrolling');
+  await page.locator('#preset-strip').scrollIntoViewIfNeeded();assert.equal(await page.locator('#preset-strip').evaluate(e=>e.scrollWidth<=e.clientWidth+1),true);const buttons=await page.locator('#preset-strip button').evaluateAll(es=>es.map(e=>e.getBoundingClientRect().height));assert.ok(buttons.every(h=>h>=44));
+  await show(2);await page.locator('#drum-view-all').tap();await page.locator('.drum-number').first().scrollIntoViewIfNeeded();const scroll=await page.locator('#drum-scroll').boundingBox();await drag(scroll.x+scroll.width-10,scroll.y+18,-220,0);assert.ok(await page.locator('#drum-scroll').evaluate(e=>e.scrollLeft)>80);assert.equal(await page.evaluate(()=>wilmaTest.state().page),2);await show(0);
   await drag(320,42,-250,1);assert.equal(await page.evaluate(()=>wilmaTest.state().page),1);await drag(320,42,-250,1);assert.equal(await page.evaluate(()=>wilmaTest.state().page),2);await drag(40,42,250,1);assert.equal(await page.evaluate(()=>wilmaTest.state().page),1);
  });
  await test('Reduced-motion preference starts the scope disabled unless explicitly enabled',async()=>{

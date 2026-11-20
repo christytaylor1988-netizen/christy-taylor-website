@@ -44,8 +44,8 @@ test('TONE changes spectral balance, neutral is exact, extremes remain bounded',
 test('All factory grids preserve exact original velocities, percussion layers and event times',()=>{
  for(let p=0;p<6;p++){const rows=factoryGrid(p),timeline=drumTimeline(p,false);assert.equal(timeline.events.length,patternSteps(p));for(let n=0;n<patternSteps(p);n++){const event=timeline.events[n];assert.equal(event.tick,patternStepTime(p,n)*24);assert.deepEqual(rows.slice(0,6).map(r=>r[event.slot]),percussionStep(p,n));}const snapshot=JSON.stringify(rows),edit=rows.map(r=>r.slice());paintDrumCell(edit,2,15,true,rows);assert.ok(edit[6][15]>0);assert.equal(JSON.stringify(factoryGrid(p)),snapshot);}
 });
-test('Edited grid plays all six tracks including clap and both original percussion layers',()=>{
- const rows=factoryGrid(1);for(let track=0;track<6;track++)paintDrumCell(rows,track,15,true);const e=engine({rhythm:1,drumCustom:true,drumEdits:{1:rows},tempo:120}),events=[];e.trace=x=>events.push(x);sequence(e);render(e,2.01);const end=events.find(x=>x.kind==='drum'&&x.slot===15);assert.ok(end);for(const i of [0,1,2,3,4,6])assert.ok(end.hits[i]>0);assert.ok(events.some(x=>x.kind==='drum'&&x.tick===96&&x.slot===0));
+test('Edited grid plays all seven tracks including clap and both original percussion layers',()=>{
+ const rows=factoryGrid(1);for(let track=0;track<7;track++)paintDrumCell(rows,track,15,true);const e=engine({rhythm:1,drumCustom:true,drumEdits:{1:rows},tempo:120}),events=[];e.trace=x=>events.push(x);sequence(e);render(e,2.01);const end=events.find(x=>x.kind==='drum'&&x.slot===15);assert.ok(end);for(const i of [0,1,2,3,4,5,6])assert.ok(end.hits[i]>0);assert.ok(events.some(x=>x.kind==='drum'&&x.tick===96&&x.slot===0));
 });
 test('SWING delays odd sixteenths, preserves bar length and applies edits on rhythm boundaries',()=>{
  const rows=factoryGrid(0),e=engine({tempo:120,swing:1,drumCustom:true,drumEdits:{0:rows}}),events=[];e.trace=x=>events.push(x);sequence(e);advance(e,.1);rows[0][0]=.1;e.configure({drumCustom:true,drumEdits:{0:rows},swing:.5});advance(e,4);
